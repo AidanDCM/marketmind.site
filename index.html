@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MarketMind — Product & Pricing Automation</title>
+    <meta name="description" content="MarketMind helps ecommerce teams automate catalog ingestion, pricing, and analytics across marketplaces." />
+    <meta name="theme-color" content="#0ea5e9" />
+    <style>
+      :root { --bg:#0b1220; --panel:#111827; --text:#e5e7eb; --muted:#9ca3af; --brand:#0ea5e9; --brand-2:#22d3ee; }
+      html,body{margin:0;padding:0;background:#0b1220;color:var(--text);font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+      .container{max-width:1100px;margin:0 auto;padding:0 20px}
+      header{position:sticky;top:0;background:rgba(11,18,32,.6);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.06)}
+      .nav{display:flex;align-items:center;justify-content:space-between;height:64px}
+      .logo{display:flex;align-items:center;gap:10px;font-weight:700}
+      .logo-badge{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--brand),var(--brand-2));display:grid;place-items:center;color:#001019}
+      .nav a{color:#9ca3af;margin-left:18px;font-size:14px;text-decoration:none}
+      .cta{background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#001019;padding:10px 14px;border-radius:10px;font-weight:700}
+      .hero{padding:80px 0 40px;text-align:center}
+      .title{font-size:clamp(28px,6vw,48px);line-height:1.1;margin:0}
+      .subtitle{color:#9ca3af;max-width:760px;margin:14px auto 0;font-size:clamp(14px,2.2vw,18px)}
+      .hero-cta{display:flex;gap:12px;justify-content:center;margin-top:26px;flex-wrap:wrap}
+      .btn{padding:12px 16px;border-radius:10px;font-weight:700;border:1px solid rgba(255,255,255,.08);text-decoration:none}
+      .btn.primary{background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#001019;border:none}
+      .btn.secondary{background:#0e1626;color:#e5e7eb}
+      .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:30px 0 60px}
+      .card{background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:18px}
+      .card h3{margin:6px 0 8px;font-size:18px}
+      .note{font-size:13px;color:#9ca3af}
+      .pill{display:inline-block;padding:6px 10px;border-radius:999px;font-size:12px;background:rgba(14,165,233,.15);color:#7dd3fc;border:1px solid rgba(14,165,233,.35)}
+      .footer{border-top:1px solid rgba(255,255,255,.06);color:#9ca3af;font-size:13px;padding:24px 0 60px}
+      @media(max-width:900px){.grid{grid-template-columns:1fr}}
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container nav">
+        <div class="logo">
+          <div class="logo-badge">MM</div>
+          <span>MarketMind</span>
+        </div>
+        <nav>
+          <a href="#features">Features</a>
+          <a href="#integrations">Integrations</a>
+          <a class="cta" href="#contact">Contact</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <span class="pill">Automation for Ecommerce Teams</span>
+        <h1 class="title">Automate Catalog Ingestion, Pricing, and Analytics</h1>
+        <p class="subtitle">MarketMind connects to suppliers and marketplaces to sync products, snapshot pricing, and surface decisions.</p>
+        <div class="hero-cta">
+          <a class="btn primary" href="#features">Explore Features</a>
+          <a class="btn secondary" href="#contact">Get in touch</a>
+        </div>
+      </section>
+
+      <section id="features" class="grid">
+        <article class="card"><h3>Catalog Ingestion</h3><p>Sync supplier catalogs and track checkpoints.</p></article>
+        <article class="card"><h3>Pricing Snapshots</h3><p>Pull competitive pricing and generate signals.</p></article>
+        <article class="card"><h3>Observability</h3><p>Queues, metrics, and health endpoints.</p></article>
+      </section>
+
+      <section id="integrations" class="grid">
+        <article class="card"><h3>Suppliers</h3><p>CJ Dropshipping, Shopify sources.</p></article>
+        <article class="card"><h3>Marketplaces</h3><p>Amazon SP‑API (Sandbox/NA), eBay Sandbox.</p></article>
+        <article class="card"><h3>Destinations</h3><p>Google Sheets, S3, SQLite/Postgres.</p></article>
+      </section>
+
+      <section id="contact" class="card">
+        <h3>Contact</h3>
+        <p class="note">For pilots/partnerships, please reach out.</p>
+        <ul class="note">
+          <li>Email: contact@example.com</li>
+          <li>GitHub: https://github.com/YOUR_USERNAME</li>
+        </ul>
+      </section>
+
+      <footer class="footer">
+        <div class="container">© <span id="y"></span> MarketMind. All rights reserved.</div>
+      </footer>
+    </main>
+
+    <script>document.getElementById('y').textContent=new Date().getFullYear();</script>
+  </body>
+</html>
