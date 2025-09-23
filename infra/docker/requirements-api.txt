@@ -2,6 +2,7 @@ fastapi==0.116.1
 starlette==0.47.2
 uvicorn==0.30.6
 pydantic==2.8.2
+pydantic-settings==2.4.0
 structlog==24.2.0
 redis==5.0.7
 SQLAlchemy==2.0.34
