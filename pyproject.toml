@@ -1,0 +1,46 @@
+[tool.black]
+line-length = 100
+target-version = ["py39"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+known_first_party = ["apps", "packages", "scripts"]
+
+[tool.ruff]
+line-length = 100
+exclude = [
+  "packages/models/**",  # legacy models dir; active models in packages/database/models/
+  ".venv/**",
+  "venv/**",
+  "**/.venv/**",
+  "**/venv/**",
+  "node_modules/**",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.ruff.lint]
+select = [
+  "E",  # pycodestyle errors
+  "F",  # pyflakes
+  "I",  # isort
+  "B",  # flake8-bugbear
+]
+ignore = [
+  "E203",  # whitespace before ':' (Black compatibility)
+  "E501",  # line length handled by formatter
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["apps", "packages", "scripts"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests and third_party often contain intentional patterns; reduce noise.
+"tests/**/*" = ["F401", "F841", "I001", "B017", "F811", "E402"]
+"third_party/**/*" = ["F401", "F841", "I001", "F811"]
+"scripts/**/*" = ["F401", "F841", "I001", "F541"]
+"packages/shared/tests/**/*" = ["F401", "F841", "I001", "B017", "F811", "E402"]
+"packages/shared/config/__init__.py" = ["F401"]
+"apps/hive_api/routers/*.py" = ["B008"]

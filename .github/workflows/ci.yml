@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Set up Node.js (for console build if needed)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install system deps
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install -U pip
+          .venv/bin/pip install -r infra/docker/requirements-api.txt
+          .venv/bin/pip install -r infra/docker/requirements-worker.txt
+          .venv/bin/pip install -r requirements-dev.txt
+
+      - name: Lint and type-check (quick gates)
+        run: |
+          .venv/bin/ruff --version
+          .venv/bin/ruff check packages scripts || true
+          .venv/bin/mypy --version
+          .venv/bin/mypy packages/database || true
+
+      - name: Migrate DB
+        run: |
+          DB_URL=sqlite:///./dev.db PYTHONPATH=. .venv/bin/python scripts/alembic_cli.py -c alembic.ini upgrade head
+
+      - name: Seed minimal + profit
+        run: |
+          DB_URL=sqlite:///./dev.db PYTHONPATH=. .venv/bin/python scripts/seed_minimal.py || true
+          DB_URL=sqlite:///./dev.db PYTHONPATH=. .venv/bin/python scripts/seed_profit_log.py || true
+
+      - name: Start API (background)
+        run: |
+          nohup DB_URL=sqlite:///./dev.db APP_ENV=dev PYTHONPATH=. .venv/bin/python -m uvicorn apps.hive_api.main:app --host 127.0.0.1 --port 8001 >/dev/null 2>&1 & echo $! > .api.pid
+          for i in {1..20}; do curl -sf http://127.0.0.1:8001/_info && break || sleep 1; done
+
+      - name: Verify integrations (live suite)
+        run: |
+          bash scripts/verify_integrations.sh
+
+      - name: Phase backtests (10/12/13/14/15)
+        run: |
+          make phase10-backtest
+          make phase12-backtest
+          make phase13-backtest
+          make phase14-backtest
+          make phase15-backtest
+
+      - name: API smoke tests (broader)
+        run: |
+          PYTHONPATH=. .venv/bin/python -m pytest -q apps/hive_api/tests/test_smoke_all.py apps/hive_api/tests/test_profit.py
+
+      - name: Stop API
+        if: always()
+        run: |
+          if [ -f .api.pid ]; then kill $(cat .api.pid) || true; fi
+
+      - name: Core unit tests (quick gate)
+        run: |
+          make test

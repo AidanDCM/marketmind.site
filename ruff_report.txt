@@ -1,0 +1,108 @@
+[2025-08-18][14:32:57][ruff::resolve][DEBUG] Using configuration file (via parent) at: /Users/aidanmiller/Desktop/Ecommerce Projects/MarketMind copy/pyproject.toml
+[2025-08-18][14:32:57][ruff_workspace::resolver][DEBUG] Included path via `include`: "/Users/aidanmiller/Desktop/Ecommerce Projects/MarketMind copy/packages/pricing/snapshot.py"
+[2025-08-18][14:32:57][ruff_workspace::resolver][DEBUG] Included path via `include`: "/Users/aidanmiller/Desktop/Ecommerce Projects/MarketMind copy/packages/pricing/api.py"
+[2025-08-18][14:32:57][ruff_workspace::resolver][DEBUG] Included path via `include`: "/Users/aidanmiller/Desktop/Ecommerce Projects/MarketMind copy/packages/pricing/__init__.py"
+[2025-08-18][14:32:57][ruff_workspace::resolver][DEBUG] Included path via `include`: "/Users/aidanmiller/Desktop/Ecommerce Projects/MarketMind copy/packages/pricing/tasks.py"
+[2025-08-18][14:32:57][ruff::commands::check][DEBUG] Identified files to lint in: 8.683549ms
+[2025-08-18][14:32:57][ruff::commands::check][DEBUG] Checked 4 files in: 814.915µs
+packages/pricing/api.py:50:80: B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+   |
+48 | @router.post("/snapshots", response_model=SnapshotResponse)
+49 | async def create_pricing_snapshot(
+50 |     request: SnapshotRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)
+   |                                                                                ^^^^^^^^^^^^^^^ B008
+51 | ) -> SnapshotResponse:
+52 |     """Create a new pricing snapshot.
+   |
+
+packages/pricing/api.py:60:9: B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+   |
+58 |           source = PricingSource(request.source.lower())
+59 |       except ValueError:
+60 |           raise HTTPException(
+   |  _________^
+61 | |             status_code=status.HTTP_400_BAD_REQUEST,
+62 | |             detail=f"Invalid source. Must be one of: {', '.join(e.value for e in PricingSource)}",
+63 | |         )
+   | |_________^ B904
+64 |   
+65 |       config = PricingSnapshotConfig(
+   |
+
+packages/pricing/api.py:92:19: B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+   |
+90 |     source: Optional[str] = None,
+91 |     source_id: Optional[str] = None,
+92 |     db: Session = Depends(get_db),
+   |                   ^^^^^^^^^^^^^^^ B008
+93 | ) -> Optional[PricingSnapshot]:
+94 |     """Get the latest pricing for a product."""
+   |
+
+packages/pricing/api.py:116:19: B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+    |
+114 |     limit: int = 100,
+115 |     offset: int = 0,
+116 |     db: Session = Depends(get_db),
+    |                   ^^^^^^^^^^^^^^^ B008
+117 | ) -> List[PricingSnapshot]:
+118 |     """Get pricing history for a product."""
+    |
+
+packages/pricing/snapshot.py:7:1: I001 [*] Import block is un-sorted or un-formatted
+   |
+ 5 |   """
+ 6 |   
+ 7 | / import asyncio
+ 8 | | import logging
+ 9 | | from datetime import datetime, timezone
+10 | | from enum import Enum
+11 | | from typing import Any, Dict, List, Optional, Tuple
+12 | | 
+13 | | from pydantic import BaseModel, Field, validator
+14 | | from sqlalchemy.orm import Session
+15 | | 
+16 | | from packages.database.models.pricing import PricingSnapshot as DBPricingSnapshot, PricingSource
+17 | | 
+18 | | # Configure logging
+   | |_^ I001
+19 |   logging.basicConfig(level=logging.INFO)
+20 |   logger = logging.getLogger(__name__)
+   |
+   = help: Organize imports
+
+packages/pricing/snapshot.py:108:9: F841 Local variable `task` is assigned to but never used
+    |
+106 |     if background_tasks:
+107 |         # Schedule the task to run in the background
+108 |         task = asyncio.create_task(capture_pricing_snapshot_task(db, config, user_id))
+    |         ^^^^ F841
+109 |         # In a real app, you might want to store the task ID for tracking
+110 |         return -1, SnapshotStatus.IN_PROGRESS
+    |
+    = help: Remove assignment to unused variable `task`
+
+packages/pricing/tasks.py:3:1: I001 [*] Import block is un-sorted or un-formatted
+   |
+ 1 |   """Background tasks for the pricing module."""
+ 2 |   
+ 3 | / import logging
+ 4 | | from datetime import datetime, timezone, timedelta
+ 5 | | from typing import Optional, Tuple
+ 6 | | 
+ 7 | | from sqlalchemy.orm import Session
+ 8 | | 
+ 9 | | from packages.database.models import Product, PricingSource
+10 | | from packages.database.models.pricing import PricingSnapshot as DBPricingSnapshot
+11 | | 
+12 | | from .snapshot import PricingSnapshotConfig, SnapshotStatus
+13 | | 
+14 | | # Configure logging
+   | |_^ I001
+15 |   logging.basicConfig(level=logging.INFO)
+16 |   logger = logging.getLogger(__name__)
+   |
+   = help: Organize imports
+
+Found 7 errors.
+[*] 2 fixable with the `--fix` option (1 hidden fix can be enabled with the `--unsafe-fixes` option).

@@ -1,0 +1,35 @@
+# Git and version control
+.git
+.gitignore
+
+# Environment files (keep only examples)
+.env
+.env.*
+!.env.*.example
+
+# Development files
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+node_modules/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test and coverage files
+htmlcov/
+.coverage
+.pytest_cache/
+reports/
+
+# Documentation build
+docs/_build/
+
+# Temporary files
+*.tmp
+*.log
+.cache/

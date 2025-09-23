@@ -1,0 +1,12 @@
+celery==5.4.0
+redis==5.0.7
+python-dotenv==1.0.1
+structlog==24.2.0
+httpx==0.27.0
+SQLAlchemy==2.0.34
+psycopg2-binary==2.9.9
+
+# Observability stack (optional)
+sentry-sdk==2.13.0
+opentelemetry-instrumentation-celery==0.47b0
+prometheus-client==0.20.0

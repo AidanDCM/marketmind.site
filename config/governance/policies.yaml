@@ -1,0 +1,19 @@
+# Default governance policies (observe-only)
+- name: "Minimum Margin"
+  action: "warn"
+  priority: 50
+  scope: "pricing"
+  match:
+    all:
+      - field: "pricing.margin_pct"
+        op: ">="
+        value: 10
+- name: "MAP Compliance"
+  action: "deny"
+  priority: 40
+  scope: "pricing"
+  match:
+    all:
+      - field: "pricing.map_breached"
+        op: "=="
+        value: true

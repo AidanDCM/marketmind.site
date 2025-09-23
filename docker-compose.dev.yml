@@ -1,0 +1,162 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: hive
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d hive"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Run migrations before API starts
+  migrate:
+    build:
+      context: .
+      dockerfile: infra/docker/hive-api.Dockerfile
+    command: ["python", "-m", "alembic", "upgrade", "head"]
+    environment:
+      - DB_URL=postgresql+psycopg2://postgres:postgres@db:5432/hive
+      - APP_ENV=development
+    volumes:
+      - ./alembic:/app/alembic
+      - ./alembic.ini:/app/alembic.ini
+      - ./packages:/app/packages
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # API Server
+  api:
+    build:
+      context: .
+      dockerfile: infra/docker/hive-api.Dockerfile
+    ports:
+      - "8001:8000"
+    environment:
+      - DB_URL=postgresql+psycopg2://postgres:postgres@db:5432/hive
+      - REDIS_URL=redis://redis:6379/0
+      - APP_ENV=development
+      - SECRET_KEY=dev-secret-key-change-in-production
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      # Auth defaults for dev
+      - AUTH_FIRST_SUPERUSER=admin@example.com
+      - AUTH_FIRST_SUPERUSER_PASSWORD=admin123
+    volumes:
+      - ./packages:/app/packages
+      - ./apps/hive_api:/app/apps/hive_api
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/summary"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    # Override production Gunicorn with dev Uvicorn for hot reload
+    command: ["python", "-m", "uvicorn", "apps.hive_api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+  # Celery Worker
+  worker:
+    build:
+      context: .
+      dockerfile: infra/docker/hive-worker.Dockerfile
+    environment:
+      - DB_URL=postgresql+psycopg2://postgres:postgres@db:5432/hive
+      - REDIS_URL=redis://redis:6379/0
+      - APP_ENV=development
+    volumes:
+      - ./packages:/app/packages
+      - ./apps/hive_worker:/app/apps/hive_worker
+    depends_on:
+      api:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "celery", "-A", "apps.hive_worker.celery_app:app", "inspect", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # Celery Beat Scheduler
+  beat:
+    build:
+      context: .
+      dockerfile: infra/docker/hive-beat.Dockerfile
+    environment:
+      - DB_URL=postgresql+psycopg2://postgres:postgres@db:5432/hive
+      - REDIS_URL=redis://redis:6379/0
+      - APP_ENV=development
+    volumes:
+      - ./packages:/app/packages
+      - ./apps/hive_worker:/app/apps/hive_worker
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "celery.*beat"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Next.js Console
+  console:
+    build:
+      context: .
+      dockerfile: infra/docker/console.Dockerfile
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8001
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/console:/app/apps/console
+      # Exclude node_modules from volume mount to use container's installed packages
+      - /app/apps/console/node_modules
+      - /app/apps/console/.next
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  postgres_dev_data:

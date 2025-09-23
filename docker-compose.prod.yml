@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  api:
+    image: marketmind/api:latest
+    ports:
+      - "8001:8001"
+    environment:
+      - APP_ENV=production
+      - DB_URL=${DB_URL}
+      - REDIS_URL=${REDIS_URL}
+      - SECRET_KEY=${SECRET_KEY}
+      - SENTRY_DSN=${SENTRY_DSN}
+      - TRUSTED_HOSTS=${TRUSTED_HOSTS}
+      - CORS_ORIGINS=${CORS_ORIGINS}
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health/summary"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  worker:
+    image: marketmind/worker:latest
+    environment:
+      - APP_ENV=production
+      - DB_URL=${DB_URL}
+      - REDIS_URL=${REDIS_URL}
+      - SENTRY_DSN=${SENTRY_DSN}
+      - WORKER_METRICS_PORT=9091
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+    healthcheck:
+      # Use explicit app path target with colon syntax so Celery discovers the application object
+      test: ["CMD", "celery", "-A", "apps.hive_worker.celery_app:app", "inspect", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  beat:
+    image: marketmind/beat:latest
+    environment:
+      - APP_ENV=production
+      - DB_URL=${DB_URL}
+      - REDIS_URL=${REDIS_URL}
+      - SENTRY_DSN=${SENTRY_DSN}
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "celery.*beat"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Production uses external managed services
+  # db: External PostgreSQL (RDS, Cloud SQL, etc.)
+  # redis: External Redis (ElastiCache, Cloud Memorystore, etc.)
+
+networks:
+  default:
+    driver: overlay
+    attachable: true

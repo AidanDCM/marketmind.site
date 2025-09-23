@@ -1,0 +1,39 @@
+
+# hygiene
+.venv/
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# local environment files (keep examples tracked)
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# secrets and credentials (do not commit)
+secrets/
+*.pem
+*.key
+*.p12
+*.json
+!secrets/README.md
+
+# coverage & reports
+htmlcov/
+reports/
+coverage.xml
+*.coverage*
+
+# database files (never commit)
+*.db
+*.sqlite
+*.sqlite3
+
+# local runtime pids
+.api.pid
+.worker.pid
+.beat.pid
+node_modules/
+.next/

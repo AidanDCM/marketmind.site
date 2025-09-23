@@ -1,0 +1,204 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  PYTHON_VERSION: '3.12'
+  DATABASE_URL: sqlite:///./test.db
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r infra/docker/requirements-api.txt
+        pip install -r infra/docker/requirements-worker.txt
+        pip install pytest pytest-cov
+    
+    - name: Run tests with coverage (80% threshold)
+      env:
+        DATABASE_URL: ${{ env.DATABASE_URL }}
+        REDIS_URL: redis://localhost:6379/0
+        PYTHONPATH: .
+      run: |
+        pytest --cov=apps --cov=packages --cov-report=xml --cov-fail-under=80
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./coverage.xml
+        fail_ci_if_error: false
+
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Secret scan with gitleaks
+      uses: zricethezav/gitleaks-action@v2
+      with:
+        args: "detect --source . --no-git -v"
+    
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install ruff mypy bandit pip-audit
+    
+    - name: Run Ruff (linting and formatting)
+      run: |
+        ruff check .
+        ruff format --check .
+    
+    - name: Run mypy (type checking)
+      run: mypy apps packages --ignore-missing-imports
+
+    - name: Run bandit (security linter)
+      run: bandit -r packages apps -x "**/tests/**" -q
+
+    - name: Run pip-audit (dependency vulnerabilities)
+      run: |
+        pip-audit -r infra/docker/requirements-api.txt || true
+        pip-audit -r infra/docker/requirements-worker.txt || true
+
+  build:
+    name: Build Docker Images
+    needs: [test, lint]
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Extract metadata
+      id: meta-api
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/api
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+    
+    - name: Build and push API image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./infra/docker/hive-api.Dockerfile
+        push: true
+        tags: ${{ steps.meta-api.outputs.tags }}
+        labels: ${{ steps.meta-api.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Extract metadata (Worker)
+      id: meta-worker
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/worker
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+    
+    - name: Build and push Worker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./infra/docker/hive-worker.Dockerfile
+        push: true
+        tags: ${{ steps.meta-worker.outputs.tags }}
+        labels: ${{ steps.meta-worker.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Run Trivy vulnerability scanner (API)
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/api:latest
+        format: 'sarif'
+        output: 'trivy-api-results.sarif'
+    
+    - name: Upload Trivy scan results (API)
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-api-results.sarif'
+
+  deploy:
+    name: Deploy to Production
+    needs: [test, lint, build]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Run launch readiness checks
+      run: |
+        # This would run against staging environment first
+        echo "Launch readiness checks would run here"
+        # ./scripts/launch_readiness_check.sh
+    
+    - name: Deploy to production
+      run: |
+        echo "Production deployment would happen here"
+        # Examples:
+        # - Update Kubernetes manifests with new image tags
+        # - Trigger deployment in your orchestration platform
+        # - Run database migrations
+        # - Perform blue-green deployment
+        # - Run post-deployment smoke tests
+
+    - name: Post-deployment observability smoke (optional)
+      run: |
+        if [ -n "${{ secrets.POST_DEPLOY_API_BASE }}" ]; then
+          echo "Running observability smoke against ${{ secrets.POST_DEPLOY_API_BASE }}"
+          export API_BASE="${{ secrets.POST_DEPLOY_API_BASE }}"
+          chmod +x scripts/observability_smoke.sh
+          ./scripts/observability_smoke.sh
+        else
+          echo "Skipping observability smoke: POST_DEPLOY_API_BASE secret not set."
+        fi
