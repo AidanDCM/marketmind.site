@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "marketmind-autopilot"
+version = "0.1.0"
+description = "Human-in-the-loop commerce operator engine for product economics, scoring, approvals, and experiment control."
+requires-python = ">=3.10"
+authors = [{ name = "AidanDCM" }]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["marketmind*"]
