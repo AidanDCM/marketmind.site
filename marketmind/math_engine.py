@@ -152,7 +152,10 @@ def _reason_summary(
     if action == RecommendedAction.ORGANIC_ONLY_TEST:
         return "Organic-only test: math can work, but no paid acquisition estimate is approved yet."
     if action == RecommendedAction.PAID_TEST_REQUIRES_APPROVAL:
-        return f"Paid test can be considered with approval; estimated contribution profit is {estimated_contribution_profit:.2f}."
+        return (
+            "Paid test can be considered with approval; estimated contribution profit is "
+            f"{estimated_contribution_profit:.2f}."
+        )
     if risks:
         return "Continue carefully: economics are not immediately fatal, but risks need review."
     return "Continue: economics appear acceptable under current assumptions."
