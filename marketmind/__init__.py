@@ -1,5 +1,6 @@
 """MarketMind Autopilot core package."""
 
+from .experiment_rules import evaluate_experiment
 from .math_engine import calculate_unit_economics
 from .schemas import (
     AssumptionRecord,
@@ -7,6 +8,9 @@ from .schemas import (
     Channel,
     ChannelRecommendation,
     CriterionScore,
+    ExperimentRuling,
+    ExperimentRulingResult,
+    ExperimentSnapshot,
     NicheCandidate,
     ProductCandidate,
     ProductCostInput,
@@ -42,4 +46,9 @@ __all__ = [
     "recommend_channel",
     "score_niche",
     "score_product",
+    # Slice 4: experiment rules
+    "ExperimentRuling",
+    "ExperimentRulingResult",
+    "ExperimentSnapshot",
+    "evaluate_experiment",
 ]

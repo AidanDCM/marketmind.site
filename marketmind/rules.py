@@ -87,3 +87,35 @@ NICHE_SCORE_WEIGHTS: dict[str, float] = {
 # Assumption ledger thresholds.
 ASSUMPTION_VERIFIED = 0.80
 ASSUMPTION_SUPPORTED = 0.50
+
+# ---------------------------------------------------------------------------
+# Slice 4: experiment rule thresholds (from PNL_MODEL.md kill/scale rules)
+#
+# These are the live performance gates. They are separate from the scoring
+# weights above — scoring gates a candidate *before* money is spent; experiment
+# rules gate it *during* a live test using real performance data.
+# ---------------------------------------------------------------------------
+
+# Kill: CAC has been above break-even for this many consecutive periods.
+KILL_CONSECUTIVE_LOSING_PERIODS = 3
+
+# Kill: no sales after this many qualified visits.
+KILL_VISITS_WITHOUT_SALE = 500
+
+# Kill: add-to-cart rate below this threshold after meaningful traffic.
+KILL_ATC_RATE = 0.03
+
+# Kill: refund/defect rate above this is unacceptable.
+KILL_REFUND_RATE = 0.10
+
+# Kill: actual shipping exceeded plan by this fraction (20 %).
+KILL_SHIPPING_OVERRUN = 0.20
+
+# Scale: CAC must be at or below break-even * this factor to consider scaling.
+SCALE_MAX_CAC_FACTOR = SAFE_CAC_HIGH_MULTIPLIER  # 0.70
+
+# Scale: minimum order count before a scale recommendation is trusted.
+SCALE_MIN_ORDERS = 10
+
+# Scale: conversion rate below this is a signal to not scale yet.
+SCALE_MIN_CONVERSION_RATE = 0.01  # 1 % of qualified visits

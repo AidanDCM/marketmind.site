@@ -267,3 +267,108 @@ class ScoreResult:
         data["risks"] = list(self.risks)
         data["channel"] = self.channel.to_dict() if self.channel else None
         return data
+
+
+# ---------------------------------------------------------------------------
+# Slice 4: experiment schemas
+#
+# ExperimentSnapshot captures what we've observed about a live experiment so far.
+# ExperimentRulingis the decision the rule engine returns.
+# ---------------------------------------------------------------------------
+
+
+class ExperimentRuling(str, Enum):
+    """Decision the experiment rule engine returns for a live test."""
+
+    CONTINUE = "continue"
+    PAUSE_ADS = "pause_ads"
+    REVISE_OFFER = "revise_offer"
+    KILL = "kill"
+    SCALE_REQUIRES_APPROVAL = "scale_requires_approval"
+
+
+@dataclass(frozen=True)
+class ExperimentSnapshot:
+    """Observed performance data for one experiment period.
+
+    All rate fields are fractions (0.0-1.0). Money fields use the same currency
+    as ProductCostInput. ``consecutive_losing_periods`` counts how many periods
+    in a row the actual CAC has been above break-even.
+    """
+
+    experiment_id: str
+    product_name: str
+    break_even_cac: float                  # from the math engine
+    qualified_visits: int = 0
+    orders: int = 0
+    total_ad_spend: float = 0.0
+    total_revenue: float = 0.0
+    refund_count: int = 0
+    actual_shipping_cost: float = 0.0      # average per order
+    planned_shipping_cost: float = 0.0     # from the original product input
+    add_to_cart_count: int = 0
+    consecutive_losing_periods: int = 0    # number of periods CAC > break-even
+    budget_cap: float = 0.0                # 0 = not yet set (blocks spending)
+
+    def __post_init__(self) -> None:
+        if not self.experiment_id.strip():
+            raise ValueError("experiment_id is required")
+        if not self.product_name.strip():
+            raise ValueError("product_name is required")
+        if self.break_even_cac < 0:
+            raise ValueError("break_even_cac must be non-negative")
+        for name in ("qualified_visits", "orders", "refund_count",
+                     "add_to_cart_count", "consecutive_losing_periods"):
+            if getattr(self, name) < 0:
+                raise ValueError(f"{name} must be non-negative")
+        for name in ("total_ad_spend", "total_revenue",
+                     "actual_shipping_cost", "planned_shipping_cost", "budget_cap"):
+            if getattr(self, name) < 0:
+                raise ValueError(f"{name} must be non-negative")
+
+    # Derived metrics (computed from raw counters, never stored).
+
+    @property
+    def actual_cac(self) -> float:
+        return self.total_ad_spend / self.orders if self.orders > 0 else 0.0
+
+    @property
+    def conversion_rate(self) -> float:
+        return self.orders / self.qualified_visits if self.qualified_visits > 0 else 0.0
+
+    @property
+    def add_to_cart_rate(self) -> float:
+        return (
+            self.add_to_cart_count / self.qualified_visits
+            if self.qualified_visits > 0 else 0.0
+        )
+
+    @property
+    def refund_rate(self) -> float:
+        return self.refund_count / self.orders if self.orders > 0 else 0.0
+
+    @property
+    def shipping_overrun(self) -> float:
+        """Fraction by which actual shipping exceeded plan (0.0 if on/under plan)."""
+        if self.planned_shipping_cost <= 0:
+            return 0.0
+        overrun = (self.actual_shipping_cost - self.planned_shipping_cost)
+        return max(0.0, overrun / self.planned_shipping_cost)
+
+
+@dataclass(frozen=True)
+class ExperimentRulingResult:
+    """Structured result from the experiment rule engine."""
+
+    experiment_id: str
+    product_name: str
+    ruling: ExperimentRuling
+    risks: tuple[str, ...] = field(default_factory=tuple)
+    reason_summary: str = ""
+    requires_approval: bool = False
+
+    def to_dict(self) -> dict[str, Any]:
+        data = asdict(self)
+        data["ruling"] = self.ruling.value
+        data["risks"] = list(self.risks)
+        return data
