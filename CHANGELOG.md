@@ -6,6 +6,30 @@ This file is part of the Parts & Pieces starter package requirement.
 
 ---
 
+## 2026-06-16 — Slice 19: approved-action executor + event ledger
+
+### Added
+
+**Event ledger writer (`marketmind/db/event_store.py`)**
+- `append_event` / `list_events` / `event_exists` — the append-only writer for
+  the `events` table, which had existed since Slice 11 with no writer. Payloads
+  are JSON-serialized to TEXT; events are never updated or deleted.
+
+**Slice 19: approved-action executor (`marketmind/executor.py`)**
+- `execute_approved(engine, approval_id, dry_run=True)` — acts on an APPROVED
+  request, the hand on the far side of the approval gate. Closes the loop:
+  runner queues scale → human approves → executor applies it.
+- `execute_all_approved(engine, dry_run=True)` — batch over all un-executed
+  APPROVED records; per-action refusals are captured, never block the batch.
+- `execution_log(engine)` — the append-only record of what was executed.
+- Safety: refuses anything not APPROVED; `dry_run=True` default (records intent,
+  no spend/external call); live execution of ad-budget scaling is refused
+  (no integration wired — safe-fail, never a silent spend); idempotent per
+  approval_id via the event ledger.
+- 10 tests in `tests/test_executor.py`.
+
+---
+
 ## 2026-06-16 — CI pipeline + Slice 18: experiment-runner loop
 
 ### Added
