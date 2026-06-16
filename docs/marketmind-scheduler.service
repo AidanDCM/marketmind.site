@@ -1,0 +1,19 @@
+[Unit]
+Description=MarketMind nightly experiment-cycle scheduler
+After=network.target
+
+[Service]
+Type=simple
+User=marketmind
+WorkingDirectory=/opt/marketmind
+EnvironmentFile=/opt/marketmind/.env
+ExecStart=/opt/marketmind/.venv/bin/marketmind-scheduler --hour 6
+Restart=on-failure
+RestartSec=60
+
+# Harden the service
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

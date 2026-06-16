@@ -2,6 +2,39 @@
 
 ---
 
+## 2026-06-16 — Slice 31: Nightly run scheduler
+
+### Added
+
+**`marketmind/scheduler.py`**
+- `run_scheduler(hour, run_now, once)` — blocks and fires `run_daily_cycle` each
+  day at the configured local hour. `--once` mode exits after one cycle (for cron).
+  Exceptions in a cycle are caught and logged; the loop never crashes permanently.
+- `main()` — argparse CLI: `--hour N`, `--now` (fire immediately then schedule),
+  `--once`.
+- `_seconds_until(hour, minute)` — pure helper: seconds until the next occurrence
+  of a local wall-clock time (wraps to tomorrow if already passed today).
+
+**`marketmind-scheduler` CLI entrypoint** (`pyproject.toml`)
+- `marketmind-scheduler` installed alongside `marketmind` for direct invocation
+  by systemd or Docker `CMD`.
+
+**`docs/marketmind-scheduler.service`**
+- Drop-in systemd unit file for bare-metal / VPS deployments. Points at
+  `/opt/marketmind/.venv/bin/marketmind-scheduler --hour 6`; `Restart=on-failure`.
+
+**`marketmind/cli.py`**
+- Added `scheduler` command: `marketmind scheduler` proxies to `scheduler.main()`.
+
+**`tests/test_scheduler.py`** (7 tests)
+- `_seconds_until` future/past/exact-minute coverage.
+- `run_scheduler --once` fires one cycle and returns.
+- CLI arg parsing: `--once`, `--hour`, `--now`.
+
+Suite: **284 passing**; ruff clean.
+
+---
+
 ## 2026-06-16 — Slice 30: Alembic migrations
 
 ### Added
