@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { getSnapshotTrend, type SnapshotRecord } from "../api/client";
 
 const DAY_OPTIONS = [7, 14, 30, 60, 90];
