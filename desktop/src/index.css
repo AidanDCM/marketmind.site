@@ -231,3 +231,20 @@ button { cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 60
 .spec-section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent-hover); margin-bottom: 8px; }
 .spec-text { font-size: 13px; line-height: 1.6; color: var(--text); }
 .spec-tag { display: inline-block; background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 3px 10px; font-size: 12px; margin: 3px 3px 3px 0; }
+
+/* Muted text */
+.dim { color: var(--text-muted); font-size: 13px; margin: 0; }
+
+/* Secondary button */
+.btn-secondary { background: var(--surface-2); color: var(--text-muted); border: 1px solid var(--border); }
+.btn-secondary:hover { color: var(--text); background: var(--surface-3, var(--surface-2)); }
+
+/* Error banner */
+.error-banner { padding: 12px 16px; border-radius: 8px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: var(--red); font-size: 13px; margin-bottom: 16px; }
+
+/* Live data table */
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th { text-align: left; padding: 8px 12px; background: var(--surface-2); color: var(--text-muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.data-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: top; }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: rgba(255,255,255,0.03); }
