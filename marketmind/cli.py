@@ -5,7 +5,10 @@ from __future__ import annotations
 import json
 import sys
 
+from .db.engine import make_engine
+from .db.models import Base
 from .math_engine import calculate_unit_economics
+from .runner import run_daily_cycle
 from .schemas import OfferContext, ProductCandidate, ProductCostInput
 from .scoring import score_product
 from .spec_generator import generate_offer_spec
@@ -75,10 +78,25 @@ def spec_sample() -> None:
     print(json.dumps(result.to_dict(), indent=2, sort_keys=True))
 
 
+def run_cycle() -> None:
+    """Run one daily experiment cycle against the configured database.
+
+    Reads snapshots already recorded for today, evaluates kill/scale rules,
+    queues any scale requests for approval, and prints the run result. Never
+    spends money or calls an external API.
+    """
+
+    engine = make_engine()
+    Base.metadata.create_all(engine)
+    result = run_daily_cycle(engine)
+    print(json.dumps(result.to_dict(), indent=2, sort_keys=True))
+
+
 COMMANDS = {
     "calc-sample": calc_sample,
     "score-sample": score_sample,
     "spec-sample": spec_sample,
+    "run-cycle": run_cycle,
 }
 
 
