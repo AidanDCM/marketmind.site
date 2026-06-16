@@ -2,6 +2,37 @@
 
 ---
 
+## 2026-06-16 — Slice 35: Experiment Trend View
+
+### Added
+
+**`marketmind/api/routers/snapshots.py`**
+- `GET /snapshots/trend/{experiment_id}?days=N` — returns all snapshots for one
+  experiment across all dates within the last N days (default 30), sorted by date
+  ascending. Returns `[]` for unknown experiments. Each row includes computed fields
+  (`actual_cac`, `conversion_rate`, `add_to_cart_rate`, `refund_rate`, `break_even_cac`).
+
+**`desktop/src/components/SnapshotTrend.tsx`**
+- Experiment ID input + days selector + Load button.
+- SVG line chart: actual CAC line (solid), break-even CAC reference (dashed amber),
+  avg order value (dashed green). X-axis labels are MM-DD dates.
+- Summary row: total orders, revenue, spend, avg CAC (green/red vs break-even).
+- Daily breakdown table (date, orders, revenue, ad spend, CAC, conv%, refund%).
+
+**`desktop/src/api/client.ts`**
+- `getSnapshotTrend(experimentId, days?)` function.
+
+**`desktop/src/App.tsx`**
+- Added `"trend"` page type, nav entry with waveform icon, renders `<SnapshotTrend />`.
+
+**`tests/test_snapshot_trend.py`** (7 tests)
+- Empty for unknown experiment; date ordering; computed fields present; `days` filter;
+  default 30-day window; multi-experiment isolation; date in response.
+
+Suite: **314 passing**; ruff clean.
+
+---
+
 ## 2026-06-16 — Slices 33 + 34: Import History dashboard & Snapshot Recording API
 
 ### Added
