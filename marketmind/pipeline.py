@@ -1,0 +1,91 @@
+"""Slice 21: offer -> approval pipeline.
+
+The last gap between "score an offer" and "execute an approved action". Given an
+OfferContext, this builds the spec, builds the channel payload, creates a gated
+approval, and stores the payload in the event ledger — so the operator's only
+remaining step is to approve (then the executor runs it).
+
+    OfferContext -> generate_offer_spec -> build channel payload
+                 -> make/evaluate approval (HIGH -> PENDING)
+                 -> record_action_payload (event ledger)
+
+No money, no external calls: the payload is always built dry-run, and the
+approval lands PENDING (never auto-approved). Live execution still requires a
+human approval plus credentials at execute time (see executor).
+"""
+
+from __future__ import annotations
+
+from sqlalchemy.engine import Engine
+
+from .adapters.shopify_adapter import build_product_draft
+from .adapters.stripe_adapter import build_payment_link_payload
+from .approvals import evaluate_approval, make_approval_record
+from .db import approval_store
+from .executor import record_action_payload
+from .logging_config import get_logger
+from .schemas import ApprovalRecord, OfferContext
+from .spec_generator import generate_offer_spec
+
+log = get_logger(__name__)
+
+_CHANNEL_ACTION = {
+    "stripe": "create_stripe_payment_link",
+    "shopify": "publish_shopify_product",
+}
+_CHANNEL_ROLLBACK = {
+    "stripe": "Deactivate the Stripe payment link in the dashboard.",
+    "shopify": "Set the Shopify product back to draft / unpublish.",
+}
+
+
+def prepare_offer_for_approval(
+    engine: Engine,
+    offer_context: OfferContext,
+    channel: str = "stripe",
+    vendor: str = "MarketMind",
+    product_type: str = "",
+) -> ApprovalRecord:
+    """Turn an OfferContext into a PENDING approval with its payload attached.
+
+    Returns the gated ApprovalRecord (PENDING for the HIGH-risk channel actions).
+    Raises ValueError for an unknown channel.
+    """
+    if channel not in _CHANNEL_ACTION:
+        raise ValueError(f"Unknown channel {channel!r}. Use 'stripe' or 'shopify'.")
+
+    spec = generate_offer_spec(offer_context)
+
+    if channel == "stripe":
+        payload = build_payment_link_payload(spec)
+        summary = (
+            f"Create Stripe payment link for {offer_context.product_name} "
+            f"at ${offer_context.sale_price:.2f}"
+        )
+    else:
+        payload = build_product_draft(spec, vendor=vendor, product_type=product_type)
+        summary = (
+            f"Publish Shopify product {offer_context.product_name!r} "
+            f"(${offer_context.sale_price:.2f})"
+        )
+
+    record = make_approval_record(
+        action=_CHANNEL_ACTION[channel],
+        summary=summary,
+        expected_cost=offer_context.sale_price,
+        rollback_plan=_CHANNEL_ROLLBACK[channel],
+    )
+    gated = evaluate_approval(record)
+    approval_store.create_approval(engine, gated)
+    record_action_payload(engine, gated.approval_id, payload.to_dict())
+
+    log.info(
+        "offer prepared for approval",
+        extra={
+            "approval_id": gated.approval_id,
+            "channel": channel,
+            "action": gated.action,
+            "status": gated.status.value,
+        },
+    )
+    return gated

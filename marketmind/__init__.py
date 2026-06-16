@@ -13,6 +13,7 @@ from .executor import (
 from .experiment_rules import evaluate_experiment
 from .importers import import_ad_report_csv, import_orders_csv, import_products_csv
 from .math_engine import calculate_unit_economics
+from .pipeline import prepare_offer_for_approval
 from .reports import generate_daily_report
 from .runner import (
     RunResult,
@@ -124,6 +125,8 @@ __all__ = [
     "execute_approved",
     "execution_log",
     "record_action_payload",
+    # Slice 21: offer -> approval pipeline
+    "prepare_offer_for_approval",
     # Slice 9: Stripe adapter
     "PaymentLinkPayload",
     "build_payment_link_payload",
