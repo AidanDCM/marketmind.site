@@ -3,15 +3,20 @@
 from .experiment_rules import evaluate_experiment
 from .math_engine import calculate_unit_economics
 from .schemas import (
+    AnalyticsEvent,
     AssumptionRecord,
     AssumptionStatus,
+    BundleItem,
     Channel,
     ChannelRecommendation,
     CriterionScore,
     ExperimentRuling,
     ExperimentRulingResult,
     ExperimentSnapshot,
+    FaqItem,
     NicheCandidate,
+    OfferContext,
+    OfferSpec,
     ProductCandidate,
     ProductCostInput,
     RecommendedAction,
@@ -25,6 +30,7 @@ from .scoring import (
     score_niche,
     score_product,
 )
+from .spec_generator import generate_offer_spec
 
 __all__ = [
     # Slice 1: commerce math
@@ -51,4 +57,11 @@ __all__ = [
     "ExperimentRulingResult",
     "ExperimentSnapshot",
     "evaluate_experiment",
+    # Slice 5: offer spec generator
+    "AnalyticsEvent",
+    "BundleItem",
+    "FaqItem",
+    "OfferContext",
+    "OfferSpec",
+    "generate_offer_spec",
 ]

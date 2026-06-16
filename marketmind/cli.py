@@ -6,8 +6,9 @@ import json
 import sys
 
 from .math_engine import calculate_unit_economics
-from .schemas import ProductCandidate, ProductCostInput
+from .schemas import OfferContext, ProductCandidate, ProductCostInput
 from .scoring import score_product
+from .spec_generator import generate_offer_spec
 
 
 def calc_sample() -> None:
@@ -50,9 +51,34 @@ def score_sample() -> None:
     print(json.dumps(result.to_dict(), indent=2, sort_keys=True))
 
 
+def spec_sample() -> None:
+    """Print a dry-run offer spec for the first target niche."""
+
+    ctx = OfferContext(
+        product_name="Daily Driver Interior Refresh Kit",
+        sale_price=59.0,
+        key_benefit="Upgrade your car's interior feel without leaving the driveway",
+        target_customer="daily commuters and rideshare drivers with older interiors",
+        secondary_benefits=(
+            "Microfiber cleaning cloth",
+            "Dashboard protectant wipe",
+        ),
+        common_objections=(
+            "Will this fit my car?",
+            "Is the quality worth $59?",
+        ),
+        shipping_note="Ships in 3-5 business days via USPS First Class.",
+        return_policy="30-day hassle-free returns — just contact us first.",
+        niche="Daily Driver Upgrade Kits",
+    )
+    result = generate_offer_spec(ctx)
+    print(json.dumps(result.to_dict(), indent=2, sort_keys=True))
+
+
 COMMANDS = {
     "calc-sample": calc_sample,
     "score-sample": score_sample,
+    "spec-sample": spec_sample,
 }
 
 

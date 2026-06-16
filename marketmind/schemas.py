@@ -372,3 +372,103 @@ class ExperimentRulingResult:
         data["ruling"] = self.ruling.value
         data["risks"] = list(self.risks)
         return data
+
+
+# ---------------------------------------------------------------------------
+# Slice 5: offer and landing-page spec schemas
+#
+# All generation is template-based and deterministic. No LLM is called here.
+# The safety_flags field names what must NOT appear on the page so Codex
+# cannot accidentally build a page with fake urgency, fake reviews, etc.
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class OfferContext:
+    """Operator-supplied context used to generate the offer spec.
+
+    ``secondary_benefits`` and ``common_objections`` are tuples of short strings.
+    All claims in the generated spec derive from these inputs — nothing is
+    invented, and no results are guaranteed unless the operator explicitly
+    provides verified evidence.
+    """
+
+    product_name: str
+    sale_price: float
+    key_benefit: str                          # single honest value proposition
+    target_customer: str                      # who this is for
+    secondary_benefits: tuple[str, ...] = field(default_factory=tuple)
+    common_objections: tuple[str, ...] = field(default_factory=tuple)
+    shipping_note: str = ""                   # e.g. "Ships in 5-7 business days"
+    return_policy: str = ""                   # e.g. "30-day hassle-free returns"
+    niche: str = ""
+
+    def __post_init__(self) -> None:
+        if not self.product_name.strip():
+            raise ValueError("product_name is required")
+        if not self.key_benefit.strip():
+            raise ValueError("key_benefit is required")
+        if not self.target_customer.strip():
+            raise ValueError("target_customer is required")
+        if self.sale_price <= 0:
+            raise ValueError("sale_price must be greater than zero")
+
+
+@dataclass(frozen=True)
+class FaqItem:
+    question: str
+    answer: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class BundleItem:
+    name: str
+    description: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class AnalyticsEvent:
+    name: str       # machine-readable event name, e.g. "page_view"
+    trigger: str    # when it fires, e.g. "user lands on the page"
+    properties: tuple[str, ...] = field(default_factory=tuple)
+
+    def to_dict(self) -> dict[str, Any]:
+        data = asdict(self)
+        data["properties"] = list(self.properties)
+        return data
+
+
+@dataclass(frozen=True)
+class OfferSpec:
+    """Codex-ready spec for a product validation landing page.
+
+    Every section is generated from operator-supplied inputs only. No invented
+    claims, no guaranteed results, no fake urgency or scarcity.
+    """
+
+    product_name: str
+    headline: str
+    subheadline: str
+    bundle_items: tuple[BundleItem, ...] = field(default_factory=tuple)
+    faq: tuple[FaqItem, ...] = field(default_factory=tuple)
+    cta_primary: str = ""
+    cta_button_label: str = ""
+    analytics_events: tuple[AnalyticsEvent, ...] = field(default_factory=tuple)
+    trust_signals: tuple[str, ...] = field(default_factory=tuple)
+    codex_build_notes: str = ""
+    safety_flags: tuple[str, ...] = field(default_factory=tuple)
+
+    def to_dict(self) -> dict[str, Any]:
+        data = asdict(self)
+        data["bundle_items"] = [b.to_dict() for b in self.bundle_items]
+        data["faq"] = [f.to_dict() for f in self.faq]
+        data["analytics_events"] = [e.to_dict() for e in self.analytics_events]
+        data["trust_signals"] = list(self.trust_signals)
+        data["safety_flags"] = list(self.safety_flags)
+        return data

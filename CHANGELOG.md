@@ -6,6 +6,30 @@ This file is part of the Parts & Pieces starter package requirement.
 
 ---
 
+## 2026-06-15 — Slice 5: Landing-page and offer spec generator
+
+### Added
+- `OfferContext` schema: operator-supplied inputs (product_name, sale_price,
+  key_benefit, target_customer, secondary_benefits, common_objections,
+  shipping_note, return_policy, niche).
+- `FaqItem`, `BundleItem`, `AnalyticsEvent`, `OfferSpec` schemas.
+- `marketmind/spec_generator.py`: `generate_offer_spec()` — deterministic,
+  template-based. Produces headline, subheadline, bundle items, FAQ, CTA,
+  6 standard analytics events, trust signals, Codex build notes, and 7
+  `safety_flags` naming what Codex must NOT build (fake reviews, fake urgency,
+  guaranteed results, hidden fees, etc.).
+- `spec-sample` CLI command.
+- 26 tests in `tests/test_spec_generator.py` covering all sections, safety
+  flags, edge cases (no secondary benefits, no objections, no shipping/return
+  note), and input validation.
+
+### Parts & Pieces: `RunOnceChain` evaluated, not used
+Spec sections are independent (all generated from the same fixed OfferContext,
+not chained), so the sequential pipeline pattern adds indirection without benefit.
+See ADR-0002.
+
+---
+
 ## 2026-06-15 — Slice 4: Experiment rule engine
 
 ### Added
