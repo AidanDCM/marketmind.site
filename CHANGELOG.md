@@ -6,6 +6,35 @@ This file is part of the Parts & Pieces starter package requirement.
 
 ---
 
+## 2026-06-16 — CI pipeline + Slice 18: experiment-runner loop
+
+### Added
+
+**Continuous integration (`.github/workflows/ci.yml`)**
+- `backend` job: `ruff check .` + `pytest -q` on Python 3.12.
+- `frontend` job: `npm ci` + `npm run build` (TypeScript type-check + Vite build)
+  for the Tauri desktop app under `desktop/`.
+- Runs on every push to `main` and every PR targeting `main`. Closes the gap
+  where `main` had no automated test gate after the slice PRs were merged.
+
+**Slice 18: experiment-runner loop (`marketmind/runner.py`)**
+- `record_snapshot(engine, snapshot, date)` — persists an observed
+  `ExperimentSnapshot`, upserting the `ExperimentRow` header.
+- `hydrate_snapshots(engine, date)` — loads a day's snapshots back into domain
+  objects (joins snapshot rows with their experiment headers).
+- `run_daily_cycle(engine, date)` — the orchestrator the project was built
+  toward: hydrate → `evaluate_experiment` per snapshot → queue SCALE requests
+  for approval → `generate_daily_report`. Returns a structured `RunResult`.
+- Safety: never spends money, never calls an external API. The only action it
+  creates is a HIGH-risk `scale_campaign` request, which lands PENDING (never
+  auto-approved). KILL/PAUSE/REVISE rulings need no approval. Scale-approval
+  creation is idempotent per (experiment, date).
+- `marketmind run-cycle` CLI command runs one cycle against the configured DB.
+- 9 tests in `tests/test_runner.py` (round-trip persistence, each ruling type,
+  idempotency, mixed-portfolio aggregation).
+
+---
+
 ## 2026-06-15 — Slices 6–10: Approval queue, CSV import, daily report, Stripe + Shopify adapters
 
 ### Added

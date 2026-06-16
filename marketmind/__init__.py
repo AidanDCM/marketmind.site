@@ -7,6 +7,13 @@ from .experiment_rules import evaluate_experiment
 from .importers import import_ad_report_csv, import_orders_csv, import_products_csv
 from .math_engine import calculate_unit_economics
 from .reports import generate_daily_report
+from .runner import (
+    RunResult,
+    hydrate_snapshots,
+    record_snapshot,
+    run_daily_cycle,
+    scale_approval_id,
+)
 from .schemas import (
     AnalyticsEvent,
     ApprovalRecord,
@@ -98,6 +105,12 @@ __all__ = [
     "DailyMetrics",
     "DailyReport",
     "generate_daily_report",
+    # Slice 18: experiment-runner loop
+    "RunResult",
+    "hydrate_snapshots",
+    "record_snapshot",
+    "run_daily_cycle",
+    "scale_approval_id",
     # Slice 9: Stripe adapter
     "PaymentLinkPayload",
     "build_payment_link_payload",
