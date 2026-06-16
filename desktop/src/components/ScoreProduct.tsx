@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { scoreProduct, type ProductInput, type ScoreResult, type CriterionScore } from "../api/client";
+import { scoreProduct, type ProductInput, type ScoreResult } from "../api/client";
+import { ScoreResultView } from "./ScoreResultView";
 
 const DEFAULTS: ProductInput = {
   product_name: "",
@@ -26,34 +27,9 @@ function Slider({ label, name, value, onChange }: {
         <label>{label}</label>
         <span className="range-val">{(value * 10).toFixed(1)}</span>
       </div>
-      <input
-        type="range" min={0} max={1} step={0.05}
-        value={value}
-        onChange={e => onChange(name, parseFloat(e.target.value))}
-      />
+      <input type="range" min={0} max={1} step={0.05} value={value}
+        onChange={e => onChange(name, parseFloat(e.target.value))} />
     </div>
-  );
-}
-
-function scoreColor(s: number): string {
-  if (s >= 7) return "var(--green)";
-  if (s >= 4) return "var(--yellow)";
-  return "var(--red)";
-}
-
-function CriteriaRow({ c }: { c: CriterionScore }) {
-  const pct = Math.min(100, (c.raw_score / 10) * 100);
-  return (
-    <tr>
-      <td>{c.name}</td>
-      <td>
-        <div className="score-bar" style={{ width: 80 }}>
-          <div className="score-fill" style={{ width: `${pct}%`, background: scoreColor(c.raw_score) }} />
-        </div>
-      </td>
-      <td style={{ color: scoreColor(c.raw_score), fontWeight: 600 }}>{c.raw_score.toFixed(1)}</td>
-      <td style={{ color: "var(--text-muted)", fontSize: 12 }}>{c.reason}</td>
-    </tr>
   );
 }
 
@@ -75,8 +51,6 @@ export function ScoreProduct() {
     catch (e) { setError((e as Error).message); }
     finally { setLoading(false); }
   }
-
-  const vClass = result ? result.verdict.toLowerCase() : "";
 
   return (
     <div className="page">
@@ -138,53 +112,7 @@ export function ScoreProduct() {
 
         <div>
           {loading && <div className="loading-row"><div className="spinner" /></div>}
-
-          {result && (
-            <>
-              <div className={`verdict ${vClass}`}>
-                <div className="verdict-label">Verdict</div>
-                <div className="verdict-value">{result.verdict}</div>
-                <div className="verdict-score">
-                  Score {result.score.toFixed(1)} / 10 &nbsp;·&nbsp; Confidence: {result.confidence}
-                </div>
-                {result.channel && (
-                  <div style={{ marginTop: 10 }}>
-                    <span className="channel">{result.channel.replace(/_/g, " ")}</span>
-                  </div>
-                )}
-              </div>
-
-              {result.risks.length > 0 && (
-                <div className="card" style={{ marginBottom: 14 }}>
-                  <div className="card-title">Risks</div>
-                  {result.risks.map((r, i) => (
-                    <div key={i} className="list-item">
-                      <div className="bullet risk" />
-                      <div className="list-text">{r}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="card">
-                <div className="card-title">Criterion Breakdown</div>
-                <table className="criteria-table">
-                  <thead>
-                    <tr>
-                      <th>Criterion</th>
-                      <th></th>
-                      <th>Score</th>
-                      <th>Reason</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {result.breakdown.map((c, i) => <CriteriaRow key={i} c={c} />)}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
-
+          {result && <ScoreResultView result={result} />}
           {!result && !loading && (
             <div className="empty" style={{ paddingTop: 80 }}>
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>

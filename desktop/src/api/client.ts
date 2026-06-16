@@ -7,8 +7,14 @@ async function req<T>(method: string, path: string, body?: unknown): Promise<T> 
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) {
-    const text = await res.text().catch(() => res.statusText);
-    throw new Error(`${res.status} ${text}`);
+    let detail = res.statusText;
+    try {
+      const j = await res.json();
+      detail = j.detail ?? JSON.stringify(j);
+    } catch {
+      detail = await res.text().catch(() => res.statusText);
+    }
+    throw new Error(`${res.status}: ${detail}`);
   }
   return res.json() as Promise<T>;
 }
@@ -18,31 +24,33 @@ export async function fetchHealth(): Promise<{ status: string; version: string }
   return req("GET", "/health");
 }
 
-// ---- Daily report ----
+// ---- Daily report (matches DailyMetrics / DailyReport.to_dict) ----
 export interface DailyMetrics {
   date: string;
-  orders: number;
   revenue: number;
+  orders: number;
   ad_spend: number;
+  refund_count: number;
+  contribution_profit: number;
   cac: number;
-  contribution_dollars: number;
   conversion_rate: number;
+  add_to_cart_rate: number;
   refund_rate: number;
-  break_even_cac: number;
 }
 export interface DailyReport {
   date: string;
   metrics: DailyMetrics;
-  pending_approvals: number;
-  risks: string[];
+  pending_approvals: string[];
   recommendations: string[];
+  risks: string[];
+  lessons: string[];
 }
 
 export function fetchDailyReport(date: string): Promise<DailyReport> {
   return req("GET", `/report/daily?date=${date}`);
 }
 
-// ---- Approvals ----
+// ---- Approvals (matches ApprovalRecord.to_dict) ----
 export interface ApprovalRecord {
   approval_id: string;
   action: string;
@@ -52,9 +60,6 @@ export interface ApprovalRecord {
   expected_cost: number;
   rollback_plan: string;
   reason: string;
-  created_at: string;
-  updated_at: string;
-  approver_note: string;
 }
 
 export function fetchApprovals(status?: string): Promise<ApprovalRecord[]> {
@@ -74,21 +79,28 @@ export function denyRecord(id: string, note: string): Promise<ApprovalRecord> {
   return req("POST", `/approvals/${id}/deny`, { note });
 }
 
-// ---- Scoring ----
+// ---- Scoring (matches ScoreResult.to_dict) ----
 export interface CriterionScore {
   name: string;
-  raw_score: number;
+  raw: number;      // 0-1 sub-score
   weight: number;
-  weighted_score: number;
+  reason: string;
+}
+export interface ChannelRecommendation {
+  channel: string;
+  strategy: string;
+  confidence: number;
   reason: string;
 }
 export interface ScoreResult {
-  verdict: string;
-  score: number;
-  confidence: string;
-  channel: string;
-  breakdown: CriterionScore[];
+  name: string;
+  overall_score: number;   // 0-1
+  verdict: string;         // pass | review | reject
+  confidence: number;      // 0-1
+  criteria: CriterionScore[];
   risks: string[];
+  reason_summary: string;
+  channel: ChannelRecommendation | null;
 }
 
 export interface ProductInput {
@@ -111,7 +123,40 @@ export function scoreProduct(input: ProductInput): Promise<ScoreResult> {
   return req("POST", "/score/product", input);
 }
 
-// ---- Spec ----
+export interface NicheInput {
+  niche_name: string;
+  demand: number;
+  competition: number;
+  margin_potential: number;
+  content_potential: number;
+  personal_fit: number;
+  supplier_availability: number;
+  repeat_purchase_potential: number;
+  regulatory_risk: number;
+  evidence_quality: number;
+}
+
+export function scoreNiche(input: NicheInput): Promise<ScoreResult> {
+  return req("POST", "/score/niche", input);
+}
+
+// ---- Offer spec (matches OfferSpec.to_dict) ----
+export interface BundleItem { name: string; description: string }
+export interface FaqItem { question: string; answer: string }
+export interface AnalyticsEvent { name: string; trigger: string; properties: string[] }
+export interface OfferSpec {
+  product_name: string;
+  headline: string;
+  subheadline: string;
+  bundle_items: BundleItem[];
+  faq: FaqItem[];
+  cta_primary: string;
+  cta_button_label: string;
+  analytics_events: AnalyticsEvent[];
+  trust_signals: string[];
+  codex_build_notes: string;
+  safety_flags: string[];
+}
 export interface SpecRequest {
   product_name: string;
   sale_price: number;
@@ -123,16 +168,71 @@ export interface SpecRequest {
   return_policy: string;
   niche: string;
 }
-export interface OfferSpec {
-  headline: string;
-  subheadline: string;
-  bundle_items: { name: string; description: string }[];
-  faq: { question: string; answer: string }[];
-  cta: string;
-  trust_signals: string[];
-  safety_flags: string[];
-}
 
 export function generateSpec(input: SpecRequest): Promise<OfferSpec> {
   return req("POST", "/spec", input);
+}
+
+// ---- Unit economics (matches UnitEconomicsResult.to_dict) ----
+export interface EconomicsInput {
+  product_name: string;
+  sale_price: number;
+  product_cost: number;
+  packaging_cost: number;
+  shipping_cost: number;
+  platform_fee: number;
+  payment_fee: number;
+  refund_allowance: number;
+  software_allocation: number;
+  estimated_cac: number;
+}
+export interface EconomicsResult {
+  product_name: string;
+  sale_price: number;
+  total_non_ad_cost: number;
+  gross_profit_before_ads: number;
+  break_even_cac: number;
+  safe_cac_low: number;
+  safe_cac_high: number;
+  estimated_cac: number;
+  estimated_contribution_profit: number;
+  gross_margin_before_ads: number;
+  contribution_margin_after_ads: number;
+  margin_status: string;
+  recommended_action: string;
+  risks: string[];
+  reason_summary: string;
+}
+
+export function calculateEconomics(input: EconomicsInput): Promise<EconomicsResult> {
+  return req("POST", "/economics", input);
+}
+
+// ---- Experiment evaluation (matches ExperimentRulingResult.to_dict) ----
+export interface ExperimentInput {
+  experiment_id: string;
+  product_name: string;
+  break_even_cac: number;
+  qualified_visits: number;
+  orders: number;
+  total_ad_spend: number;
+  total_revenue: number;
+  refund_count: number;
+  actual_shipping_cost: number;
+  planned_shipping_cost: number;
+  add_to_cart_count: number;
+  consecutive_losing_periods: number;
+  budget_cap: number;
+}
+export interface ExperimentResult {
+  experiment_id: string;
+  product_name: string;
+  ruling: string;
+  risks: string[];
+  reason_summary: string;
+  requires_approval: boolean;
+}
+
+export function evaluateExperiment(input: ExperimentInput): Promise<ExperimentResult> {
+  return req("POST", "/experiment/evaluate", input);
 }

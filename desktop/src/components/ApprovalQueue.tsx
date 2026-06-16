@@ -30,10 +30,6 @@ function riskBadge(r: string) {
   return `badge ${map[r.toLowerCase()] ?? "badge-medium"}`;
 }
 
-function fmtDate(s: string) {
-  try { return new Date(s).toLocaleString(); } catch { return s; }
-}
-
 function Card({ rec, onAction }: { rec: ApprovalRecord; onAction: () => void }) {
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState("");
@@ -72,12 +68,12 @@ function Card({ rec, onAction }: { rec: ApprovalRecord; onAction: () => void }) 
         <div className="approval-body">
           <div className="approval-detail">
             <div>
-              <div className="detail-label">Created</div>
-              <div className="detail-value">{fmtDate(rec.created_at)}</div>
+              <div className="detail-label">Action</div>
+              <div className="detail-value">{rec.action}</div>
             </div>
             <div>
-              <div className="detail-label">Updated</div>
-              <div className="detail-value">{fmtDate(rec.updated_at)}</div>
+              <div className="detail-label">Expected Cost</div>
+              <div className="detail-value">${rec.expected_cost.toFixed(2)}</div>
             </div>
             {rec.rollback_plan && (
               <div style={{ gridColumn: "1 / -1" }}>
@@ -89,12 +85,6 @@ function Card({ rec, onAction }: { rec: ApprovalRecord; onAction: () => void }) 
               <div style={{ gridColumn: "1 / -1" }}>
                 <div className="detail-label">Gate Reason</div>
                 <div className="detail-value">{rec.reason}</div>
-              </div>
-            )}
-            {rec.approver_note && (
-              <div style={{ gridColumn: "1 / -1" }}>
-                <div className="detail-label">Approver Note</div>
-                <div className="detail-value">{rec.approver_note}</div>
               </div>
             )}
           </div>

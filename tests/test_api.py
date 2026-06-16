@@ -230,6 +230,68 @@ def test_list_approvals_returns_all(client, test_engine):
 
 
 # ---------------------------------------------------------------------------
+# Unit economics
+# ---------------------------------------------------------------------------
+
+
+def test_economics_endpoint(client):
+    resp = client.post(
+        "/economics",
+        json={
+            "product_name": "Interior Kit",
+            "sale_price": 59.0,
+            "product_cost": 18.0,
+            "shipping_cost": 4.0,
+            "estimated_cac": 10.0,
+        },
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "break_even_cac" in data
+    assert "recommended_action" in data
+    assert data["product_name"] == "Interior Kit"
+
+
+def test_economics_endpoint_invalid_price(client):
+    resp = client.post(
+        "/economics",
+        json={"product_name": "Kit", "sale_price": 0.0, "product_cost": 10.0},
+    )
+    assert resp.status_code == 422
+
+
+# ---------------------------------------------------------------------------
+# Experiment evaluation
+# ---------------------------------------------------------------------------
+
+
+def test_experiment_evaluate_endpoint(client):
+    resp = client.post(
+        "/experiment/evaluate",
+        json={
+            "experiment_id": "exp_001",
+            "product_name": "Interior Kit",
+            "break_even_cac": 25.0,
+            "qualified_visits": 800,
+            "orders": 0,
+        },
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "ruling" in data
+    # 800 qualified visits with zero orders is a hard kill.
+    assert data["ruling"] == "kill"
+
+
+def test_experiment_evaluate_invalid_id(client):
+    resp = client.post(
+        "/experiment/evaluate",
+        json={"experiment_id": "  ", "product_name": "Kit", "break_even_cac": 10.0},
+    )
+    assert resp.status_code == 422
+
+
+# ---------------------------------------------------------------------------
 # Daily report
 # ---------------------------------------------------------------------------
 

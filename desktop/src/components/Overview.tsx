@@ -42,13 +42,7 @@ export function Overview() {
           <h2>Overview</h2>
           <p>Daily performance metrics and operator alerts</p>
         </div>
-        <input
-          type="date"
-          value={date}
-          max={todayStr()}
-          onChange={(e) => setDate(e.target.value)}
-          style={{ width: 160 }}
-        />
+        <input type="date" value={date} max={todayStr()} onChange={(e) => setDate(e.target.value)} style={{ width: 160 }} />
       </div>
 
       {pending.length > 0 && (
@@ -81,23 +75,25 @@ export function Overview() {
             </div>
             <div className="metric-card">
               <div className="metric-label">CAC</div>
-              <div className={`metric-value ${m.cac <= m.break_even_cac ? "metric-up" : "metric-down"}`}>
-                {fmt$(m.cac)}
-              </div>
-              <div className="metric-sub">break-even {fmt$(m.break_even_cac)}</div>
+              <div className="metric-value">{fmt$(m.cac)}</div>
+              <div className="metric-sub">per order</div>
             </div>
           </div>
 
-          <div className="metric-grid" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
+          <div className="metric-grid">
             <div className="metric-card">
-              <div className="metric-label">Contribution $</div>
-              <div className={`metric-value ${m.contribution_dollars >= 0 ? "metric-up" : "metric-down"}`}>
-                {fmt$(m.contribution_dollars)}
+              <div className="metric-label">Contribution Profit</div>
+              <div className={`metric-value ${m.contribution_profit >= 0 ? "metric-up" : "metric-down"}`}>
+                {fmt$(m.contribution_profit)}
               </div>
             </div>
             <div className="metric-card">
               <div className="metric-label">Conversion</div>
               <div className="metric-value">{fmtPct(m.conversion_rate)}</div>
+            </div>
+            <div className="metric-card">
+              <div className="metric-label">Add-to-Cart</div>
+              <div className="metric-value">{fmtPct(m.add_to_cart_rate)}</div>
             </div>
             <div className="metric-card">
               <div className="metric-label">Refund Rate</div>
@@ -113,10 +109,7 @@ export function Overview() {
               {report!.risks.length === 0
                 ? <div style={{ color: "var(--text-muted)", fontSize: 13 }}>No risks flagged</div>
                 : report!.risks.map((r, i) => (
-                  <div key={i} className="list-item">
-                    <div className="bullet risk" />
-                    <div className="list-text">{r}</div>
-                  </div>
+                  <div key={i} className="list-item"><div className="bullet risk" /><div className="list-text">{r}</div></div>
                 ))}
             </div>
             <div className="card">
@@ -124,13 +117,19 @@ export function Overview() {
               {report!.recommendations.length === 0
                 ? <div style={{ color: "var(--text-muted)", fontSize: 13 }}>No recommendations</div>
                 : report!.recommendations.map((r, i) => (
-                  <div key={i} className="list-item">
-                    <div className="bullet rec" />
-                    <div className="list-text">{r}</div>
-                  </div>
+                  <div key={i} className="list-item"><div className="bullet rec" /><div className="list-text">{r}</div></div>
                 ))}
             </div>
           </div>
+
+          {report!.lessons.length > 0 && (
+            <div className="card" style={{ marginTop: 14 }}>
+              <div className="card-title">Lessons</div>
+              {report!.lessons.map((l, i) => (
+                <div key={i} className="list-item"><div className="bullet" style={{ background: "var(--accent)" }} /><div className="list-text">{l}</div></div>
+              ))}
+            </div>
+          )}
         </>
       )}
 

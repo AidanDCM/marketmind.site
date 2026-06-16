@@ -19,7 +19,15 @@ from fastapi.responses import JSONResponse
 from ..db.engine import make_engine
 from ..db.models import Base
 from ..logging_config import setup_logging
-from .routers import approvals, health, reports, scoring, spec
+from .routers import (
+    approvals,
+    economics,
+    experiments,
+    health,
+    reports,
+    scoring,
+    spec,
+)
 
 
 @asynccontextmanager
@@ -55,3 +63,5 @@ app.include_router(scoring.router, prefix="/score")
 app.include_router(spec.router, prefix="/spec")
 app.include_router(approvals.router, prefix="/approvals")
 app.include_router(reports.router, prefix="/report")
+app.include_router(economics.router, prefix="/economics")
+app.include_router(experiments.router, prefix="/experiment")
