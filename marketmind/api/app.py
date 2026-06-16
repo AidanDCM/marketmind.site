@@ -5,6 +5,12 @@ Usage:
 
 The engine is created lazily on startup from DATABASE_URL. Tests
 inject a test engine via app.state.engine before calling TestClient.
+
+Schema management:
+- Production/file DBs: Alembic runs `upgrade head` on startup so the schema
+  is always at the latest migration without manual intervention.
+- In-memory SQLite (tests): create_all is used because Alembic needs a real
+  file URL to store migration state; tests inject the engine directly.
 """
 
 from __future__ import annotations
@@ -13,8 +19,11 @@ import os
 import pathlib
 from contextlib import asynccontextmanager
 
+from alembic.config import Config as AlembicConfig
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+
+from alembic import command as alembic_cmd
 
 from ..db.engine import make_engine
 from ..db.models import Base
@@ -34,6 +43,14 @@ from .routers import (
     spec,
 )
 
+_ALEMBIC_INI = pathlib.Path(__file__).resolve().parents[2] / "alembic.ini"
+
+
+def _run_migrations(db_url: str) -> None:
+    cfg = AlembicConfig(str(_ALEMBIC_INI))
+    cfg.set_main_option("sqlalchemy.url", db_url)
+    alembic_cmd.upgrade(cfg, "head")
+
 
 @asynccontextmanager
 async def _lifespan(application: FastAPI):
@@ -45,7 +62,11 @@ async def _lifespan(application: FastAPI):
             pathlib.Path(db_url.removeprefix("sqlite:///")).parent.mkdir(
                 parents=True, exist_ok=True
             )
-        Base.metadata.create_all(engine)
+        # Use Alembic migrations for real file DBs; create_all for in-memory.
+        if db_url == "sqlite:///:memory:":
+            Base.metadata.create_all(engine)
+        else:
+            _run_migrations(db_url)
         application.state.engine = engine
     yield
 

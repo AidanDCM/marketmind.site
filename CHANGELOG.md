@@ -2,6 +2,38 @@
 
 ---
 
+## 2026-06-16 — Slice 30: Alembic migrations
+
+### Added
+
+**`alembic/versions/0002_add_import_batches.py`**
+- Migration that adds the `import_batches` table with all columns (Slice 29 schema).
+- Reversible: `downgrade()` drops the table.
+
+**`alembic.ini`**
+- Added `path_separator = os` to silence the Alembic deprecation warning.
+
+**`tests/test_migrations.py`** (7 tests)
+- `test_upgrade_head_creates_all_tables` — all 5 app tables + `alembic_version` present.
+- `test_upgrade_is_idempotent` — running head twice does not error.
+- `test_downgrade_0001_removes_import_batches` — selective downgrade works.
+- `test_downgrade_base_drops_all` — full rollback leaves no app tables.
+- `test_round_trip_upgrade_downgrade_upgrade` — full up → down → up succeeds.
+- `test_import_batches_columns` — column set matches the ORM model.
+- `test_current_version_is_head` — `alembic_version` records `0002` after upgrade.
+
+### Changed
+
+**`marketmind/api/app.py` lifespan**
+- Real file DBs now call `alembic upgrade head` on startup instead of bare
+  `create_all`, so schema evolves automatically with each release.
+- In-memory SQLite (tests and injection) still uses `create_all` since Alembic's
+  version table cannot persist in `:memory:`.
+
+Suite: **277 passing**; ruff clean.
+
+---
+
 ## 2026-06-16 — Slice 29: Import history persistence
 
 ### Added
