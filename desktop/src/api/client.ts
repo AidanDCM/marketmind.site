@@ -400,3 +400,7 @@ export function listSnapshots(snapshotDate?: string): Promise<SnapshotRecord[]> 
   const qs = snapshotDate ? `?snapshot_date=${snapshotDate}` : "";
   return req("GET", `/snapshots${qs}`);
 }
+
+export function getSnapshotTrend(experimentId: string, days = 30): Promise<SnapshotRecord[]> {
+  return req("GET", `/snapshots/trend/${encodeURIComponent(experimentId)}?days=${days}`);
+}
