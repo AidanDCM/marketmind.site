@@ -25,6 +25,7 @@ dashboard = ["streamlit>=1.34"]
 
 [project.scripts]
 marketmind = "marketmind.cli:main"
+marketmind-scheduler = "marketmind.scheduler:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

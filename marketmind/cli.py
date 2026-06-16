@@ -92,11 +92,19 @@ def run_cycle() -> None:
     print(json.dumps(result.to_dict(), indent=2, sort_keys=True))
 
 
+def scheduler_cmd() -> None:
+    """Start the nightly experiment-cycle scheduler (blocks until interrupted)."""
+    from .scheduler import main as scheduler_main
+
+    scheduler_main()
+
+
 COMMANDS = {
     "calc-sample": calc_sample,
     "score-sample": score_sample,
     "spec-sample": spec_sample,
     "run-cycle": run_cycle,
+    "scheduler": scheduler_cmd,
 }
 
 
