@@ -236,3 +236,49 @@ export interface ExperimentResult {
 export function evaluateExperiment(input: ExperimentInput): Promise<ExperimentResult> {
   return req("POST", "/experiment/evaluate", input);
 }
+
+// ---- Pipeline: offer -> approval ----
+export interface PrepareOfferRequest {
+  product_name: string;
+  sale_price: number;
+  key_benefit: string;
+  target_customer: string;
+  secondary_benefits: string[];
+  common_objections: string[];
+  shipping_note: string;
+  return_policy: string;
+  niche: string;
+  channel: string;
+  vendor: string;
+  product_type: string;
+}
+
+export function prepareOffer(input: PrepareOfferRequest): Promise<ApprovalRecord> {
+  return req("POST", "/pipeline/prepare-offer", input);
+}
+
+// ---- Execution (matches ExecutionResult.to_dict) ----
+export interface ExecutionResult {
+  approval_id: string;
+  action: string;
+  executed: boolean;
+  dry_run: boolean;
+  reason: string;
+  detail: Record<string, unknown>;
+}
+
+export function executeApproved(approvalId: string, dryRun = true): Promise<ExecutionResult> {
+  return req("POST", `/execute/${approvalId}`, { dry_run: dryRun });
+}
+
+export interface ExecutionLogEntry {
+  id: number;
+  event_type: string;
+  event_id: string;
+  created_at: string;
+  payload: Record<string, unknown>;
+}
+
+export function fetchExecutionLog(): Promise<ExecutionLogEntry[]> {
+  return req("GET", "/execute/log");
+}

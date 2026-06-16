@@ -3,6 +3,7 @@ import {
   fetchApprovals,
   approveRecord,
   denyRecord,
+  executeApproved,
   type ApprovalRecord,
 } from "../api/client";
 
@@ -36,12 +37,27 @@ function Card({ rec, onAction }: { rec: ApprovalRecord; onAction: () => void }) 
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  const [execMsg, setExecMsg] = useState<string | null>(null);
   const canAct = rec.status === "pending";
+  const canExecute = rec.status === "approved";
 
   async function act(fn: typeof approveRecord) {
     setBusy(true); setErr(null);
     try { await fn(rec.approval_id, note); onAction(); }
     catch (e) { setErr((e as Error).message); }
+    finally { setBusy(false); }
+  }
+
+  async function runExecute() {
+    setBusy(true); setErr(null); setExecMsg(null);
+    try {
+      const r = await executeApproved(rec.approval_id, true);
+      setExecMsg(
+        r.executed
+          ? `Executed (dry-run): ${r.action} → ${JSON.stringify(r.detail)}`
+          : `Not executed: ${r.reason}`,
+      );
+    } catch (e) { setErr((e as Error).message); }
     finally { setBusy(false); }
   }
 
@@ -108,6 +124,22 @@ function Card({ rec, onAction }: { rec: ApprovalRecord; onAction: () => void }) 
                   {busy ? "…" : "Deny"}
                 </button>
               </div>
+            </>
+          )}
+
+          {canExecute && (
+            <>
+              {err && <div className="alert alert-error" style={{ marginBottom: 10 }}>{err}</div>}
+              <div className="approval-actions">
+                <button className="btn-primary" disabled={busy} onClick={runExecute}>
+                  {busy ? "…" : "Execute (dry-run)"}
+                </button>
+              </div>
+              {execMsg && (
+                <div className="spec-text" style={{ marginTop: 10, color: "var(--text-muted)", fontSize: 12 }}>
+                  {execMsg}
+                </div>
+              )}
             </>
           )}
         </div>

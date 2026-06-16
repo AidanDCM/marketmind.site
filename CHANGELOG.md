@@ -6,6 +6,29 @@ This file is part of the Parts & Pieces starter package requirement.
 
 ---
 
+## 2026-06-16 — Slice 22-23: executor API + dashboard execute/prepare
+
+### Added
+
+**Executor API (`marketmind/api/routers/execution.py`)**
+- `POST /execute/{approval_id}` — execute one APPROVED action (dry_run default
+  True). 404 if missing, 409 if refused (not approved / no payload / no creds).
+- `POST /execute` — batch-execute all un-executed APPROVED actions.
+- `GET /execute/log` — the append-only execution log.
+- 3 API tests incl. full prepare→approve→execute over HTTP.
+
+**Desktop dashboard wiring (`desktop/`)**
+- Approval Queue: an **Execute (dry-run)** button on APPROVED records, showing
+  the executor result inline.
+- New **Prepare Offer** page: fills an offer + channel, calls
+  `POST /pipeline/prepare-offer`, and shows the queued approval to take to the
+  Approval Queue. Sidebar now has 8 pages.
+- `client.ts`: `prepareOffer`, `executeApproved`, `fetchExecutionLog`.
+
+Suite now **244 passing**; desktop frontend type-checks + builds.
+
+---
+
 ## 2026-06-16 — Slice 21: offer → approval pipeline
 
 ### Added
