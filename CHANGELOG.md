@@ -2,6 +2,51 @@
 
 ---
 
+## 2026-06-16 — Slices 33 + 34: Import History dashboard & Snapshot Recording API
+
+### Added
+
+**`marketmind/api/routers/snapshots.py`** (Slice 34)
+- `POST /snapshots` — records an `ExperimentSnapshot` into the DB for a given
+  date; defaults to today. Returns `{recorded, experiment_id, snapshot_date}`.
+- `GET /snapshots?snapshot_date=` — lists all snapshots for a date, hydrated
+  with computed fields: `conversion_rate`, `actual_cac`, `add_to_cart_rate`,
+  `refund_rate`.
+- `GET /snapshots/{experiment_id}?snapshot_date=` — filtered by experiment;
+  404 when date is explicit and nothing is found.
+
+**`desktop/src/components/ImportHistory.tsx`** (Slice 33)
+- Source filter dropdown + refresh; table of all import batches (id, source
+  label, timestamp, counts). Click row → full row detail panel.
+
+**`desktop/src/components/SnapshotRecorder.tsx`** (Slice 34)
+- Two-column layout: left is a form (experiment ID, product name, break-even
+  CAC, date, and all performance counters); right is the live snapshot table
+  for the chosen date. Submitting re-loads the table. CAC column coloured
+  green/red relative to break-even.
+
+**`desktop/src/api/client.ts`** (Slices 33 + 34)
+- `ImportBatch`, `ImportBatchDetail` types; `pullAndSave*`, `listImportHistory`,
+  `getImportBatch` functions.
+- `SnapshotRequest`, `SnapshotRecord` types; `submitSnapshot`, `listSnapshots`
+  functions.
+
+**`desktop/src/App.tsx`** (Slices 33 + 34)
+- Added `"history"` and `"snapshots"` page types; nav entries with icons;
+  renders `<ImportHistory />` and `<SnapshotRecorder />`.
+
+**`tests/test_snapshots.py`** (9 tests)
+- POST records and returns correct date; GET empty before submit; GET populated
+  after submit; conversion rate + CAC computed correctly; experiment filter;
+  404 on miss; default-date behaviour; multi-experiment list.
+
+### Changed
+
+**`marketmind/api/app.py`**
+- Registered `snapshots` router at prefix `/snapshots`.
+
+---
+
 ## 2026-06-16 — Slice 31: Nightly run scheduler
 
 ### Added

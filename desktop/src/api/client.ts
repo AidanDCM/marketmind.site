@@ -358,3 +358,45 @@ export function listImportHistory(source?: string): Promise<ImportBatch[]> {
 export function getImportBatch(batchId: number): Promise<ImportBatchDetail> {
   return req("GET", `/imports/${batchId}`);
 }
+
+// ---- Snapshots (Slice 34) ----
+export interface SnapshotRequest {
+  experiment_id: string;
+  product_name: string;
+  break_even_cac: number;
+  snapshot_date?: string;
+  qualified_visits?: number;
+  orders?: number;
+  total_ad_spend?: number;
+  total_revenue?: number;
+  refund_count?: number;
+  actual_shipping_cost?: number;
+  planned_shipping_cost?: number;
+  add_to_cart_count?: number;
+  consecutive_losing_periods?: number;
+  budget_cap?: number;
+}
+
+export interface SnapshotRecord {
+  experiment_id: string;
+  product_name: string;
+  break_even_cac: number;
+  snapshot_date: string;
+  qualified_visits: number;
+  orders: number;
+  total_ad_spend: number;
+  total_revenue: number;
+  conversion_rate: number;
+  actual_cac: number;
+  add_to_cart_rate: number;
+  refund_rate: number;
+}
+
+export function submitSnapshot(input: SnapshotRequest): Promise<{ recorded: boolean; experiment_id: string; snapshot_date: string }> {
+  return req("POST", "/snapshots", input);
+}
+
+export function listSnapshots(snapshotDate?: string): Promise<SnapshotRecord[]> {
+  const qs = snapshotDate ? `?snapshot_date=${snapshotDate}` : "";
+  return req("GET", `/snapshots${qs}`);
+}
