@@ -386,6 +386,39 @@ def test_execute_pending_is_409(client):
 
 
 # ---------------------------------------------------------------------------
+# Live sources (read-only)
+# ---------------------------------------------------------------------------
+
+
+def test_stripe_orders_without_creds_409(client, monkeypatch):
+    monkeypatch.delenv("STRIPE_API_KEY", raising=False)
+    resp = client.post("/sources/stripe/orders")
+    assert resp.status_code == 409
+
+
+def test_shopify_orders_without_creds_409(client, monkeypatch):
+    monkeypatch.delenv("SHOPIFY_STORE_DOMAIN", raising=False)
+    monkeypatch.delenv("SHOPIFY_ACCESS_TOKEN", raising=False)
+    resp = client.post("/sources/shopify/orders")
+    assert resp.status_code == 409
+
+
+def test_stripe_orders_with_creds_mocked(client, monkeypatch):
+    monkeypatch.setenv("STRIPE_API_KEY", "sk_test_x")
+    from marketmind.sources import StripeReader
+
+    def fake_get(self, path, params):
+        return {"data": [{"id": "ch_1", "amount": 5900, "created": 1, "status": "ok"}]}
+
+    monkeypatch.setattr(StripeReader, "_get", fake_get)
+    resp = client.post("/sources/stripe/orders")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["source"] == "stripe_charges"
+    assert data["ok_count"] == 1
+
+
+# ---------------------------------------------------------------------------
 # Daily report
 # ---------------------------------------------------------------------------
 

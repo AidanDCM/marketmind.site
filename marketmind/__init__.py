@@ -61,6 +61,7 @@ from .scoring import (
     score_niche,
     score_product,
 )
+from .sources import ShopifyReader, StripeReader
 from .spec_generator import generate_offer_spec
 
 __all__ = [
@@ -127,6 +128,9 @@ __all__ = [
     "record_action_payload",
     # Slice 21: offer -> approval pipeline
     "prepare_offer_for_approval",
+    # Slice 27: read-only live data sources
+    "ShopifyReader",
+    "StripeReader",
     # Slice 9: Stripe adapter
     "PaymentLinkPayload",
     "build_payment_link_payload",

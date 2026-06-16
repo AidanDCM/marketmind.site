@@ -29,6 +29,7 @@ from .routers import (
     pipeline,
     reports,
     scoring,
+    sources,
     spec,
 )
 
@@ -73,3 +74,4 @@ app.include_router(economics.router, prefix="/economics")
 app.include_router(experiments.router, prefix="/experiment")
 app.include_router(pipeline.router, prefix="/pipeline")
 app.include_router(execution.router, prefix="/execute")
+app.include_router(sources.router, prefix="/sources")
