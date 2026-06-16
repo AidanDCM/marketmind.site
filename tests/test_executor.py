@@ -2,6 +2,7 @@
 
 import pytest
 
+from marketmind.adapters import stripe_client as stripe_mod
 from marketmind.db import approval_store
 from marketmind.db.engine import make_engine
 from marketmind.db.event_store import append_event, event_exists, list_events
@@ -10,8 +11,16 @@ from marketmind.executor import (
     execute_all_approved,
     execute_approved,
     execution_log,
+    record_action_payload,
 )
-from marketmind.schemas import ApprovalRecord, ApprovalStatus, RiskLevel
+from marketmind.schemas import (
+    ApprovalRecord,
+    ApprovalStatus,
+    PaymentLinkPayload,
+    ProductDraftPayload,
+    RiskLevel,
+    ShopifyVariant,
+)
 
 
 @pytest.fixture
@@ -153,3 +162,115 @@ def test_execute_all_captures_refusals(engine):
     assert len(results) == 1
     assert results[0].executed is False
     assert "no ad-platform integration" in results[0].reason
+
+
+# ---------------------------------------------------------------------------
+# Adapter-backed actions (Slice 20): Stripe + Shopify, payload via ledger
+# ---------------------------------------------------------------------------
+
+
+def _stripe_record(approval_id="apr_stripe") -> ApprovalRecord:
+    return ApprovalRecord(
+        approval_id=approval_id,
+        action="create_stripe_payment_link",
+        risk_level=RiskLevel.HIGH,
+        status=ApprovalStatus.APPROVED,
+        summary="Create payment link for Interior Kit",
+        expected_cost=59.0,
+        rollback_plan="Deactivate the link in Stripe.",
+    )
+
+
+def _shopify_record(approval_id="apr_shopify") -> ApprovalRecord:
+    return ApprovalRecord(
+        approval_id=approval_id,
+        action="publish_shopify_product",
+        risk_level=RiskLevel.HIGH,
+        status=ApprovalStatus.APPROVED,
+        summary="Publish Interior Kit draft",
+        expected_cost=1.0,
+        rollback_plan="Set product back to draft.",
+    )
+
+
+def test_stripe_dry_run_uses_simulate(engine):
+    approval_store.create_approval(engine, _stripe_record())
+    payload = PaymentLinkPayload(product_name="Interior Kit", unit_amount_cents=5900)
+    record_action_payload(engine, "apr_stripe", payload.to_dict())
+
+    result = execute_approved(engine, "apr_stripe", dry_run=True)
+    assert result.executed is True
+    assert result.detail["simulated"] is True
+    assert result.detail["id"].startswith("plink_simulated_")
+
+
+def test_stripe_missing_payload_refused(engine):
+    approval_store.create_approval(engine, _stripe_record())
+    # execute_approved raises on refusal; the batch variant captures it instead.
+    with pytest.raises(ValueError, match="No payload recorded"):
+        execute_approved(engine, "apr_stripe", dry_run=True)
+    results = execute_all_approved(engine, dry_run=True)
+    assert results[0].executed is False
+    assert "No payload recorded" in results[0].reason
+
+
+def test_stripe_live_without_key_refused(engine, monkeypatch):
+    monkeypatch.delenv("STRIPE_API_KEY", raising=False)
+    approval_store.create_approval(engine, _stripe_record())
+    payload = PaymentLinkPayload(product_name="Interior Kit", unit_amount_cents=5900)
+    record_action_payload(engine, "apr_stripe", payload.to_dict())
+    with pytest.raises(ValueError, match="STRIPE_API_KEY"):
+        execute_approved(engine, "apr_stripe", dry_run=False)
+
+
+def test_stripe_live_with_mocked_client(engine, monkeypatch):
+    monkeypatch.setenv("STRIPE_API_KEY", "sk_test_dummy")
+
+    def fake_post(self_inner, path, data):
+        if path == "/products":
+            return {"id": "prod_x"}
+        if path == "/prices":
+            return {"id": "price_x"}
+        return {"id": "plink_live_x", "object": "payment_link", "url": "https://buy.stripe.com/x"}
+
+    monkeypatch.setattr(stripe_mod.StripeClient, "_post", fake_post)
+    approval_store.create_approval(engine, _stripe_record())
+    payload = PaymentLinkPayload(product_name="Interior Kit", unit_amount_cents=5900)
+    record_action_payload(engine, "apr_stripe", payload.to_dict())
+
+    result = execute_approved(engine, "apr_stripe", dry_run=False)
+    assert result.executed is True
+    assert result.detail["simulated"] is False
+    assert result.detail["id"] == "plink_live_x"
+    # The secret never leaks into the result.
+    assert "sk_test_dummy" not in str(result.to_dict())
+
+
+def test_shopify_dry_run_uses_simulate(engine):
+    approval_store.create_approval(engine, _shopify_record())
+    payload = ProductDraftPayload(
+        title="Interior Kit",
+        body_html="<p>Clean interior fast</p>",
+        vendor="MarketMind",
+        product_type="Auto Accessory",
+        variants=(ShopifyVariant(price="59.00", sku="IK-1"),),
+    )
+    record_action_payload(engine, "apr_shopify", payload.to_dict())
+
+    result = execute_approved(engine, "apr_shopify", dry_run=True)
+    assert result.executed is True
+    assert result.detail["simulated"] is True
+    assert result.detail["id"] == "simulated_apr_shopify"
+
+
+def test_shopify_live_without_creds_refused(engine, monkeypatch):
+    monkeypatch.delenv("SHOPIFY_STORE_DOMAIN", raising=False)
+    monkeypatch.delenv("SHOPIFY_ACCESS_TOKEN", raising=False)
+    approval_store.create_approval(engine, _shopify_record())
+    payload = ProductDraftPayload(
+        title="Interior Kit", body_html="x", vendor="MM", product_type="Auto",
+        variants=(ShopifyVariant(price="59.00"),),
+    )
+    record_action_payload(engine, "apr_shopify", payload.to_dict())
+    with pytest.raises(ValueError, match="SHOPIFY_STORE_DOMAIN"):
+        execute_approved(engine, "apr_shopify", dry_run=False)

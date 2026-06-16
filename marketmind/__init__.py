@@ -8,6 +8,7 @@ from .executor import (
     execute_all_approved,
     execute_approved,
     execution_log,
+    record_action_payload,
 )
 from .experiment_rules import evaluate_experiment
 from .importers import import_ad_report_csv, import_orders_csv, import_products_csv
@@ -117,11 +118,12 @@ __all__ = [
     "record_snapshot",
     "run_daily_cycle",
     "scale_approval_id",
-    # Slice 19: approved-action executor
+    # Slice 19-20: approved-action executor
     "ExecutionResult",
     "execute_all_approved",
     "execute_approved",
     "execution_log",
+    "record_action_payload",
     # Slice 9: Stripe adapter
     "PaymentLinkPayload",
     "build_payment_link_payload",

@@ -6,6 +6,28 @@ This file is part of the Parts & Pieces starter package requirement.
 
 ---
 
+## 2026-06-16 — Slice 20: adapter-backed execution (Stripe + Shopify)
+
+### Added
+
+**Executor handlers for adapter-backed actions (`marketmind/executor.py`)**
+- `record_action_payload(engine, approval_id, payload)` — attaches an action's
+  payload to an approval via the event ledger (`approval_payload` event), so no
+  schema change to the approvals table is needed.
+- `create_stripe_payment_link` handler: dry-run goes through the gate-enforced
+  `simulate_create_payment_link` (no HTTP); live requires `STRIPE_API_KEY` in
+  the environment and calls `StripeClient.create_payment_link`.
+- `publish_shopify_product` handler: dry-run via `simulate_create_product_draft`;
+  live requires `SHOPIFY_STORE_DOMAIN` + `SHOPIFY_ACCESS_TOKEN` and calls
+  `ShopifyClient.create_product_draft`.
+- Safety unchanged: APPROVED-only, dry-run default, live refused without creds
+  (safe-fail), idempotent per approval_id, secrets never logged or returned.
+- 6 more tests in `tests/test_executor.py` (dry-run simulate, missing-payload
+  refusal, live-without-creds refusal, live with mocked client + secret-leak
+  check). Suite now 233 passing.
+
+---
+
 ## 2026-06-16 — Slice 19: approved-action executor + event ledger
 
 ### Added
