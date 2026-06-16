@@ -2,6 +2,37 @@
 
 ---
 
+## 2026-06-16 — Slice 36: Active Experiments Dashboard
+
+### Added
+
+**`marketmind/api/routers/experiments.py`**
+- `GET /experiment/active` — returns all experiments from the DB, each with the
+  latest snapshot's ruling (from the rule engine), actual CAC, risk list, and latest
+  snapshot date. Experiments with no snapshots return `ruling: null`. The latest
+  snapshot is determined by `snapshot_date DESC` per experiment.
+
+**`desktop/src/api/client.ts`**
+- `ActiveExperiment` interface and `listActiveExperiments()` function wired to
+  `GET /experiment/active`.
+
+**`desktop/src/components/ActiveExperiments.tsx`**
+- Expandable card list of all experiments — collapse shows ID, status badge, ruling
+  badge (colour-coded), and current CAC.
+- Expanded card shows break-even CAC, latest snapshot date, start/end dates, and risk list.
+- Filter bar: all / active / ended.
+- Warning banner when any experiment needs attention (kill / pause / scale).
+
+**`desktop/src/App.tsx`**
+- New "Active Experiments" nav entry (13th page) wired to `<ActiveExperiments />`.
+
+**`tests/test_active_experiments.py`**
+- 7 tests: empty list, no-snapshot experiment, ruling computed from latest snapshot,
+  most-recent-snapshot selection, multiple experiments returned, response shape,
+  ruling value membership.
+
+---
+
 ## 2026-06-16 — Slice 35: Experiment Trend View
 
 ### Added

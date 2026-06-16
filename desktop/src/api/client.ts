@@ -251,6 +251,24 @@ export function evaluateExperiment(input: ExperimentInput): Promise<ExperimentRe
   return req("POST", "/experiment/evaluate", input);
 }
 
+// ---- Active experiments list (Slice 36) ----
+export interface ActiveExperiment {
+  experiment_id: string;
+  product_name: string;
+  break_even_cac: number;
+  status: string;
+  started_at: string;
+  ended_at: string | null;
+  latest_snapshot_date: string | null;
+  ruling: string | null;
+  risks: string[];
+  actual_cac: number | null;
+}
+
+export function listActiveExperiments(): Promise<ActiveExperiment[]> {
+  return req("GET", "/experiment/active");
+}
+
 // ---- Pipeline: offer -> approval ----
 export interface PrepareOfferRequest {
   product_name: string;

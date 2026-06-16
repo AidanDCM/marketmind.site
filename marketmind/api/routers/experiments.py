@@ -3,13 +3,20 @@
 Pure computation: no external calls, no spending, no DB writes. The engine
 returns a CONTINUE / PAUSE_ADS / REVISE_OFFER / KILL / SCALE_REQUIRES_APPROVAL
 ruling with an explainable risk list.
+
+Slice 36 adds GET /experiment/active — list all experiments from the DB with
+their latest snapshot date and ruling so operators can see the health of every
+live experiment in one place.
 """
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from pydantic import BaseModel
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
+from ...db.models import ExperimentRow, ExperimentSnapshotRow
 from ...experiment_rules import evaluate_experiment
 from ...schemas import ExperimentSnapshot
 
@@ -36,3 +43,64 @@ class ExperimentEvaluateRequest(BaseModel):
 def evaluate_experiment_endpoint(req: ExperimentEvaluateRequest) -> dict:
     snapshot = ExperimentSnapshot(**req.model_dump())
     return evaluate_experiment(snapshot).to_dict()
+
+
+@router.get("/active")
+def list_active_experiments(request: Request) -> list:
+    """Return all experiments with their latest snapshot date and ruling.
+
+    Each entry includes the experiment header (id, product, break-even CAC,
+    status, started_at) plus the latest snapshot's date and computed ruling.
+    Experiments with no snapshots are included with ruling=None.
+    """
+    engine = request.app.state.engine
+    with Session(engine) as session:
+        exps = session.scalars(select(ExperimentRow)).all()
+
+        result = []
+        for exp in exps:
+            latest = session.scalars(
+                select(ExperimentSnapshotRow)
+                .where(ExperimentSnapshotRow.experiment_id == exp.experiment_id)
+                .order_by(ExperimentSnapshotRow.snapshot_date.desc())
+                .limit(1)
+            ).first()
+
+            entry: dict = {
+                "experiment_id": exp.experiment_id,
+                "product_name": exp.product_name,
+                "break_even_cac": exp.break_even_cac,
+                "status": exp.status,
+                "started_at": exp.started_at,
+                "ended_at": exp.ended_at,
+                "latest_snapshot_date": None,
+                "ruling": None,
+                "risks": [],
+                "actual_cac": None,
+            }
+
+            if latest is not None:
+                snap = ExperimentSnapshot(
+                    experiment_id=exp.experiment_id,
+                    product_name=exp.product_name,
+                    break_even_cac=exp.break_even_cac,
+                    qualified_visits=latest.qualified_visits,
+                    orders=latest.orders,
+                    total_ad_spend=latest.total_ad_spend,
+                    total_revenue=latest.total_revenue,
+                    refund_count=latest.refund_count,
+                    actual_shipping_cost=latest.actual_shipping_cost,
+                    planned_shipping_cost=latest.planned_shipping_cost,
+                    add_to_cart_count=latest.add_to_cart_count,
+                    consecutive_losing_periods=latest.consecutive_losing_periods,
+                    budget_cap=latest.budget_cap,
+                )
+                ruling = evaluate_experiment(snap)
+                entry["latest_snapshot_date"] = latest.snapshot_date
+                entry["ruling"] = ruling.ruling.value
+                entry["risks"] = list(ruling.risks)
+                entry["actual_cac"] = snap.actual_cac
+
+            result.append(entry)
+
+    return result
