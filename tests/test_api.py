@@ -329,6 +329,63 @@ def test_prepare_offer_unknown_channel_422(client):
 
 
 # ---------------------------------------------------------------------------
+# Execution (prepare -> approve -> execute, all via the API)
+# ---------------------------------------------------------------------------
+
+
+def test_execute_endpoint_full_flow(client):
+    # Prepare an offer -> PENDING approval
+    prep = client.post(
+        "/pipeline/prepare-offer",
+        json={
+            "product_name": "Interior Kit",
+            "sale_price": 59.0,
+            "key_benefit": "Clean interior fast",
+            "target_customer": "Daily commuters",
+            "channel": "stripe",
+        },
+    )
+    approval_id = prep.json()["approval_id"]
+
+    # Approve it
+    client.post(f"/approvals/{approval_id}/approve", json={"note": "ok"})
+
+    # Execute (dry-run)
+    resp = client.post(f"/execute/{approval_id}", json={"dry_run": True})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["executed"] is True
+    assert data["detail"]["simulated"] is True
+
+    # Execution log now has one entry
+    log = client.get("/execute/log")
+    assert log.status_code == 200
+    assert len(log.json()) == 1
+
+
+def test_execute_not_found_404(client):
+    resp = client.post("/execute/nope", json={"dry_run": True})
+    assert resp.status_code == 404
+
+
+def test_execute_pending_is_409(client):
+    prep = client.post(
+        "/pipeline/prepare-offer",
+        json={
+            "product_name": "Interior Kit",
+            "sale_price": 59.0,
+            "key_benefit": "Clean interior fast",
+            "target_customer": "Daily commuters",
+            "channel": "stripe",
+        },
+    )
+    approval_id = prep.json()["approval_id"]
+    # Not approved yet -> executor refuses -> 409
+    resp = client.post(f"/execute/{approval_id}", json={"dry_run": True})
+    assert resp.status_code == 409
+
+
+# ---------------------------------------------------------------------------
 # Daily report
 # ---------------------------------------------------------------------------
 
