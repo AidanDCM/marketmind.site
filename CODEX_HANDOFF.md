@@ -6,11 +6,31 @@ Before coding, Codex or any developer must acknowledge:
 
 ```text
 I have read the MarketMind README, PROJECT_BRIEF.md, ARCHITECTURE.md, DEVELOPMENT_PLAN.md, TEST_PLAN.md, APPROVAL_POLICY.md, and PNL_MODEL.md.
+I have read the Parts & Pieces Developer Operating System (AidanDCM/Parts-and-Pieces: AGENTS.md and DEVELOPER_OPERATING_SYSTEM.md).
 I will build from a clear blueprint, one testable slice at a time.
+I will check docs/decisions/0002-parts-and-pieces-reuse.md before building any new module.
 I will not create live commerce, payment, ad, refund, inventory, or messaging actions without approval gates.
 I will not commit secrets or .env files.
 I will not invent requirements, hide uncertainty, or make unrelated changes.
+I will stop after each slice and report before proceeding to the next.
 ```
+
+## Parts & Pieces mandate
+
+This project is built under the Parts & Pieces Developer Operating System.
+See `docs/decisions/0002-parts-and-pieces-reuse.md` for the full reuse evaluation.
+
+**Mandatory for upcoming slices:**
+
+- **Slice 6 (approval queue):** use `parts/python/decision_gate/decision_gate.py`
+  and `parts/python/checklist_gate/checklist_gate.py` — do not build a custom
+  sequential approval runner.
+- **Slice 7 (CSV imports):** use `parts/python/source_adapters/csv_source_adapter.py`
+  — do not build a custom CSV normalizer.
+- **Slice 7/8 (logging):** use `parts/python/event_ledger/jsonl_event_ledger.py`
+  — do not build a custom JSONL logger.
+
+Do not re-evaluate these decisions. They are already documented.
 
 ## Build objective
 

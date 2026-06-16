@@ -69,7 +69,10 @@ MarketMind must never silently:
 - [`APPROVAL_POLICY.md`](APPROVAL_POLICY.md) — what the bot can do automatically vs what needs approval
 - [`PNL_MODEL.md`](PNL_MODEL.md) — unit economics, CAC, margin, kill/scale rules
 - [`CODEX_HANDOFF.md`](CODEX_HANDOFF.md) — direct instructions for Codex or any developer
+- [`docs/API_KEYS_AND_CREDENTIALS.md`](docs/API_KEYS_AND_CREDENTIALS.md) — sandbox-first, least-privilege credential setup (no real secrets)
 - [`docs/decisions/0001-initial-architecture.md`](docs/decisions/0001-initial-architecture.md) — first architecture decision record
+- [`docs/decisions/0002-parts-and-pieces-reuse.md`](docs/decisions/0002-parts-and-pieces-reuse.md) — Parts & Pieces reuse evaluation (which parts were adopted, deferred, or skipped)
+- [`CHANGELOG.md`](CHANGELOG.md) — record of changes per slice
 - [`.env.example`](.env.example) — safe environment variable template with no secrets
 
 ## Local preview
