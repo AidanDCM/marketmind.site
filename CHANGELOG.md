@@ -2,6 +2,38 @@
 
 ---
 
+## 2026-06-16 — Slice 32: Webhook ingestion (Stripe + Shopify)
+
+### Added
+
+**`marketmind/webhooks.py`**
+- `verify_stripe_signature(payload, sig_header, secret)` — Stripe HMAC-SHA256 with
+  5-minute replay protection; raises `ValueError` on mismatch or stale timestamp.
+- `normalize_stripe_event(event)` — maps `charge.*` event to `ImportResult`.
+- `verify_shopify_signature(payload, hmac_header, secret)` — Base64-encoded
+  HMAC-SHA256 per Shopify's webhook spec.
+- `normalize_shopify_order_event(payload)` — maps order webhook payload to `ImportResult`.
+
+**`marketmind/api/routers/webhooks.py`** — 2 new endpoints
+- `POST /webhooks/stripe` — verifies `stripe-signature`, normalizes event, persists
+  batch; 409 if `STRIPE_WEBHOOK_SECRET` unset, 400 if signature invalid.
+- `POST /webhooks/shopify/orders` — verifies `x-shopify-hmac-sha256`, normalizes
+  order event, persists batch; 409 if `SHOPIFY_WEBHOOK_SECRET` unset.
+
+**`tests/test_webhooks.py`** (9 unit tests)
+- Stripe: valid sig, bad sig, replayed timestamp, missing header fields.
+- Stripe normalization: event_type, object_id, amount.
+- Shopify: valid sig, bad sig.
+- Shopify normalization: paid order, refunded order.
+
+**6 API tests added to `tests/test_api.py`**
+- 409 without secret, 400 without header, 400 bad sig, 200 valid Stripe webhook
+  with batch_id in response.
+
+Suite: **298 passing**; ruff clean.
+
+---
+
 ## 2026-06-16 — Slice 31: Nightly run scheduler
 
 ### Added

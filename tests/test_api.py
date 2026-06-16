@@ -489,3 +489,62 @@ def test_import_get_batch(client, monkeypatch):
 def test_import_get_missing_404(client):
     resp = client.get("/imports/9999")
     assert resp.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# Webhooks (Slice 32)
+# ---------------------------------------------------------------------------
+
+
+def test_stripe_webhook_no_secret_409(client, monkeypatch):
+    monkeypatch.delenv("STRIPE_WEBHOOK_SECRET", raising=False)
+    resp = client.post("/webhooks/stripe", content=b"{}")
+    assert resp.status_code == 409
+
+
+def test_shopify_webhook_no_secret_409(client, monkeypatch):
+    monkeypatch.delenv("SHOPIFY_WEBHOOK_SECRET", raising=False)
+    resp = client.post("/webhooks/shopify/orders", content=b"{}")
+    assert resp.status_code == 409
+
+
+def test_stripe_webhook_missing_header_400(client, monkeypatch):
+    monkeypatch.setenv("STRIPE_WEBHOOK_SECRET", "whsec_test")
+    resp = client.post("/webhooks/stripe", content=b"{}")
+    assert resp.status_code == 400
+
+
+def test_stripe_webhook_bad_signature_400(client, monkeypatch):
+    monkeypatch.setenv("STRIPE_WEBHOOK_SECRET", "whsec_test")
+    resp = client.post(
+        "/webhooks/stripe",
+        content=b'{"id":"evt_1","type":"charge.succeeded","data":{"object":{}}}',
+        headers={"stripe-signature": "t=1,v1=badhash"},
+    )
+    assert resp.status_code == 400
+
+
+def test_stripe_webhook_valid_saves_batch(client, monkeypatch):
+    import hashlib
+    import hmac
+    import time
+
+    secret = "whsec_test"
+    monkeypatch.setenv("STRIPE_WEBHOOK_SECRET", secret)
+    obj = '{"id":"ch_1","amount":5900,"status":"succeeded","created":1700000000}'
+    payload = f'{{"id":"evt_1","type":"charge.succeeded","data":{{"object":{obj}}}}}'.encode()
+    ts = int(time.time())
+    signed = f"{ts}.".encode() + payload
+    sig = hmac.new(secret.encode(), signed, hashlib.sha256).hexdigest()
+    sig_header = f"t={ts},v1={sig}"
+
+    resp = client.post(
+        "/webhooks/stripe",
+        content=payload,
+        headers={"stripe-signature": sig_header, "content-type": "application/json"},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["received"] is True
+    assert data["source"] == "stripe_webhook"
+    assert "batch_id" in data
