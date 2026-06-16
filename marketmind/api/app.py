@@ -19,6 +19,7 @@ from fastapi.responses import JSONResponse
 from ..db.engine import make_engine
 from ..db.models import Base
 from ..logging_config import setup_logging
+from .auth import install_auth
 from .routers import (
     approvals,
     economics,
@@ -58,6 +59,9 @@ app = FastAPI(
 @app.exception_handler(ValueError)
 async def _value_error_handler(request: Request, exc: ValueError) -> JSONResponse:
     return JSONResponse(status_code=422, content={"detail": str(exc)})
+
+
+install_auth(app)
 
 
 app.include_router(health.router)

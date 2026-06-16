@@ -1,9 +1,23 @@
 const BASE = "http://127.0.0.1:8000";
 
+// Optional bearer token. When the backend has MARKETMIND_API_TOKEN set, store the
+// matching token here (e.g. localStorage "marketmind_api_token") and it is sent
+// on every request. Unset for the default open localhost setup.
+function authToken(): string | null {
+  try {
+    return localStorage.getItem("marketmind_api_token");
+  } catch {
+    return null;
+  }
+}
+
 async function req<T>(method: string, path: string, body?: unknown): Promise<T> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const token = authToken();
+  if (token) headers["Authorization"] = `Bearer ${token}`;
   const res = await fetch(`${BASE}${path}`, {
     method,
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) {
