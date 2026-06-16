@@ -292,6 +292,43 @@ def test_experiment_evaluate_invalid_id(client):
 
 
 # ---------------------------------------------------------------------------
+# Pipeline (offer -> approval)
+# ---------------------------------------------------------------------------
+
+
+def test_prepare_offer_endpoint(client):
+    resp = client.post(
+        "/pipeline/prepare-offer",
+        json={
+            "product_name": "Interior Kit",
+            "sale_price": 59.0,
+            "key_benefit": "Clean interior fast",
+            "target_customer": "Daily commuters",
+            "channel": "stripe",
+        },
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["action"] == "create_stripe_payment_link"
+    assert data["status"] == "pending"
+    assert data["risk_level"] == "high"
+
+
+def test_prepare_offer_unknown_channel_422(client):
+    resp = client.post(
+        "/pipeline/prepare-offer",
+        json={
+            "product_name": "Interior Kit",
+            "sale_price": 59.0,
+            "key_benefit": "Clean interior fast",
+            "target_customer": "Daily commuters",
+            "channel": "ebay",
+        },
+    )
+    assert resp.status_code == 422
+
+
+# ---------------------------------------------------------------------------
 # Daily report
 # ---------------------------------------------------------------------------
 

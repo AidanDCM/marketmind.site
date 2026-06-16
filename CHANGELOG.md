@@ -6,6 +6,30 @@ This file is part of the Parts & Pieces starter package requirement.
 
 ---
 
+## 2026-06-16 — Slice 21: offer → approval pipeline
+
+### Added
+
+**`marketmind/pipeline.py` — `prepare_offer_for_approval(engine, offer_context, channel)`**
+- Closes the last gap between scoring an offer and executing an approved action:
+  `OfferContext → generate_offer_spec → build channel payload → create gated
+  approval (HIGH → PENDING) → record_action_payload`.
+- Channels: `stripe` (→ `create_stripe_payment_link`) and `shopify`
+  (→ `publish_shopify_product`). Unknown channels raise.
+- No money / no external calls: payload built dry-run, approval lands PENDING.
+  The operator approves; the executor then runs it (live still needs creds).
+
+**API: `POST /pipeline/prepare-offer`**
+- Accepts an offer context + channel, returns the resulting PENDING approval.
+
+**Tests**
+- `tests/test_pipeline.py` (6): unknown channel, stripe/shopify approval shape,
+  end-to-end prepare→approve→execute for both channels, execute-before-approval
+  refused.
+- 2 API tests for the endpoint. Suite now **241 passing**.
+
+---
+
 ## 2026-06-16 — Slice 20: adapter-backed execution (Stripe + Shopify)
 
 ### Added

@@ -24,6 +24,7 @@ from .routers import (
     economics,
     experiments,
     health,
+    pipeline,
     reports,
     scoring,
     spec,
@@ -65,3 +66,4 @@ app.include_router(approvals.router, prefix="/approvals")
 app.include_router(reports.router, prefix="/report")
 app.include_router(economics.router, prefix="/economics")
 app.include_router(experiments.router, prefix="/experiment")
+app.include_router(pipeline.router, prefix="/pipeline")
