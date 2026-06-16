@@ -6,6 +6,23 @@ This file is part of the Parts & Pieces starter package requirement.
 
 ---
 
+## 2026-06-16 — Slice 25: frontend test harness (Vitest)
+
+### Added
+
+**Vitest + Testing Library (`desktop/`)**
+- `vitest.config.ts` (jsdom env), `src/test/setup.ts` (jest-dom matchers),
+  `npm test` script. Test files are excluded from the strict `tsc` build so
+  `npm run build` stays clean; Vitest type-checks/runs them separately.
+- `src/api/client.test.ts` (5): GET URL, POST JSON body, Authorization header
+  present/absent by stored token, error → `status: detail` throw.
+- `src/components/ScoreResultView.test.tsx` (3): verdict/name/reason render,
+  criterion rows + risks, channel chip.
+- CI `frontend` job now runs `npm test` after the build. The React app went
+  from zero tests to a working harness + 8 tests.
+
+---
+
 ## 2026-06-16 — Slice 24: optional API bearer-token auth
 
 ### Added
