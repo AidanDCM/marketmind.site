@@ -1,0 +1,145 @@
+import { useEffect, useState } from "react";
+import { fetchDailyReport, fetchPendingApprovals, type DailyReport, type ApprovalRecord } from "../api/client";
+
+function todayStr(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function fmt$(n: number): string {
+  return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+}
+
+function fmtPct(n: number): string {
+  return (n * 100).toFixed(1) + "%";
+}
+
+export function Overview() {
+  const [date, setDate] = useState(todayStr());
+  const [report, setReport] = useState<DailyReport | null>(null);
+  const [pending, setPending] = useState<ApprovalRecord[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    Promise.all([fetchDailyReport(date), fetchPendingApprovals()])
+      .then(([r, p]) => {
+        if (!cancelled) { setReport(r); setPending(p); }
+      })
+      .catch((e: Error) => { if (!cancelled) setError(e.message); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [date]);
+
+  const m = report?.metrics;
+
+  return (
+    <div className="page">
+      <div className="page-header" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+        <div>
+          <h2>Overview</h2>
+          <p>Daily performance metrics and operator alerts</p>
+        </div>
+        <input
+          type="date"
+          value={date}
+          max={todayStr()}
+          onChange={(e) => setDate(e.target.value)}
+          style={{ width: 160 }}
+        />
+      </div>
+
+      {pending.length > 0 && (
+        <div className="alert alert-warn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          {pending.length} pending approval{pending.length !== 1 ? "s" : ""} require your review.
+        </div>
+      )}
+
+      {loading && <div className="loading-row"><div className="spinner" /></div>}
+      {error && <div className="alert alert-error">API error: {error}</div>}
+
+      {m && (
+        <>
+          <div className="metric-grid">
+            <div className="metric-card">
+              <div className="metric-label">Orders</div>
+              <div className="metric-value">{m.orders}</div>
+              <div className="metric-sub">for {date}</div>
+            </div>
+            <div className="metric-card">
+              <div className="metric-label">Revenue</div>
+              <div className="metric-value">{fmt$(m.revenue)}</div>
+              <div className="metric-sub">gross</div>
+            </div>
+            <div className="metric-card">
+              <div className="metric-label">Ad Spend</div>
+              <div className="metric-value metric-down">{fmt$(m.ad_spend)}</div>
+              <div className="metric-sub">total spend</div>
+            </div>
+            <div className="metric-card">
+              <div className="metric-label">CAC</div>
+              <div className={`metric-value ${m.cac <= m.break_even_cac ? "metric-up" : "metric-down"}`}>
+                {fmt$(m.cac)}
+              </div>
+              <div className="metric-sub">break-even {fmt$(m.break_even_cac)}</div>
+            </div>
+          </div>
+
+          <div className="metric-grid" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
+            <div className="metric-card">
+              <div className="metric-label">Contribution $</div>
+              <div className={`metric-value ${m.contribution_dollars >= 0 ? "metric-up" : "metric-down"}`}>
+                {fmt$(m.contribution_dollars)}
+              </div>
+            </div>
+            <div className="metric-card">
+              <div className="metric-label">Conversion</div>
+              <div className="metric-value">{fmtPct(m.conversion_rate)}</div>
+            </div>
+            <div className="metric-card">
+              <div className="metric-label">Refund Rate</div>
+              <div className={`metric-value ${m.refund_rate < 0.05 ? "metric-up" : "metric-down"}`}>
+                {fmtPct(m.refund_rate)}
+              </div>
+            </div>
+          </div>
+
+          <div className="two-col">
+            <div className="card">
+              <div className="card-title">Risks</div>
+              {report!.risks.length === 0
+                ? <div style={{ color: "var(--text-muted)", fontSize: 13 }}>No risks flagged</div>
+                : report!.risks.map((r, i) => (
+                  <div key={i} className="list-item">
+                    <div className="bullet risk" />
+                    <div className="list-text">{r}</div>
+                  </div>
+                ))}
+            </div>
+            <div className="card">
+              <div className="card-title">Recommendations</div>
+              {report!.recommendations.length === 0
+                ? <div style={{ color: "var(--text-muted)", fontSize: 13 }}>No recommendations</div>
+                : report!.recommendations.map((r, i) => (
+                  <div key={i} className="list-item">
+                    <div className="bullet rec" />
+                    <div className="list-text">{r}</div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {!loading && !m && !error && (
+        <div className="empty">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg>
+          <p>No report data for {date}</p>
+        </div>
+      )}
+    </div>
+  );
+}
