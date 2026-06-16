@@ -1,0 +1,18 @@
+# Keep the build context small and free of host artifacts/secrets.
+desktop/
+tests/
+.git/
+.github/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+data/
+logs/
+*.db
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+docs/

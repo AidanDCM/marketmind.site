@@ -1,0 +1,17 @@
+# Local/production-ish run of the MarketMind backend.
+#   docker compose up --build
+# Set MARKETMIND_API_TOKEN in your shell (or a .env file) to require auth.
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - MARKETMIND_API_TOKEN=${MARKETMIND_API_TOKEN:-}
+      - MARKETMIND_ENV=${MARKETMIND_ENV:-production}
+    volumes:
+      - marketmind-data:/data
+    restart: unless-stopped
+
+volumes:
+  marketmind-data:

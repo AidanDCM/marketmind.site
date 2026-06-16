@@ -6,6 +6,26 @@ This file is part of the Parts & Pieces starter package requirement.
 
 ---
 
+## 2026-06-16 — Slice 26: packaging (Docker + deployment docs)
+
+### Added
+
+**Backend container (`Dockerfile`, `.dockerignore`, `docker-compose.yml`)**
+- `python:3.12-slim` image; `pip install .`; serves uvicorn on `:8000`.
+- SQLite persists on a `/data` volume; schema created on startup.
+- `MARKETMIND_API_TOKEN` enables bearer-token auth at runtime; live integration
+  secrets passed at runtime only (never baked into the image).
+- `.dockerignore` keeps the build context free of `desktop/`, tests, secrets,
+  and local artifacts.
+
+**`docs/DEPLOYMENT.md`**
+- How to build/run the backend (Docker + compose) and the desktop Tauri
+  installer (`npm run tauri build` → NSIS `.exe` / MSI under
+  `src-tauri/target/release/bundle/`), pointing the app at a remote API, and a
+  release checklist.
+
+---
+
 ## 2026-06-16 — Slice 25: frontend test harness (Vitest)
 
 ### Added
