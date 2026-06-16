@@ -2,6 +2,37 @@
 
 ---
 
+## 2026-06-16 — Slice 29: Import history persistence
+
+### Added
+
+**`marketmind/db/models.py` — `ImportBatchRow` table**
+- New `import_batches` table: `source`, `pulled_at`, `total_rows`, `ok_count`,
+  `review_count`, `rows_json` (JSON TEXT). Schema created on startup via `create_all`.
+
+**`marketmind/db/import_store.py`**
+- `save_import(engine, result) -> int` — persist an `ImportResult`; returns batch id.
+- `list_imports(engine, source?, limit) -> list[dict]` — recent batches, newest first,
+  summary fields only (no row data, safe to list at scale).
+- `get_import(engine, batch_id) -> dict | None` — full batch including all row dicts.
+
+**`marketmind/api/routers/imports.py` — 5 new endpoints**
+- `POST /imports/pull/stripe/orders` — pull + persist + return summary + batch_id.
+- `POST /imports/pull/shopify/orders` — same for Shopify orders.
+- `POST /imports/pull/shopify/products` — same for Shopify products.
+- `GET /imports` — list history (optional `source=` filter).
+- `GET /imports/{batch_id}` — full batch detail with rows.
+
+**Dashboard: `LiveData.tsx` updated**
+- Pull button now calls the persisting `/imports/pull/*` endpoints.
+- Pull history panel shows past batches for the active source tab (auto-refreshes
+  after each pull via `listImportHistory`).
+
+8 unit tests in `tests/test_import_store.py`; 5 API tests added to `tests/test_api.py`.
+Suite: **270 passing**; ruff clean.
+
+---
+
 ## 2026-06-16 — Slice 28: Live Data dashboard page
 
 ### Added

@@ -83,3 +83,17 @@ class EventRow(Base):
     event_id: Mapped[str]
     created_at: Mapped[str] = mapped_column(default=_now)
     payload: Mapped[str] = mapped_column(Text, default="{}")
+
+
+class ImportBatchRow(Base):
+    """Slice 29: one persisted pull from a live source or CSV importer."""
+
+    __tablename__ = "import_batches"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    source: Mapped[str]           # e.g. "stripe_charges", "shopify_orders", "csv_orders"
+    pulled_at: Mapped[str] = mapped_column(default=_now)
+    total_rows: Mapped[int] = mapped_column(default=0)
+    ok_count: Mapped[int] = mapped_column(default=0)
+    review_count: Mapped[int] = mapped_column(default=0)
+    rows_json: Mapped[str] = mapped_column(Text, default="[]")  # JSON array of ok row dicts

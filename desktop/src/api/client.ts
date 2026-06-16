@@ -323,3 +323,38 @@ export function fetchShopifyOrders(limit = 50): Promise<ImportResult> {
 export function fetchShopifyProducts(limit = 50): Promise<ImportResult> {
   return req("POST", `/sources/shopify/products?limit=${limit}`);
 }
+
+// ---- Import history (Slice 29) — persisting pulls ----
+export interface ImportBatch {
+  id: number;
+  source: string;
+  pulled_at: string;
+  total_rows: number;
+  ok_count: number;
+  review_count: number;
+}
+
+export interface ImportBatchDetail extends ImportBatch {
+  rows: Record<string, string>[];
+}
+
+export function pullAndSaveStripeOrders(limit = 100): Promise<ImportResult & { batch_id: number }> {
+  return req("POST", `/imports/pull/stripe/orders?limit=${limit}`);
+}
+
+export function pullAndSaveShopifyOrders(limit = 50): Promise<ImportResult & { batch_id: number }> {
+  return req("POST", `/imports/pull/shopify/orders?limit=${limit}`);
+}
+
+export function pullAndSaveShopifyProducts(limit = 50): Promise<ImportResult & { batch_id: number }> {
+  return req("POST", `/imports/pull/shopify/products?limit=${limit}`);
+}
+
+export function listImportHistory(source?: string): Promise<ImportBatch[]> {
+  const qs = source ? `?source=${encodeURIComponent(source)}` : "";
+  return req("GET", `/imports${qs}`);
+}
+
+export function getImportBatch(batchId: number): Promise<ImportBatchDetail> {
+  return req("GET", `/imports/${batchId}`);
+}

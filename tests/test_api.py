@@ -429,3 +429,63 @@ def test_daily_report_empty(client):
     data = resp.json()
     assert data["date"] == "2026-06-15"
     assert data["metrics"]["orders"] == 0
+
+
+# ---------------------------------------------------------------------------
+# Import history (Slice 29)
+# ---------------------------------------------------------------------------
+
+
+def test_import_history_empty(client):
+    resp = client.get("/imports")
+    assert resp.status_code == 200
+    assert resp.json() == []
+
+
+def test_import_pull_stripe_no_creds_409(client, monkeypatch):
+    monkeypatch.delenv("STRIPE_API_KEY", raising=False)
+    resp = client.post("/imports/pull/stripe/orders")
+    assert resp.status_code == 409
+
+
+def test_import_pull_and_list(client, monkeypatch):
+    monkeypatch.setenv("STRIPE_API_KEY", "sk_test_x")
+    from marketmind.sources import StripeReader
+
+    def fake_get(self, path, params):
+        return {"data": [{"id": "ch_1", "amount": 5900, "created": 1, "status": "ok"}]}
+
+    monkeypatch.setattr(StripeReader, "_get", fake_get)
+    resp = client.post("/imports/pull/stripe/orders")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "batch_id" in data
+    assert data["source"] == "stripe_charges"
+    assert data["ok_count"] == 1
+
+    # List returns the new batch
+    list_resp = client.get("/imports")
+    assert len(list_resp.json()) == 1
+    assert list_resp.json()[0]["source"] == "stripe_charges"
+
+
+def test_import_get_batch(client, monkeypatch):
+    monkeypatch.setenv("STRIPE_API_KEY", "sk_test_x")
+    from marketmind.sources import StripeReader
+
+    def fake_get(self, path, params):
+        return {"data": [{"id": "ch_2", "amount": 1999, "created": 2, "status": "ok"}]}
+
+    monkeypatch.setattr(StripeReader, "_get", fake_get)
+    pull = client.post("/imports/pull/stripe/orders")
+    batch_id = pull.json()["batch_id"]
+
+    resp = client.get(f"/imports/{batch_id}")
+    assert resp.status_code == 200
+    assert "rows" in resp.json()
+    assert len(resp.json()["rows"]) == 1
+
+
+def test_import_get_missing_404(client):
+    resp = client.get("/imports/9999")
+    assert resp.status_code == 404

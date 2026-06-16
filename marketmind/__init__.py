@@ -3,6 +3,7 @@
 from .adapters.shopify_adapter import build_product_draft
 from .adapters.stripe_adapter import build_payment_link_payload
 from .approvals import classify_action_risk, evaluate_approval, make_approval_record
+from .db.import_store import get_import, list_imports, save_import
 from .executor import (
     ExecutionResult,
     execute_all_approved,
@@ -131,6 +132,10 @@ __all__ = [
     # Slice 27: read-only live data sources
     "ShopifyReader",
     "StripeReader",
+    # Slice 29: import history
+    "get_import",
+    "list_imports",
+    "save_import",
     # Slice 9: Stripe adapter
     "PaymentLinkPayload",
     "build_payment_link_payload",

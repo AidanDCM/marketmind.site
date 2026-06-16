@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  fetchStripeOrders,
-  fetchShopifyOrders,
-  fetchShopifyProducts,
+  ImportBatch,
   ImportResult,
+  listImportHistory,
+  pullAndSaveShopifyOrders,
+  pullAndSaveShopifyProducts,
+  pullAndSaveStripeOrders,
 } from "../api/client";
 
 type SourceKey = "stripe_orders" | "shopify_orders" | "shopify_products";
@@ -14,10 +16,16 @@ const SOURCES: { key: SourceKey; label: string; note: string }[] = [
   { key: "shopify_products", label: "Shopify Products", note: "Requires SHOPIFY_STORE_DOMAIN + SHOPIFY_ACCESS_TOKEN" },
 ];
 
-function fetch(key: SourceKey): Promise<ImportResult> {
-  if (key === "stripe_orders") return fetchStripeOrders();
-  if (key === "shopify_orders") return fetchShopifyOrders();
-  return fetchShopifyProducts();
+const SOURCE_NAMES: Record<SourceKey, string> = {
+  stripe_orders: "stripe_charges",
+  shopify_orders: "shopify_orders",
+  shopify_products: "shopify_products",
+};
+
+function doPull(key: SourceKey): Promise<ImportResult & { batch_id: number }> {
+  if (key === "stripe_orders") return pullAndSaveStripeOrders();
+  if (key === "shopify_orders") return pullAndSaveShopifyOrders();
+  return pullAndSaveShopifyProducts();
 }
 
 function ResultTable({ result }: { result: ImportResult }) {
@@ -54,12 +62,17 @@ export function LiveData() {
   const [results, setResults] = useState<Partial<Record<SourceKey, ImportResult>>>({});
   const [errors, setErrors] = useState<Partial<Record<SourceKey, string>>>({});
   const [loading, setLoading] = useState<SourceKey | null>(null);
+  const [history, setHistory] = useState<ImportBatch[]>([]);
+
+  useEffect(() => {
+    listImportHistory().then(setHistory).catch(() => {});
+  }, [results]);
 
   async function pull(key: SourceKey) {
     setLoading(key);
     setErrors(e => ({ ...e, [key]: undefined }));
     try {
-      const data = await fetch(key);
+      const data = await doPull(key);
       setResults(r => ({ ...r, [key]: data }));
     } catch (err) {
       setErrors(e => ({ ...e, [key]: (err as Error).message }));
@@ -71,6 +84,7 @@ export function LiveData() {
   const src = SOURCES.find(s => s.key === active)!;
   const result = results[active];
   const error = errors[active];
+  const activeHistory = history.filter(b => b.source === SOURCE_NAMES[active]);
 
   return (
     <div>
@@ -139,6 +153,36 @@ export function LiveData() {
       {!result && !error && !loading && (
         <div className="card" style={{ textAlign: "center", padding: "3rem" }}>
           <p className="dim">Click <strong>Pull Now</strong> to fetch live data from {src.label}.</p>
+        </div>
+      )}
+
+      {activeHistory.length > 0 && (
+        <div style={{ marginTop: "2rem" }}>
+          <h3 style={{ fontSize: "13px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", color: "var(--text-muted)", marginBottom: "0.75rem" }}>
+            Pull History — {src.label}
+          </h3>
+          <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Pulled at</th>
+                  <th>Total</th>
+                  <th>OK</th>
+                  <th>Review</th>
+                </tr>
+              </thead>
+              <tbody>
+                {activeHistory.map(b => (
+                  <tr key={b.id}>
+                    <td>{new Date(b.pulled_at).toLocaleString()}</td>
+                    <td>{b.total_rows}</td>
+                    <td style={{ color: "var(--green)" }}>{b.ok_count}</td>
+                    <td style={{ color: b.review_count > 0 ? "var(--yellow)" : undefined }}>{b.review_count}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
