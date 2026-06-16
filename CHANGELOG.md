@@ -1,5 +1,33 @@
 # Changelog
 
+---
+
+## 2026-06-16 — Slice 28: Live Data dashboard page
+
+### Added
+
+**`desktop/src/components/LiveData.tsx`**
+- New **Live Data** page (9th sidebar item) that surfaces the three `/sources/*`
+  endpoints added in Slice 27 directly in the dashboard.
+- Source picker tabs: Stripe Charges / Shopify Orders / Shopify Products.
+- Pull-on-demand button — no background polling. Results rendered in a responsive
+  scrollable table with total/OK/review row counts.
+- 409 (missing credentials) is caught and surfaced as a plain-English message
+  rather than a raw error.
+- No credentials are ever stored in the frontend; the page only calls the API.
+
+**`desktop/src/api/client.ts`**
+- Added `ImportRow`, `ImportResult` types and `fetchStripeOrders`,
+  `fetchShopifyOrders`, `fetchShopifyProducts` functions.
+
+**`desktop/src/index.css`**
+- Added `.dim`, `.btn-secondary`, `.error-banner`, and `.data-table` CSS classes
+  used by the new page.
+
+Build: 257 backend tests pass; 8 frontend Vitest tests pass; TypeScript + ruff clean.
+
+---
+
 All notable changes to MarketMind Autopilot are recorded here.
 Format: each entry has a date, a type (Added / Changed / Fixed / Removed), and a short description.
 This file is part of the Parts & Pieces starter package requirement.

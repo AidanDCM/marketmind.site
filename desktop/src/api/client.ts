@@ -296,3 +296,30 @@ export interface ExecutionLogEntry {
 export function fetchExecutionLog(): Promise<ExecutionLogEntry[]> {
   return req("GET", "/execute/log");
 }
+
+// ---- Live data sources (read-only, Slice 27/28) ----
+export interface ImportRow {
+  status: string;
+  data: Record<string, string>;
+  review_note: string;
+}
+export interface ImportResult {
+  source: string;
+  total_rows: number;
+  ok_count: number;
+  review_count: number;
+  ok_rows: ImportRow[];
+  review_rows: ImportRow[];
+}
+
+export function fetchStripeOrders(limit = 100): Promise<ImportResult> {
+  return req("POST", `/sources/stripe/orders?limit=${limit}`);
+}
+
+export function fetchShopifyOrders(limit = 50): Promise<ImportResult> {
+  return req("POST", `/sources/shopify/orders?limit=${limit}`);
+}
+
+export function fetchShopifyProducts(limit = 50): Promise<ImportResult> {
+  return req("POST", `/sources/shopify/products?limit=${limit}`);
+}
