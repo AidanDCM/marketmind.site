@@ -6,6 +6,61 @@ This file is part of the Parts & Pieces starter package requirement.
 
 ---
 
+## 2026-06-15 — Slices 6–10: Approval queue, CSV import, daily report, Stripe + Shopify adapters
+
+### Added
+
+**Slice 6: Approval queue (`marketmind/approvals.py`)**
+- `RiskLevel` / `ApprovalStatus` / `ApprovalRecord` schemas.
+- `classify_action_risk(action) -> RiskLevel` — registry of 25 known actions
+  (LOW/MEDIUM/HIGH/CRITICAL); unknown actions default to HIGH (safe-fail).
+- `make_approval_record()` — convenience constructor with UUID-based IDs.
+- `evaluate_approval(record) -> ApprovalRecord` — sequential gate adapted from
+  P&P `DecisionGate`: CRITICAL→BLOCKED, HIGH→PENDING, MEDIUM→PENDING, LOW→AUTO_ALLOWED.
+  HIGH records include checklist enforcement (P&P `ChecklistGate` pattern):
+  rollback_plan, expected_cost, summary, and approval_id must all be present.
+- 15 tests in `tests/test_approvals.py`.
+
+**Slice 7: CSV import layer (`marketmind/importers.py`)**
+- `ImportRowStatus` / `ImportRow` / `ImportResult` schemas.
+- `import_products_csv()`, `import_ad_report_csv()`, `import_orders_csv()` —
+  adapted from P&P `CsvSourceAdapter`. Accepts in-memory text; alias resolution
+  for all three CSV shapes; bad rows go to `review_rows` with a note, never raise.
+- 15 tests in `tests/test_importers.py`.
+
+**Slice 8: Daily report generator (`marketmind/reports.py`)**
+- `DailyMetrics` / `DailyReport` schemas.
+- `generate_daily_report(date, snapshots, pending_approvals) -> DailyReport` —
+  pure computation; adapted from P&P `JsonlEventLedger` replay pattern (caller
+  hydrates snapshots from the ledger). Aggregates revenue/CAC/ROAS, surfaces
+  risk signals from `rules.py` thresholds, derives lessons from ledger state.
+- 14 tests in `tests/test_reports.py`.
+
+**Slice 9: Stripe Payment Links adapter (`marketmind/adapters/stripe_adapter.py`)**
+- `PaymentLinkPayload` schema.
+- `build_payment_link_payload(offer_spec, approval, dry_run) -> PaymentLinkPayload` —
+  dry-run only by default. Live creation requires HIGH+APPROVED `ApprovalRecord`
+  AND explicit `dry_run=False`. No secrets logged, printed, or included in payload.
+- 11 tests in `tests/test_stripe_adapter.py`.
+
+**Slice 10: Shopify adapter (`marketmind/adapters/shopify_adapter.py`)**
+- `ShopifyVariant` / `ProductDraftPayload` schemas.
+- `build_product_draft(offer_spec, vendor, product_type, approval, dry_run)` —
+  always `status="draft"`. Publishing requires HIGH+APPROVED `ApprovalRecord`
+  AND explicit `dry_run=False`. No secrets in payload.
+- 12 tests in `tests/test_shopify_adapter.py`.
+
+### Parts & Pieces compliance
+- Slice 6 uses `DecisionGate` + `ChecklistGate` patterns (inline adaptation, as
+  mandated by ADR-0002).
+- Slice 7 uses `CsvSourceAdapter` pattern (inline adaptation).
+- Slices 8 adapts `JsonlEventLedger` replay pattern (pure-computation variant).
+
+### Test count
+132 tests total (was 62 before this session). All pass. Ruff clean.
+
+---
+
 ## 2026-06-15 — Slice 5: Landing-page and offer spec generator
 
 ### Added

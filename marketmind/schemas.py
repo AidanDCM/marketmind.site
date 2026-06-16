@@ -472,3 +472,196 @@ class OfferSpec:
         data["trust_signals"] = list(self.trust_signals)
         data["safety_flags"] = list(self.safety_flags)
         return data
+
+
+# ---------------------------------------------------------------------------
+# Slice 6: approval queue schemas
+# ---------------------------------------------------------------------------
+
+
+class RiskLevel(str, Enum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    CRITICAL = "critical"
+
+
+class ApprovalStatus(str, Enum):
+    PENDING = "pending"
+    AUTO_ALLOWED = "auto_allowed"
+    APPROVED = "approved"
+    DENIED = "denied"
+    BLOCKED = "blocked"
+    EXPIRED = "expired"
+
+
+@dataclass(frozen=True)
+class ApprovalRecord:
+    """One entry in the approval queue."""
+
+    approval_id: str
+    action: str
+    risk_level: RiskLevel
+    status: ApprovalStatus
+    summary: str
+    expected_cost: float = 0.0
+    rollback_plan: str = ""
+    reason: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        data = asdict(self)
+        data["risk_level"] = self.risk_level.value
+        data["status"] = self.status.value
+        return data
+
+
+# ---------------------------------------------------------------------------
+# Slice 7: CSV import schemas
+# ---------------------------------------------------------------------------
+
+
+class ImportRowStatus(str, Enum):
+    OK = "ok"
+    REVIEW = "review"
+    SKIPPED = "skipped"
+
+
+@dataclass
+class ImportRow:
+    row_number: int
+    status: ImportRowStatus
+    data: dict[str, Any]
+    notes: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "row_number": self.row_number,
+            "status": self.status.value,
+            "data": self.data,
+            "notes": self.notes,
+        }
+
+
+@dataclass
+class ImportResult:
+    source: str
+    total_rows: int
+    ok_rows: list[ImportRow] = field(default_factory=list)
+    review_rows: list[ImportRow] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "source": self.source,
+            "total_rows": self.total_rows,
+            "ok_count": len(self.ok_rows),
+            "review_count": len(self.review_rows),
+            "ok_rows": [r.to_dict() for r in self.ok_rows],
+            "review_rows": [r.to_dict() for r in self.review_rows],
+        }
+
+
+# ---------------------------------------------------------------------------
+# Slice 8: daily report schemas
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class DailyMetrics:
+    date: str
+    revenue: float = 0.0
+    orders: int = 0
+    ad_spend: float = 0.0
+    refund_count: int = 0
+    contribution_profit: float = 0.0
+    cac: float = 0.0
+    conversion_rate: float = 0.0
+    add_to_cart_rate: float = 0.0
+    refund_rate: float = 0.0
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class DailyReport:
+    date: str
+    metrics: DailyMetrics
+    pending_approvals: tuple[str, ...] = field(default_factory=tuple)
+    recommendations: tuple[str, ...] = field(default_factory=tuple)
+    risks: tuple[str, ...] = field(default_factory=tuple)
+    lessons: tuple[str, ...] = field(default_factory=tuple)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "date": self.date,
+            "metrics": self.metrics.to_dict(),
+            "pending_approvals": list(self.pending_approvals),
+            "recommendations": list(self.recommendations),
+            "risks": list(self.risks),
+            "lessons": list(self.lessons),
+        }
+
+
+# ---------------------------------------------------------------------------
+# Slice 9: Stripe Payment Links adapter schemas
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class PaymentLinkPayload:
+    """Dry-run Stripe Payment Link request payload.
+
+    ``dry_run=True`` means this payload was never sent to Stripe.
+    Live creation requires an approved ApprovalRecord with risk HIGH.
+    """
+
+    product_name: str
+    unit_amount_cents: int          # price in cents
+    currency: str = "usd"
+    mode: str = "payment"
+    metadata: dict[str, str] = field(default_factory=dict)
+    dry_run: bool = True
+
+    def to_dict(self) -> dict[str, Any]:
+        data = asdict(self)
+        data["metadata"] = dict(self.metadata)
+        return data
+
+
+# ---------------------------------------------------------------------------
+# Slice 10: Shopify adapter schemas
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class ShopifyVariant:
+    price: str          # string per Shopify API
+    sku: str = ""
+    inventory_management: str = "shopify"
+    fulfillment_service: str = "manual"
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class ProductDraftPayload:
+    """Shopify draft product payload.
+
+    Always created as ``status="draft"``. Publishing requires an approved
+    ApprovalRecord with risk HIGH.
+    """
+
+    title: str
+    body_html: str
+    vendor: str
+    product_type: str
+    status: str = "draft"
+    variants: tuple[ShopifyVariant, ...] = field(default_factory=tuple)
+    tags: str = ""
+    dry_run: bool = True
+
+    def to_dict(self) -> dict[str, Any]:
+        data = asdict(self)
+        data["variants"] = [v.to_dict() for v in self.variants]
+        return data
