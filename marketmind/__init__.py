@@ -3,6 +3,12 @@
 from .adapters.shopify_adapter import build_product_draft
 from .adapters.stripe_adapter import build_payment_link_payload
 from .approvals import classify_action_risk, evaluate_approval, make_approval_record
+from .executor import (
+    ExecutionResult,
+    execute_all_approved,
+    execute_approved,
+    execution_log,
+)
 from .experiment_rules import evaluate_experiment
 from .importers import import_ad_report_csv, import_orders_csv, import_products_csv
 from .math_engine import calculate_unit_economics
@@ -111,6 +117,11 @@ __all__ = [
     "record_snapshot",
     "run_daily_cycle",
     "scale_approval_id",
+    # Slice 19: approved-action executor
+    "ExecutionResult",
+    "execute_all_approved",
+    "execute_approved",
+    "execution_log",
     # Slice 9: Stripe adapter
     "PaymentLinkPayload",
     "build_payment_link_payload",
