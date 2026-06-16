@@ -41,6 +41,7 @@ from .routers import (
     scoring,
     sources,
     spec,
+    webhooks,
 )
 
 _ALEMBIC_INI = pathlib.Path(__file__).resolve().parents[2] / "alembic.ini"
@@ -98,3 +99,4 @@ app.include_router(pipeline.router, prefix="/pipeline")
 app.include_router(execution.router, prefix="/execute")
 app.include_router(sources.router, prefix="/sources")
 app.include_router(imports.router, prefix="/imports")
+app.include_router(webhooks.router, prefix="/webhooks")
