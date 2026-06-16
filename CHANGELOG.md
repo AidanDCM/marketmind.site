@@ -6,6 +6,27 @@ This file is part of the Parts & Pieces starter package requirement.
 
 ---
 
+## 2026-06-16 — Slice 24: optional API bearer-token auth
+
+### Added
+
+**`marketmind/api/auth.py` — bearer-token middleware**
+- If `MARKETMIND_API_TOKEN` is set, every request must carry
+  `Authorization: Bearer <token>` (constant-time compared); 401 otherwise.
+- If unset, the API stays open (local-dev default) and logs a one-time warning
+  so an unauthenticated deployment is never silent.
+- Allowlist (`/health`, `/docs`, `/redoc`, `/openapi.json`) is always reachable.
+- This is the floor that lets the backend leave localhost safely.
+
+**Client + docs**
+- `desktop/src/api/client.ts` sends the token from `localStorage`
+  (`marketmind_api_token`) when present; unset by default.
+- `.env.example` documents `MARKETMIND_API_TOKEN`.
+- 3 tests in `tests/test_auth.py` (open when unset; 401/200 when set; health
+  always open). Suite now **247 passing**.
+
+---
+
 ## 2026-06-16 — Slice 22-23: executor API + dashboard execute/prepare
 
 ### Added
