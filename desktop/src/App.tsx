@@ -9,6 +9,8 @@ import { ExperimentEvaluator } from "./components/ExperimentEvaluator";
 import { OfferSpecPage } from "./components/OfferSpecPage";
 import { PrepareOffer } from "./components/PrepareOffer";
 import { LiveData } from "./components/LiveData";
+import { ImportHistory } from "./components/ImportHistory";
+import { SnapshotRecorder } from "./components/SnapshotRecorder";
 
 type Page =
   | "overview"
@@ -19,7 +21,9 @@ type Page =
   | "experiment"
   | "spec"
   | "prepare"
-  | "live";
+  | "live"
+  | "history"
+  | "snapshots";
 
 function Icon({ d }: { d: string }) {
   return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" dangerouslySetInnerHTML={{ __html: d }} />;
@@ -35,6 +39,8 @@ const NAV: { id: Page; label: string; icon: string }[] = [
   { id: "spec", label: "Offer Spec", icon: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>' },
   { id: "prepare", label: "Prepare Offer", icon: '<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>' },
   { id: "live", label: "Live Data", icon: '<path d="M1 6s4-4 11-4 11 4 11 4"/><path d="M1 12s4-4 11-4 11 4 11 4"/><path d="M1 18s4-4 11-4 11 4 11 4"/>' },
+  { id: "history", label: "Import History", icon: '<path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/>' },
+  { id: "snapshots", label: "Snapshots", icon: '<rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>' },
 ];
 
 export function App() {
@@ -83,6 +89,8 @@ export function App() {
         {page === "spec" && <OfferSpecPage />}
         {page === "prepare" && <PrepareOffer />}
         {page === "live" && <LiveData />}
+        {page === "history" && <ImportHistory />}
+        {page === "snapshots" && <SnapshotRecorder />}
       </main>
     </div>
   );

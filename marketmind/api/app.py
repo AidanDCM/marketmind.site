@@ -39,6 +39,7 @@ from .routers import (
     pipeline,
     reports,
     scoring,
+    snapshots,
     sources,
     spec,
     webhooks,
@@ -99,4 +100,5 @@ app.include_router(pipeline.router, prefix="/pipeline")
 app.include_router(execution.router, prefix="/execute")
 app.include_router(sources.router, prefix="/sources")
 app.include_router(imports.router, prefix="/imports")
+app.include_router(snapshots.router, prefix="/snapshots")
 app.include_router(webhooks.router, prefix="/webhooks")
