@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { listActiveExperiments, type ActiveExperiment } from "../api/client";
+import { listActiveExperiments, patchExperimentStatus, type ActiveExperiment } from "../api/client";
 
 const RULING_COLOR: Record<string, string> = {
   continue: "var(--green)",
@@ -45,9 +45,22 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function ExperimentCard({ exp }: { exp: ActiveExperiment }) {
+function ExperimentCard({ exp, onStatusChange }: { exp: ActiveExperiment; onStatusChange: () => void }) {
   const [open, setOpen] = useState(false);
+  const [patching, setPatching] = useState(false);
+  const [patchError, setPatchError] = useState<string | null>(null);
   const cacOver = exp.actual_cac !== null && exp.actual_cac > exp.break_even_cac;
+
+  function toggleStatus(e: React.MouseEvent) {
+    e.stopPropagation();
+    const next = exp.status === "active" ? "ended" : "active";
+    setPatching(true);
+    setPatchError(null);
+    patchExperimentStatus(exp.experiment_id, next)
+      .then(() => onStatusChange())
+      .catch((err: Error) => setPatchError(err.message))
+      .finally(() => setPatching(false));
+  }
 
   return (
     <div className="approval-card" style={{ cursor: "pointer" }} onClick={() => setOpen(o => !o)}>
@@ -106,6 +119,19 @@ function ExperimentCard({ exp }: { exp: ActiveExperiment }) {
               ))}
             </div>
           )}
+          <div style={{ marginTop: 14, display: "flex", gap: 8, alignItems: "center" }}>
+            <button
+              className={`btn-ghost ${patching ? "disabled" : ""}`}
+              disabled={patching}
+              onClick={toggleStatus}
+              style={{ fontSize: 12 }}
+            >
+              {patching ? "…" : exp.status === "active" ? "End experiment" : "Reactivate"}
+            </button>
+            {patchError && (
+              <span style={{ fontSize: 11, color: "var(--red)" }}>{patchError}</span>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -182,7 +208,7 @@ export function ActiveExperiments() {
       )}
 
       <div className="approval-list" style={{ marginTop: "1rem" }}>
-        {visible.map(e => <ExperimentCard key={e.experiment_id} exp={e} />)}
+        {visible.map(e => <ExperimentCard key={e.experiment_id} exp={e} onStatusChange={load} />)}
       </div>
     </div>
   );

@@ -7,11 +7,15 @@ ruling with an explainable risk list.
 Slice 36 adds GET /experiment/active — list all experiments from the DB with
 their latest snapshot date and ruling so operators can see the health of every
 live experiment in one place.
+
+Slice 37 adds PATCH /experiment/{id}/status — end or reactivate an experiment.
 """
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Request
+import datetime
+
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -104,3 +108,42 @@ def list_active_experiments(request: Request) -> list:
             result.append(entry)
 
     return result
+
+
+_VALID_STATUSES = {"active", "ended"}
+
+
+class StatusPatchRequest(BaseModel):
+    status: str
+
+
+@router.patch("/{experiment_id}/status")
+def patch_experiment_status(
+    experiment_id: str,
+    body: StatusPatchRequest,
+    request: Request,
+) -> dict:
+    """End or reactivate an experiment.
+
+    Setting status to ``ended`` stamps ``ended_at`` with today's ISO date.
+    Setting it back to ``active`` clears ``ended_at``.
+    Returns 404 for unknown experiments, 422 for invalid status values.
+    """
+    if body.status not in _VALID_STATUSES:
+        raise HTTPException(
+            status_code=422,
+            detail=f"status must be one of {sorted(_VALID_STATUSES)}",
+        )
+    engine = request.app.state.engine
+    with Session(engine) as session:
+        exp = session.get(ExperimentRow, experiment_id)
+        if exp is None:
+            raise HTTPException(status_code=404, detail="Experiment not found")
+        exp.status = body.status
+        exp.ended_at = datetime.date.today().isoformat() if body.status == "ended" else None
+        session.commit()
+        return {
+            "experiment_id": exp.experiment_id,
+            "status": exp.status,
+            "ended_at": exp.ended_at,
+        }

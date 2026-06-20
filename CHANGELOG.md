@@ -2,6 +2,30 @@
 
 ---
 
+## 2026-06-16 — Slice 37: Experiment Status Management
+
+### Added
+
+**`marketmind/api/routers/experiments.py`**
+- `PATCH /experiment/{id}/status` — accepts `{status: "active"|"ended"}`. Setting
+  `ended` stamps `ended_at` with today's ISO date; setting `active` clears it.
+  Returns 404 for unknown experiments, 422 for invalid status values.
+
+**`desktop/src/api/client.ts`**
+- `patchExperimentStatus(experimentId, status)` wired to `PATCH /experiment/{id}/status`.
+
+**`desktop/src/components/ActiveExperiments.tsx`**
+- "End experiment" / "Reactivate" button in expanded card body. Fires
+  `patchExperimentStatus` then reloads the list. Shows inline error on failure.
+
+**`tests/test_experiment_status.py`**
+- 6 tests: end sets `ended_at`; reactivate clears it; 404 for unknown; 422 for invalid
+  status; status reflected in `/experiment/active` list; `ended_at` cleared on reactivate.
+
+Suite: **327 passing**; ruff clean.
+
+---
+
 ## 2026-06-16 — Slice 36: Active Experiments Dashboard
 
 ### Added
