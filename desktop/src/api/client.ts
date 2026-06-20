@@ -269,6 +269,13 @@ export function listActiveExperiments(): Promise<ActiveExperiment[]> {
   return req("GET", "/experiment/active");
 }
 
+export function patchExperimentStatus(
+  experimentId: string,
+  status: "active" | "ended",
+): Promise<{ experiment_id: string; status: string; ended_at: string | null }> {
+  return req("PATCH", `/experiment/${encodeURIComponent(experimentId)}/status`, { status });
+}
+
 // ---- Pipeline: offer -> approval ----
 export interface PrepareOfferRequest {
   product_name: string;
