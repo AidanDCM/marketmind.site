@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
-import { listActiveExperiments, patchExperimentStatus, type ActiveExperiment } from "../api/client";
+import {
+  listActiveExperiments,
+  patchExperimentStatus,
+  addExperimentNote,
+  getExperimentNotes,
+  type ActiveExperiment,
+  type ExperimentNote,
+} from "../api/client";
 
 const RULING_COLOR: Record<string, string> = {
   continue: "var(--green)",
@@ -42,6 +49,59 @@ function StatusBadge({ status }: { status: string }) {
     }}>
       {status}
     </span>
+  );
+}
+
+function NotesSection({ experimentId }: { experimentId: string }) {
+  const [notes, setNotes] = useState<ExperimentNote[]>([]);
+  const [draft, setDraft] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    getExperimentNotes(experimentId).then(setNotes).catch(() => {});
+  }, [experimentId]);
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!draft.trim()) return;
+    setSaving(true);
+    setError(null);
+    addExperimentNote(experimentId, draft.trim())
+      .then(note => { setNotes(n => [...n, note]); setDraft(""); })
+      .catch((err: Error) => setError(err.message))
+      .finally(() => setSaving(false));
+  }
+
+  return (
+    <div style={{ marginTop: 14, borderTop: "1px solid var(--border)", paddingTop: 12 }}>
+      <div className="detail-label" style={{ marginBottom: 8 }}>Notes</div>
+      {notes.length === 0 && (
+        <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>No notes yet.</div>
+      )}
+      {notes.map(n => (
+        <div key={n.id} style={{ marginBottom: 6, fontSize: 12 }}>
+          <span style={{ color: "var(--text-muted)", marginRight: 8 }}>
+            {n.created_at.slice(0, 10)}
+          </span>
+          <span>{n.body}</span>
+        </div>
+      ))}
+      <form onSubmit={submit} style={{ display: "flex", gap: 6, marginTop: 8 }}>
+        <input
+          value={draft}
+          onChange={e => setDraft(e.target.value)}
+          placeholder="Add a note…"
+          style={{ flex: 1, fontSize: 12 }}
+          disabled={saving}
+        />
+        <button type="submit" className="btn-ghost" disabled={saving || !draft.trim()}
+          style={{ fontSize: 12, padding: "4px 10px" }}>
+          {saving ? "…" : "Add"}
+        </button>
+      </form>
+      {error && <div style={{ fontSize: 11, color: "var(--red)", marginTop: 4 }}>{error}</div>}
+    </div>
   );
 }
 
@@ -132,6 +192,7 @@ function ExperimentCard({ exp, onStatusChange }: { exp: ActiveExperiment; onStat
               <span style={{ fontSize: 11, color: "var(--red)" }}>{patchError}</span>
             )}
           </div>
+          <NotesSection experimentId={exp.experiment_id} />
         </div>
       )}
     </div>

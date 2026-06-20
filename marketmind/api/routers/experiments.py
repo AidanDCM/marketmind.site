@@ -9,6 +9,8 @@ their latest snapshot date and ruling so operators can see the health of every
 live experiment in one place.
 
 Slice 37 adds PATCH /experiment/{id}/status — end or reactivate an experiment.
+
+Slice 38 adds POST/GET /experiment/{id}/notes — append-only operator notes.
 """
 
 from __future__ import annotations
@@ -20,7 +22,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ...db.models import ExperimentRow, ExperimentSnapshotRow
+from ...db.models import ExperimentNoteRow, ExperimentRow, ExperimentSnapshotRow
 from ...experiment_rules import evaluate_experiment
 from ...schemas import ExperimentSnapshot
 
@@ -147,3 +149,46 @@ def patch_experiment_status(
             "status": exp.status,
             "ended_at": exp.ended_at,
         }
+
+
+class NoteRequest(BaseModel):
+    body: str
+
+
+@router.post("/{experiment_id}/notes")
+def add_experiment_note(
+    experiment_id: str,
+    body: NoteRequest,
+    request: Request,
+) -> dict:
+    """Append an operator note to an experiment. Returns 404 for unknown experiments."""
+    if not body.body.strip():
+        raise HTTPException(status_code=422, detail="Note body must not be empty")
+    engine = request.app.state.engine
+    with Session(engine) as session:
+        exp = session.get(ExperimentRow, experiment_id)
+        if exp is None:
+            raise HTTPException(status_code=404, detail="Experiment not found")
+        note = ExperimentNoteRow(experiment_id=experiment_id, body=body.body.strip())
+        session.add(note)
+        session.commit()
+        session.refresh(note)
+        return {"id": note.id, "experiment_id": note.experiment_id,
+                "created_at": note.created_at, "body": note.body}
+
+
+@router.get("/{experiment_id}/notes")
+def list_experiment_notes(experiment_id: str, request: Request) -> list:
+    """Return all notes for an experiment ordered oldest-first.
+
+    Returns an empty list for unknown experiments.
+    """
+    engine = request.app.state.engine
+    with Session(engine) as session:
+        rows = session.scalars(
+            select(ExperimentNoteRow)
+            .where(ExperimentNoteRow.experiment_id == experiment_id)
+            .order_by(ExperimentNoteRow.created_at)
+        ).all()
+        return [{"id": r.id, "experiment_id": r.experiment_id,
+                 "created_at": r.created_at, "body": r.body} for r in rows]

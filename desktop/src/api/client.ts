@@ -276,6 +276,22 @@ export function patchExperimentStatus(
   return req("PATCH", `/experiment/${encodeURIComponent(experimentId)}/status`, { status });
 }
 
+// ---- Experiment notes (Slice 38) ----
+export interface ExperimentNote {
+  id: number;
+  experiment_id: string;
+  created_at: string;
+  body: string;
+}
+
+export function addExperimentNote(experimentId: string, body: string): Promise<ExperimentNote> {
+  return req("POST", `/experiment/${encodeURIComponent(experimentId)}/notes`, { body });
+}
+
+export function getExperimentNotes(experimentId: string): Promise<ExperimentNote[]> {
+  return req("GET", `/experiment/${encodeURIComponent(experimentId)}/notes`);
+}
+
 // ---- Pipeline: offer -> approval ----
 export interface PrepareOfferRequest {
   product_name: string;
