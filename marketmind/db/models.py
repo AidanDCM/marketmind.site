@@ -85,6 +85,17 @@ class EventRow(Base):
     payload: Mapped[str] = mapped_column(Text, default="{}")
 
 
+class ExperimentNoteRow(Base):
+    """Slice 38: append-only operator note on an experiment."""
+
+    __tablename__ = "experiment_notes"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    experiment_id: Mapped[str]
+    created_at: Mapped[str] = mapped_column(default=_now)
+    body: Mapped[str] = mapped_column(Text)
+
+
 class ImportBatchRow(Base):
     """Slice 29: one persisted pull from a live source or CSV importer."""
 

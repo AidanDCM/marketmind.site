@@ -2,6 +2,37 @@
 
 ---
 
+## 2026-06-16 — Slice 38: Experiment Notes
+
+### Added
+
+**`marketmind/db/models.py`**
+- `ExperimentNoteRow` — `id`, `experiment_id`, `created_at`, `body`; auto-created
+  via `Base.metadata.create_all` (`:memory:` tests) and picked up by alembic for
+  file DBs.
+
+**`marketmind/api/routers/experiments.py`**
+- `POST /experiment/{id}/notes` — appends an operator note; 404 for unknown
+  experiments, 422 for blank body.
+- `GET /experiment/{id}/notes` — returns all notes oldest-first; empty list for
+  unknown experiments.
+
+**`desktop/src/api/client.ts`**
+- `ExperimentNote` interface, `addExperimentNote(id, body)`,
+  `getExperimentNotes(id)`.
+
+**`desktop/src/components/ActiveExperiments.tsx`**
+- `NotesSection` sub-component in expanded card: loads existing notes on open,
+  inline textarea + Add button to append. Notes shown oldest-first with date prefix.
+
+**`tests/test_experiment_notes.py`**
+- 7 tests: add returns note; GET empty before add; GET all in order; 404 for unknown;
+  422 for blank body; GET empty for unknown; isolation between experiments.
+
+Suite: **334 passing**; ruff clean.
+
+---
+
 ## 2026-06-16 — Slice 37: Experiment Status Management
 
 ### Added
