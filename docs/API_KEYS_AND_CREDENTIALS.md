@@ -139,7 +139,9 @@ GOOGLE_ADS_DEVELOPER_TOKEN
   - `MARKETMIND_GMAIL_DRY_RUN=false`
   - `MARKETMIND_ENABLE_LIVE_WRITES=true`
   - OAuth desktop/web app credentials with Gmail compose scope
-- Check readiness without printing secrets: `python scripts/check_gmail_config.py`
+- Check readiness without printing secrets:
+  `python scripts/check_operator_readiness.py` (Gmail + commerce + preflight), or
+  `python scripts/check_gmail_config.py` for Gmail only.
 
 Variables:
 ```

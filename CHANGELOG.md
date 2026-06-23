@@ -2,6 +2,17 @@
 
 ---
 
+## 2026-06-23 — Slice 63: Unified operator readiness check
+
+### Slice 63: One local script for Gmail + commerce + preflight
+
+- **`marketmind/operator_readiness.py`** — `evaluate_operator_readiness()` merges
+  masked Gmail/commerce env status with local preflight and health warnings.
+- **`scripts/check_operator_readiness.py`** — operator CLI; `--json` and `--strict`
+  (fail on warnings, not only preflight blockers).
+
+---
+
 ## 2026-06-23 — Slice 62: Snapshot gap detection
 
 ### Slice 62: Active experiments missing today's snapshot
