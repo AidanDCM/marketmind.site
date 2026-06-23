@@ -98,7 +98,7 @@ New API endpoints added by the integration:
 
 - **Active owner:** Aidan
 - **Active maintainer:** Aidan / Codex agents
-- **Current phase:** Building — Slices 1–58 complete
+- **Current phase:** Building — Slices 1–59 complete
 - **Last reviewed:** 2026-06-23
 - **Known blockers:** None
 

@@ -49,12 +49,27 @@ export function OperatorHealthPanelView({ health }: OperatorHealthPanelProps) {
           <div className="metric-label">Lessons recorded</div>
           <div className="metric-value">{portfolio.lessons_recorded}</div>
         </div>
+      </div>
+
+      <div className="metric-grid" style={{ marginBottom: 14 }}>
         <div className="metric-card">
-          <div className="metric-label">Gmail mode</div>
+          <div className="metric-label">Gmail</div>
           <div className="metric-value" style={{ fontSize: 18 }}>{integrations.gmail.mode}</div>
-          <div className="metric-sub">
-            {integrations.live_writes.enabled ? "live writes on" : "live writes off"}
+          <div className="metric-sub">{integrations.gmail.live_ready ? "live-ready" : "not live"}</div>
+        </div>
+        <div className="metric-card">
+          <div className="metric-label">Stripe</div>
+          <div className="metric-value" style={{ fontSize: 18 }}>
+            {integrations.stripe.configured ? "configured" : "missing"}
           </div>
+          <div className="metric-sub">{integrations.stripe.dry_run ? "dry-run" : "live-ready"}</div>
+        </div>
+        <div className="metric-card">
+          <div className="metric-label">Shopify</div>
+          <div className="metric-value" style={{ fontSize: 18 }}>
+            {integrations.shopify.configured ? "configured" : "missing"}
+          </div>
+          <div className="metric-sub">{integrations.shopify.read_only ? "read-only" : "live-ready"}</div>
         </div>
       </div>
 

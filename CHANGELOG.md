@@ -2,6 +2,19 @@
 
 ---
 
+## 2026-06-23 — Slice 59: Stripe/Shopify integration readiness
+
+### Slice 59: Commerce credential status in health panel
+
+- **`marketmind/commerce_integrations.py`** — read-only Stripe/Shopify env presence checks.
+- **`integrations_status`** — exposes `stripe` and `shopify` blocks with `live_ready` flags.
+- **`operator_health`** — warns when `MARKETMIND_ENABLE_LIVE_WRITES=true` but commerce APIs
+  are not live-ready.
+- **Desktop health panel** — Gmail / Stripe / Shopify integration row.
+- **`scripts/check_commerce_config.py`** — masked operator readiness check.
+
+---
+
 ## 2026-06-23 — Slice 58: Operator health panel + deploy verification
 
 ### Slice 58: Consolidated operator health
