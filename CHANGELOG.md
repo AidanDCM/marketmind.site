@@ -2,6 +2,67 @@
 
 ---
 
+## 2026-06-23 — Parts & Pieces Integration
+
+All applicable patterns from the `Parts-and-Pieces` shared library have been
+adopted and wired into MarketMind. See `docs/adr/2026-06-23-parts-reuse.md`
+for the full decision record.
+
+### Docs added
+
+- **`AGENTS.md`** — Binding AI agent and developer instructions: reading order,
+  prime directive, HIGH_RISK_ACTIONS table, definition of done, Parts-and-Pieces origin map.
+- **`OWNER_MANUAL.md`** — Full operator manual: daily flow, common tasks, what not to do,
+  dev setup, env vars, run/rollback commands, health checks, decision log, risks, parts used,
+  handoff checklist.
+- **`OPERATING_INDEX.md`** — Navigation front door: reading order, system map, daily flow,
+  key invariants, Parts-and-Pieces integration table.
+- **`docs/adr/2026-06-23-parts-reuse.md`** — ADR recording every Parts-and-Pieces module
+  evaluated, the adopt/defer/skip decision for each, and the integration plan.
+
+### Python utilities placed and wired
+
+- **`marketmind/event_ledger.py`** — Append-only JSONL operator audit log
+  (from `parts/python/event_ledger`). Writes to `logs/operator_events.jsonl`.
+  Exposed via `POST /operator/log-event`.
+- **`marketmind/commerce_approval_policy.py`** — MarketMind-specific approval policy
+  (from `parts/python/approval_policy`). Defines `HIGH_RISK_ACTIONS`,
+  `BLOCKED_ACTIONS`, and `AUTO_ALLOWED_ACTIONS` for commerce operations.
+- **`marketmind/experiment_checklist.py`** — Scale-readiness checklist gate
+  (from `parts/python/checklist_gate`). 8 conditions: active status, min 100 visits,
+  5 orders, CAC ≤ break-even, zero consecutive losses, snapshot exists, ≥$50 spend.
+  Exposed via `GET /experiment/{id}/checklist`.
+- **`marketmind/operator_preflight.py`** — Operator preflight check
+  (from `parts/python/operator_status`). Reports pending approvals, experiments with
+  kill/pause_ads rulings, and a `safe_to_operate` flag.
+  Exposed via `GET /operator/preflight`.
+
+### New API router
+
+- **`marketmind/api/routers/operator.py`** registered at `/operator`:
+  - `GET /operator/preflight` — system readiness (pending approvals, attention flags)
+  - `POST /operator/log-event` — append event to operator audit log
+
+### Experiments router extended
+
+- `GET /experiment/{id}/checklist` — scale-readiness checklist for one experiment;
+  404 for unknown; each item has `item_id`, `description`, `required`, `passed`, `evidence`.
+
+### Tests added
+
+- **`tests/test_operator.py`** — 10 tests: preflight safe when empty, includes pending
+  approvals, flags kill ruling; log-event returns logged, rejects blank type/id;
+  checklist 404, not ready with zeros, ready with good snapshot, response shape.
+- **`tests/test_commerce_approval_policy.py`** — 7 unit tests: blocked action, auto-allowed,
+  high-risk without/with approval, empty action, risk flags surfaced, unknown action.
+- **`tests/test_experiment_checklist.py`** — 9 unit tests: ready with good data, not ready
+  inactive/few visits/few orders/cac over bep/consecutive losses/no snapshot/low spend,
+  item field shape.
+
+Suite: **360 passing**; ruff clean.
+
+---
+
 ## 2026-06-16 — Slice 38: Experiment Notes
 
 ### Added

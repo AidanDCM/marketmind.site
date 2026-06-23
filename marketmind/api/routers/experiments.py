@@ -23,6 +23,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ...db.models import ExperimentNoteRow, ExperimentRow, ExperimentSnapshotRow
+from ...experiment_checklist import (
+    build_experiment_scale_checklist,
+    checklist_blockers,
+    checklist_ready,
+)
 from ...experiment_rules import evaluate_experiment
 from ...schemas import ExperimentSnapshot
 
@@ -192,3 +197,73 @@ def list_experiment_notes(experiment_id: str, request: Request) -> list:
         ).all()
         return [{"id": r.id, "experiment_id": r.experiment_id,
                  "created_at": r.created_at, "body": r.body} for r in rows]
+
+
+@router.get("/{experiment_id}/checklist")
+def get_experiment_checklist(experiment_id: str, request: Request) -> dict:
+    """Return the scale-readiness checklist for one experiment.
+
+    Each item has an ``item_id``, ``description``, ``required``, ``passed``,
+    and ``evidence`` field. ``ready`` is True only when all required items pass.
+    Returns 404 for unknown experiments.
+    """
+    engine = request.app.state.engine
+    with Session(engine) as session:
+        exp = session.get(ExperimentRow, experiment_id)
+        if exp is None:
+            raise HTTPException(status_code=404, detail="Experiment not found")
+        latest = session.scalars(
+            select(ExperimentSnapshotRow)
+            .where(ExperimentSnapshotRow.experiment_id == experiment_id)
+            .order_by(ExperimentSnapshotRow.snapshot_date.desc())
+            .limit(1)
+        ).first()
+
+    actual_cac: float | None = None
+    if latest is not None:
+        snap = ExperimentSnapshot(
+            experiment_id=experiment_id,
+            product_name=exp.product_name,
+            break_even_cac=exp.break_even_cac,
+            qualified_visits=latest.qualified_visits,
+            orders=latest.orders,
+            total_ad_spend=latest.total_ad_spend,
+            total_revenue=latest.total_revenue,
+            refund_count=latest.refund_count,
+            actual_shipping_cost=latest.actual_shipping_cost,
+            planned_shipping_cost=latest.planned_shipping_cost,
+            add_to_cart_count=latest.add_to_cart_count,
+            consecutive_losing_periods=latest.consecutive_losing_periods,
+            budget_cap=latest.budget_cap,
+        )
+        actual_cac = snap.actual_cac
+
+    items = build_experiment_scale_checklist(
+        experiment_id=experiment_id,
+        product_name=exp.product_name,
+        status=exp.status,
+        qualified_visits=latest.qualified_visits if latest else 0,
+        orders=latest.orders if latest else 0,
+        total_ad_spend=latest.total_ad_spend if latest else 0.0,
+        actual_cac=actual_cac,
+        break_even_cac=exp.break_even_cac,
+        consecutive_losing_periods=latest.consecutive_losing_periods if latest else 0,
+        latest_snapshot_date=latest.snapshot_date if latest else None,
+    )
+
+    return {
+        "experiment_id": experiment_id,
+        "product_name": exp.product_name,
+        "ready": checklist_ready(items),
+        "blockers": checklist_blockers(items),
+        "items": [
+            {
+                "item_id": i.item_id,
+                "description": i.description,
+                "required": i.required,
+                "passed": i.passed,
+                "evidence": i.evidence,
+            }
+            for i in items
+        ],
+    }

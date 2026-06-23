@@ -1,0 +1,99 @@
+# MarketMind Autopilot — Operating Index
+
+This is the front door. Read this first, then follow the links.
+
+**If you are a new developer or AI agent:** read every file in the "Required reading order" section
+before writing a single line of code.
+
+**If you are Aidan running the system:** skip to section 3 (Normal daily flow).
+
+---
+
+## 1. Required reading order
+
+1. [`README.md`](README.md) — what MarketMind is and why it exists
+2. [`AGENTS.md`](AGENTS.md) — rules for AI agents and developers (binding)
+3. [`OWNER_MANUAL.md`](OWNER_MANUAL.md) — how to install, run, test, deploy, and roll back
+4. [`docs/issues/`](docs/issues/) — known failures and their fixes (read before touching related code)
+5. [`CHANGELOG.md`](CHANGELOG.md) — what changed in each slice
+6. [`ARCHITECTURE.md`](ARCHITECTURE.md) — system layers, DB schema, API structure
+
+---
+
+## 2. System map
+
+| Area | File | Purpose |
+|---|---|---|
+| Product North Star | [`README.md`](README.md) | Goal and safety stance |
+| Agent/dev rules | [`AGENTS.md`](AGENTS.md) | What AI agents and devs must do |
+| Operations manual | [`OWNER_MANUAL.md`](OWNER_MANUAL.md) | Run, test, deploy, rollback |
+| Architecture | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Layers, models, API map |
+| Business model | [`PNL_MODEL.md`](PNL_MODEL.md) | Unit economics and margin model |
+| Approval policy | [`APPROVAL_POLICY.md`](APPROVAL_POLICY.md) | What requires human approval |
+| Codex handoff | [`CODEX_HANDOFF.md`](CODEX_HANDOFF.md) | Template for handing tasks to Codex |
+| Development plan | [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md) | Slice roadmap |
+| Test plan | [`TEST_PLAN.md`](TEST_PLAN.md) | Test strategy |
+| Deployment | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Deploy to VPS |
+| Decisions | [`docs/decisions/`](docs/decisions/) | ADRs and major decisions |
+| Issues | [`docs/issues/`](docs/issues/) | Known bugs and fixes |
+| QA | [`docs/qa/`](docs/qa/) | QA reports and runbooks |
+
+---
+
+## 3. Normal daily flow (Aidan)
+
+1. `uvicorn marketmind.api.app:app --reload` — start the backend
+2. `cd desktop && npm run dev` — start the desktop app
+3. **Overview** — check daily metrics, pending approvals, risks
+4. **Approval Queue** — approve or deny any pending high-risk actions
+5. **Active Experiments** — review kill/pause/scale rulings; add notes; end dead experiments
+6. **Snapshots** — record today's performance for each active experiment
+7. **Trend** — review any experiment running > 7 days
+8. `GET /operator/preflight` — confirm `safe_to_operate: true` before any execution
+
+---
+
+## 4. Key invariants (never break these)
+
+- The approval gate is the only path to real Stripe/Shopify writes. `dry_run=True` is
+  the default for all execution endpoints. A human must approve before `dry_run=False`.
+- `logs/operator_events.jsonl` is append-only. Never delete or edit entries.
+- Experiment snapshots are the source of truth for P&L. Never edit them; add a correction
+  snapshot instead.
+- The rule engine (CONTINUE / PAUSE_ADS / REVISE_OFFER / KILL / SCALE_REQUIRES_APPROVAL)
+  is read-only computation. It does not take actions — it only recommends.
+
+---
+
+## 5. Parts-and-Pieces integration
+
+This repo uses patterns from `Parts-and-Pieces`. Adapted utilities live in `marketmind/`:
+
+| MarketMind file | Source part | What it does |
+|---|---|---|
+| `marketmind/event_ledger.py` | `parts/python/event_ledger` | Append-only JSONL operator audit log |
+| `marketmind/commerce_approval_policy.py` | `parts/python/approval_policy` | MarketMind-specific high-risk action list |
+| `marketmind/experiment_checklist.py` | `parts/python/checklist_gate` | Scale-readiness checklist for experiments |
+| `marketmind/operator_preflight.py` | `parts/python/operator_status` | Preflight: pending approvals + attention flags |
+
+New API endpoints added by the integration:
+- `GET /operator/preflight` — system readiness check
+- `POST /operator/log-event` — append a named event to the operator audit log
+- `GET /experiment/{id}/checklist` — scale-readiness checklist for one experiment
+
+---
+
+## 6. Current status
+
+- **Active owner:** Aidan
+- **Active maintainer:** Aidan / Codex agents
+- **Current phase:** Building — active slice development (Slices 1–39 complete)
+- **Last reviewed:** 2026-06-23
+- **Known blockers:** None
+
+---
+
+## Rule
+
+If a new contributor cannot understand the system from this index and linked docs,
+the docs are not good enough yet. File an issue and fix them.
