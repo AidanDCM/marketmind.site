@@ -16,6 +16,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
+from .checklist_config import get_checklist_thresholds
+
 
 @dataclass
 class ChecklistItem:
@@ -49,6 +51,7 @@ def build_experiment_scale_checklist(
     to proceed to the approval gate.
     """
     items: list[ChecklistItem] = []
+    thresholds = get_checklist_thresholds()
 
     # 1. Experiment is active
     active = status == "active"
@@ -61,7 +64,7 @@ def build_experiment_scale_checklist(
     ))
 
     # 2. Minimum traffic observed
-    min_visits = 100
+    min_visits = thresholds.min_visits
     items.append(ChecklistItem(
         item_id="min_traffic",
         description=f"At least {min_visits} qualified visits recorded",
@@ -71,7 +74,7 @@ def build_experiment_scale_checklist(
     ))
 
     # 3. Minimum orders placed
-    min_orders = 5
+    min_orders = thresholds.min_orders
     items.append(ChecklistItem(
         item_id="min_orders",
         description=f"At least {min_orders} orders recorded",
@@ -113,7 +116,7 @@ def build_experiment_scale_checklist(
     ))
 
     # 7. Spend has been committed (prevents scaling on zero-spend flukes)
-    min_spend = 50.0
+    min_spend = thresholds.min_spend
     items.append(ChecklistItem(
         item_id="minimum_spend_committed",
         description=f"At least ${min_spend:.0f} ad spend recorded",

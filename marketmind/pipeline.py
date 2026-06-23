@@ -24,6 +24,7 @@ from .approvals import evaluate_approval, make_approval_record
 from .db import approval_store
 from .executor import record_action_payload
 from .logging_config import get_logger
+from .outreach_drafts import build_supplier_outreach_draft
 from .schemas import ApprovalRecord, OfferContext
 from .spec_generator import generate_offer_spec
 
@@ -87,5 +88,39 @@ def prepare_offer_for_approval(
             "action": gated.action,
             "status": gated.status.value,
         },
+    )
+    return gated
+
+
+def prepare_supplier_outreach_for_approval(
+    engine: Engine,
+    *,
+    supplier_name: str,
+    product_name: str,
+    sample_quantity: int = 1,
+    target_unit_cost: float | None = None,
+    operator_note: str = "",
+    expected_cost: float = 0.0,
+) -> ApprovalRecord:
+    """Build a supplier outreach draft and queue a contact_supplier approval."""
+    draft = build_supplier_outreach_draft(
+        supplier_name=supplier_name,
+        product_name=product_name,
+        sample_quantity=sample_quantity,
+        target_unit_cost=target_unit_cost,
+        operator_note=operator_note,
+    )
+    record = make_approval_record(
+        action="contact_supplier",
+        summary=f"Contact {supplier_name} about {product_name} sample order",
+        expected_cost=expected_cost or (target_unit_cost or 0.0) * sample_quantity,
+        rollback_plan="Do not send — discard draft if approval is denied.",
+    )
+    gated = evaluate_approval(record)
+    approval_store.create_approval(engine, gated)
+    record_action_payload(engine, gated.approval_id, draft.to_dict())
+    log.info(
+        "supplier outreach prepared for approval",
+        extra={"approval_id": gated.approval_id, "supplier": supplier_name},
     )
     return gated

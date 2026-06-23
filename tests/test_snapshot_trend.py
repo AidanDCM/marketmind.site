@@ -100,11 +100,11 @@ def test_trend_default_days_is_30(client):
 
 
 def test_trend_multiple_experiments_isolated(client):
-    _post_snap(client, "exp_a", "2026-06-14", orders=3)
-    _post_snap(client, "exp_b", "2026-06-14", orders=7)
+    _post_snap(client, "exp_test_a", "2026-06-14", orders=3)
+    _post_snap(client, "exp_test_b", "2026-06-14", orders=7)
 
-    resp_a = client.get("/snapshots/trend/exp_a?days=90")
-    resp_b = client.get("/snapshots/trend/exp_b?days=90")
+    resp_a = client.get("/snapshots/trend/exp_test_a?days=90")
+    resp_b = client.get("/snapshots/trend/exp_test_b?days=90")
 
     assert len(resp_a.json()) == 1
     assert resp_a.json()[0]["orders"] == 3

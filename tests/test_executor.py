@@ -1,5 +1,7 @@
 """Slice 19: approved-action executor tests."""
 
+from pathlib import Path
+
 import pytest
 
 from marketmind.adapters import stripe_client as stripe_mod
@@ -132,9 +134,8 @@ def test_unknown_action_not_executed(engine):
         summary="future",
     )
     approval_store.create_approval(engine, rec)
-    result = execute_approved(engine, "apr_unknown")
-    assert result.executed is False
-    assert "no executor registered" in result.reason
+    with pytest.raises(ValueError, match="reviewed before automation"):
+        execute_approved(engine, "apr_unknown")
 
 
 # ---------------------------------------------------------------------------
@@ -274,3 +275,29 @@ def test_shopify_live_without_creds_refused(engine, monkeypatch):
     record_action_payload(engine, "apr_shopify", payload.to_dict())
     with pytest.raises(ValueError, match="SHOPIFY_STORE_DOMAIN"):
         execute_approved(engine, "apr_shopify", dry_run=False)
+
+
+def test_contact_supplier_dry_run_exports_draft_file(engine, tmp_path, monkeypatch):
+    from marketmind import gmail_draft
+    from marketmind.pipeline import prepare_supplier_outreach_for_approval
+
+    real_save = gmail_draft.save_outreach_draft_file
+
+    def _save(**kwargs):
+        kwargs.setdefault("output_dir", tmp_path)
+        return real_save(**kwargs)
+
+    monkeypatch.setattr(gmail_draft, "save_outreach_draft_file", _save)
+
+    record = prepare_supplier_outreach_for_approval(
+        engine,
+        supplier_name="Acme",
+        product_name="Interior Kit",
+        expected_cost=20.0,
+    )
+    approval_store.approve(engine, record.approval_id)
+    result = execute_approved(engine, record.approval_id, dry_run=True)
+    assert result.detail["simulated"] is True
+    draft_path = Path(result.detail["draft_file"])
+    assert draft_path.exists()
+    assert "Interior Kit" in draft_path.read_text(encoding="utf-8")

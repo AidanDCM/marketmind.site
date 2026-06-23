@@ -75,11 +75,21 @@ This repo uses patterns from `Parts-and-Pieces`. Adapted utilities live in `mark
 | `marketmind/commerce_approval_policy.py` | `parts/python/approval_policy` | MarketMind-specific high-risk action list |
 | `marketmind/experiment_checklist.py` | `parts/python/checklist_gate` | Scale-readiness checklist for experiments |
 | `marketmind/operator_preflight.py` | `parts/python/operator_status` | Preflight: pending approvals + attention flags |
+| `marketmind/mistake_tracker.py` | `parts/python/mistake_tracker` | Append-only experiment lessons |
+| `marketmind/gmail_draft.py` | `parts/python/gmail_draft_client` | Plain-text outreach draft export (no live send) |
+| `marketmind/ad_summary.py` | — | Ad spend totals from CSV import batches |
 
 New API endpoints added by the integration:
 - `GET /operator/preflight` — system readiness check
 - `POST /operator/log-event` — append a named event to the operator audit log
+- `GET /operator/checklist-config` — active scale-readiness thresholds
+- `GET /operator/integrations` — Gmail/ad-import/scheduler readiness (read-only)
+- `GET /operator/mistakes` / `POST /operator/mistakes` — experiment lesson tracker
 - `GET /experiment/{id}/checklist` — scale-readiness checklist for one experiment
+- `GET /experiment/{id}/mistakes` — recorded + suggested lessons for one experiment
+- `GET /experiment/portfolio` — experiment counts and attention summary
+- `POST /imports/ads/csv` / `GET /imports/ads/summary` — ad CSV import and spend rollup
+- `GET /pipeline/outreach-draft/{approval_id}` — supplier email draft payload
 
 ---
 
@@ -87,7 +97,7 @@ New API endpoints added by the integration:
 
 - **Active owner:** Aidan
 - **Active maintainer:** Aidan / Codex agents
-- **Current phase:** Building — active slice development (Slices 1–39 complete)
+- **Current phase:** Building — Slices 1–55 complete
 - **Last reviewed:** 2026-06-23
 - **Known blockers:** None
 

@@ -6,6 +6,11 @@ import {
   pullAndSaveShopifyOrders,
   pullAndSaveShopifyProducts,
   pullAndSaveStripeOrders,
+  fetchOrderLifecycle,
+  importAdCsv,
+  fetchAdSpendSummary,
+  type OrderLifecycleEntry,
+  type AdSpendSummary,
 } from "../api/client";
 
 type SourceKey = "stripe_orders" | "shopify_orders" | "shopify_products";
@@ -63,10 +68,18 @@ export function LiveData() {
   const [errors, setErrors] = useState<Partial<Record<SourceKey, string>>>({});
   const [loading, setLoading] = useState<SourceKey | null>(null);
   const [history, setHistory] = useState<ImportBatch[]>([]);
+  const [orders, setOrders] = useState<OrderLifecycleEntry[]>([]);
+  const [adCsv, setAdCsv] = useState("");
+  const [adResult, setAdResult] = useState<(ImportResult & { batch_id: number }) | null>(null);
+  const [adError, setAdError] = useState<string | null>(null);
+  const [adLoading, setAdLoading] = useState(false);
+  const [adSummary, setAdSummary] = useState<AdSpendSummary | null>(null);
 
   useEffect(() => {
     listImportHistory().then(setHistory).catch(() => {});
-  }, [results]);
+    fetchOrderLifecycle().then(r => setOrders(r.orders)).catch(() => {});
+    fetchAdSpendSummary().then(r => { if (r.has_data && r.summary) setAdSummary(r.summary); }).catch(() => {});
+  }, [results, adResult]);
 
   async function pull(key: SourceKey) {
     setLoading(key);
@@ -78,6 +91,19 @@ export function LiveData() {
       setErrors(e => ({ ...e, [key]: (err as Error).message }));
     } finally {
       setLoading(null);
+    }
+  }
+
+  async function submitAdCsv() {
+    setAdLoading(true);
+    setAdError(null);
+    try {
+      const data = await importAdCsv(adCsv);
+      setAdResult(data);
+    } catch (err) {
+      setAdError((err as Error).message);
+    } finally {
+      setAdLoading(false);
     }
   }
 
@@ -93,6 +119,68 @@ export function LiveData() {
         Read-only pulls from connected integrations. Credentials are set via environment variables on the
         server — no credentials are stored in the dashboard.
       </p>
+
+      {orders.length > 0 && (
+        <div className="card" style={{ marginBottom: "1.5rem" }}>
+          <div className="card-title">Order lifecycle ({orders.length})</div>
+          <div style={{ overflowX: "auto" }}>
+            <table className="data-table">
+              <thead>
+                <tr><th>Order</th><th>Stage</th><th>Source</th><th>Amount</th></tr>
+              </thead>
+              <tbody>
+                {orders.slice(0, 10).map(o => (
+                  <tr key={`${o.source}-${o.order_id}`}>
+                    <td><code>{o.order_id}</code></td>
+                    <td>{o.stage}</td>
+                    <td>{o.source}</td>
+                    <td>{o.amount} {o.currency}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      <div className="card" style={{ marginBottom: "1.5rem" }}>
+        <div className="card-title">Ad performance CSV</div>
+        <p className="dim" style={{ marginTop: 0 }}>
+          Paste a Meta, Google, or TikTok ad export (campaign, spend, clicks, etc.). No live API required.
+        </p>
+        {adSummary && (
+          <div className="metric-grid" style={{ marginBottom: 12 }}>
+            <div className="metric-card">
+              <div className="metric-label">Total spend</div>
+              <div className="metric-value">${adSummary.total_spend.toFixed(2)}</div>
+            </div>
+            <div className="metric-card">
+              <div className="metric-label">Campaigns</div>
+              <div className="metric-value">{adSummary.campaigns}</div>
+            </div>
+            <div className="metric-card">
+              <div className="metric-label">Purchases</div>
+              <div className="metric-value">{adSummary.total_purchases}</div>
+            </div>
+          </div>
+        )}
+        <textarea
+          value={adCsv}
+          onChange={e => setAdCsv(e.target.value)}
+          placeholder={"campaign_name,date,impressions,clicks,spend,purchases,revenue\nMy Campaign,2026-06-15,1000,50,25.00,3,177.00"}
+          rows={5}
+          style={{ width: "100%", fontFamily: "monospace", fontSize: 12 }}
+        />
+        <button className="btn" style={{ marginTop: 10 }} onClick={submitAdCsv} disabled={adLoading || !adCsv.trim()}>
+          {adLoading ? "Importing…" : "Import CSV"}
+        </button>
+        {adError && <div className="error-banner" style={{ marginTop: 10 }}>{adError}</div>}
+        {adResult && !adError && (
+          <p className="dim" style={{ marginTop: 10 }}>
+            Batch #{adResult.batch_id}: {adResult.ok_count} OK, {adResult.review_count} review
+          </p>
+        )}
+      </div>
 
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
         {SOURCES.map(s => (

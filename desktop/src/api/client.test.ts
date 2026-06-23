@@ -1,5 +1,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { fetchHealth, executeApproved, scoreProduct } from "./client";
+import {
+  fetchHealth,
+  executeApproved,
+  scoreProduct,
+  fetchOperatorPreflight,
+  fetchExperimentChecklist,
+  fetchOperatorMistakes,
+  recordMistake,
+  fetchExperimentPortfolio,
+  importAdCsv,
+  fetchAdSpendSummary,
+} from "./client";
 
 function mockFetch(value: unknown, ok = true, status = 200) {
   const fn = vi.fn().mockResolvedValue({
@@ -62,5 +73,96 @@ describe("api client", () => {
   it("throws with status + detail on an error response", async () => {
     mockFetch({ detail: "nope" }, false, 409);
     await expect(fetchHealth()).rejects.toThrow("409: nope");
+  });
+
+  it("fetches operator preflight from /operator/preflight", async () => {
+    const fn = mockFetch({
+      safe_to_operate: true,
+      pending_approvals: 0,
+      experiments_needing_attention: [],
+      operator_log_exists: true,
+      blockers: [],
+      summary: "SAFE: all clear",
+    });
+    const r = await fetchOperatorPreflight();
+    expect(r.safe_to_operate).toBe(true);
+    expect(fn).toHaveBeenCalledWith(
+      "http://127.0.0.1:8000/operator/preflight",
+      expect.objectContaining({ method: "GET" }),
+    );
+  });
+
+  it("fetches experiment checklist from /experiment/{id}/checklist", async () => {
+    const fn = mockFetch({
+      experiment_id: "exp_001",
+      product_name: "Widget",
+      ready: false,
+      blockers: ["min visits not met"],
+      items: [{ item_id: "visits", description: "Min visits", required: true, passed: false, evidence: "50/100" }],
+    });
+    const r = await fetchExperimentChecklist("exp_001");
+    expect(r.ready).toBe(false);
+    expect(fn).toHaveBeenCalledWith(
+      "http://127.0.0.1:8000/experiment/exp_001/checklist",
+      expect.objectContaining({ method: "GET" }),
+    );
+  });
+
+  it("records a mistake via POST /operator/mistakes", async () => {
+    const fn = mockFetch({
+      recorded: true,
+      mistake: {
+        mistake_id: "mistake-abc",
+        category: "offer_miss",
+        experiment_id: "exp_001",
+        summary: "Weak headline",
+        lesson: "Test benefit-led copy",
+        source: "manual",
+        created_at: "2026-06-23T00:00:00+00:00",
+        tags: [],
+      },
+    });
+    const r = await recordMistake({
+      category: "offer_miss",
+      experiment_id: "exp_001",
+      summary: "Weak headline",
+      lesson: "Test benefit-led copy",
+    });
+    expect(r.recorded).toBe(true);
+    expect(fn.mock.calls[0][0]).toBe("http://127.0.0.1:8000/operator/mistakes");
+  });
+
+  it("lists operator mistakes", async () => {
+    const fn = mockFetch({ count: 1, mistakes: [] });
+    await fetchOperatorMistakes({ experimentId: "exp_001", limit: 10 });
+    expect(fn.mock.calls[0][0]).toContain("/operator/mistakes?");
+    expect(fn.mock.calls[0][0]).toContain("experiment_id=exp_001");
+  });
+
+  it("fetches experiment portfolio", async () => {
+    const fn = mockFetch({
+      total_experiments: 2,
+      active: 1,
+      ended: 1,
+      needs_attention: 0,
+      by_ruling: {},
+      lessons_recorded: 3,
+    });
+    const r = await fetchExperimentPortfolio();
+    expect(r.total_experiments).toBe(2);
+    expect(fn.mock.calls[0][0]).toBe("http://127.0.0.1:8000/experiment/portfolio");
+  });
+
+  it("imports ad CSV via POST /imports/ads/csv", async () => {
+    const fn = mockFetch({ batch_id: 1, ok_count: 1, review_count: 0, total_rows: 1, ok_rows: [], review_rows: [], source: "ad_report_csv" });
+    await importAdCsv("campaign_name,spend\nA,5");
+    expect(fn.mock.calls[0][0]).toBe("http://127.0.0.1:8000/imports/ads/csv");
+  });
+
+  it("fetches ad spend summary", async () => {
+    const fn = mockFetch({ has_data: true, summary: { total_spend: 10, campaigns: 1 } });
+    const r = await fetchAdSpendSummary();
+    expect(r.has_data).toBe(true);
+    expect(fn.mock.calls[0][0]).toBe("http://127.0.0.1:8000/imports/ads/summary");
   });
 });

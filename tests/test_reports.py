@@ -160,6 +160,16 @@ def test_pending_approvals_count_in_lessons():
     assert "approval" in combined
 
 
+def test_recent_mistakes_in_lessons():
+    report = generate_daily_report(
+        "2026-06-15",
+        [],
+        [],
+        recent_mistakes=["Never scale before 5 orders."],
+    )
+    assert any("Never scale" in lesson for lesson in report.lessons)
+
+
 # ---------------------------------------------------------------------------
 # to_dict smoke test
 # ---------------------------------------------------------------------------

@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Request
+from pydantic import BaseModel
 
+from ...ad_summary import summarize_latest_ad_batch
 from ...db.import_store import get_import, list_imports, save_import
+from ...importers import import_ad_report_csv
 from ...sources import ShopifyReader, StripeReader
 
 router = APIRouter(tags=["imports"])
@@ -48,6 +51,30 @@ def pull_and_save_shopify_products(request: Request, limit: int = 50) -> dict:
     result = reader.fetch_products(limit=limit)
     batch_id = save_import(_engine(request), result)
     return {"batch_id": batch_id, **result.to_dict()}
+
+
+class AdCsvImportRequest(BaseModel):
+    csv_text: str
+    source: str = "ad_report_csv"
+
+
+@router.post("/ads/csv")
+def import_ad_csv_endpoint(request: Request, body: AdCsvImportRequest) -> dict:
+    """Import a Meta/Google/TikTok ad performance CSV export and persist the batch."""
+    if not body.csv_text.strip():
+        raise HTTPException(status_code=422, detail="csv_text must not be empty")
+    result = import_ad_report_csv(body.csv_text, source=body.source)
+    batch_id = save_import(_engine(request), result)
+    return {"batch_id": batch_id, **result.to_dict()}
+
+
+@router.get("/ads/summary")
+def ad_spend_summary_endpoint(request: Request) -> dict:
+    """Return aggregated spend metrics from the latest ad import batch."""
+    summary = summarize_latest_ad_batch(_engine(request))
+    if summary is None:
+        return {"has_data": False, "summary": None}
+    return {"has_data": True, "summary": summary.to_dict()}
 
 
 @router.get("")

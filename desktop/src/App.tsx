@@ -13,6 +13,8 @@ import { ImportHistory } from "./components/ImportHistory";
 import { SnapshotRecorder } from "./components/SnapshotRecorder";
 import { SnapshotTrend } from "./components/SnapshotTrend";
 import { ActiveExperiments } from "./components/ActiveExperiments";
+import { LessonsLibrary } from "./components/LessonsLibrary";
+import { SupplierOutreach } from "./components/SupplierOutreach";
 
 type Page =
   | "overview"
@@ -23,6 +25,8 @@ type Page =
   | "experiment"
   | "spec"
   | "prepare"
+  | "supplier"
+  | "lessons"
   | "live"
   | "history"
   | "snapshots"
@@ -42,6 +46,8 @@ const NAV: { id: Page; label: string; icon: string }[] = [
   { id: "experiment", label: "Experiment Eval", icon: '<path d="M9 2v6l-5 9a2 2 0 002 3h12a2 2 0 002-3l-5-9V2"/><line x1="9" y1="2" x2="15" y2="2"/>' },
   { id: "spec", label: "Offer Spec", icon: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>' },
   { id: "prepare", label: "Prepare Offer", icon: '<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>' },
+  { id: "supplier", label: "Supplier Outreach", icon: '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>' },
+  { id: "lessons", label: "Lessons", icon: '<path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/>' },
   { id: "live", label: "Live Data", icon: '<path d="M1 6s4-4 11-4 11 4 11 4"/><path d="M1 12s4-4 11-4 11 4 11 4"/><path d="M1 18s4-4 11-4 11 4 11 4"/>' },
   { id: "history", label: "Import History", icon: '<path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/>' },
   { id: "snapshots", label: "Snapshots", icon: '<rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>' },
@@ -94,6 +100,8 @@ export function App() {
         {page === "experiment" && <ExperimentEvaluator />}
         {page === "spec" && <OfferSpecPage />}
         {page === "prepare" && <PrepareOffer />}
+        {page === "supplier" && <SupplierOutreach />}
+        {page === "lessons" && <LessonsLibrary />}
         {page === "live" && <LiveData />}
         {page === "history" && <ImportHistory />}
         {page === "snapshots" && <SnapshotRecorder />}

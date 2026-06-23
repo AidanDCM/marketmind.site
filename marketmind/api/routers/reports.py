@@ -62,5 +62,10 @@ def daily_report_endpoint(request: Request, date: str | None = None) -> dict:
         )
 
     pending = approval_store.list_approvals(engine, status=ApprovalStatus.PENDING)
-    report = generate_daily_report(report_date, snapshots, pending)
+    from ...mistake_tracker import get_mistake_tracker
+
+    recent_mistakes = [
+        m.lesson for m in get_mistake_tracker().list_mistakes(limit=5)
+    ]
+    report = generate_daily_report(report_date, snapshots, pending, recent_mistakes)
     return report.to_dict()

@@ -385,6 +385,26 @@ def test_execute_pending_is_409(client):
     assert resp.status_code == 409
 
 
+def test_execute_defaults_to_dry_run(client):
+    """API must never trigger live execution when dry_run is omitted."""
+    prep = client.post(
+        "/pipeline/prepare-offer",
+        json={
+            "product_name": "Interior Kit",
+            "sale_price": 59.0,
+            "key_benefit": "Clean interior fast",
+            "target_customer": "Daily commuters",
+            "channel": "stripe",
+        },
+    )
+    approval_id = prep.json()["approval_id"]
+    client.post(f"/approvals/{approval_id}/approve", json={"note": "ok"})
+    resp = client.post(f"/execute/{approval_id}", json={})
+    assert resp.status_code == 200
+    assert resp.json()["dry_run"] is True
+    assert resp.json()["detail"]["simulated"] is True
+
+
 # ---------------------------------------------------------------------------
 # Live sources (read-only)
 # ---------------------------------------------------------------------------
@@ -548,3 +568,104 @@ def test_stripe_webhook_valid_saves_batch(client, monkeypatch):
     assert data["received"] is True
     assert data["source"] == "stripe_webhook"
     assert "batch_id" in data
+
+
+# ---------------------------------------------------------------------------
+# Slices 43–48: retention, validation, orders, outreach
+# ---------------------------------------------------------------------------
+
+
+def test_snapshot_prune_dry_run(client):
+    resp = client.post("/snapshots/prune", json={"dry_run": True})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "cutoff_date" in data
+    assert data["dry_run"] is True
+
+
+def test_snapshot_rejects_invalid_experiment_id(client):
+    resp = client.post("/snapshots", json={
+        "experiment_id": "BAD_ID",
+        "product_name": "Kit",
+        "break_even_cac": 10.0,
+    })
+    assert resp.status_code == 422
+
+
+def test_order_lifecycle_empty(client):
+    resp = client.get("/orders/lifecycle")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "orders" in data
+    assert "by_stage" in data
+
+
+def test_prepare_supplier_outreach(client):
+    resp = client.post("/pipeline/prepare-supplier-outreach", json={
+        "supplier_name": "Acme Co",
+        "product_name": "Interior Kit",
+        "sample_quantity": 2,
+        "expected_cost": 30.0,
+    })
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["action"] == "contact_supplier"
+    assert data["status"] == "pending"
+
+
+def test_experiment_portfolio_empty(client):
+    resp = client.get("/experiment/portfolio")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total_experiments"] == 0
+    assert "by_ruling" in data
+
+
+def test_import_ad_csv(client):
+    csv_text = (
+        "campaign_name,date,impressions,clicks,spend,purchases,revenue\n"
+        "Test Campaign,2026-06-15,1000,50,25.00,3,177.00\n"
+    )
+    resp = client.post("/imports/ads/csv", json={"csv_text": csv_text})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["batch_id"] >= 1
+    assert data["ok_count"] == 1
+
+
+def test_import_ad_csv_rejects_empty(client):
+    resp = client.post("/imports/ads/csv", json={"csv_text": "  "})
+    assert resp.status_code == 422
+
+
+def test_ad_spend_summary_after_import(client):
+    csv_text = (
+        "campaign_name,date,impressions,clicks,spend,purchases,revenue\n"
+        "Camp A,2026-06-15,100,10,5.00,1,59.00\n"
+    )
+    client.post("/imports/ads/csv", json={"csv_text": csv_text})
+    resp = client.get("/imports/ads/summary")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["has_data"] is True
+    assert data["summary"]["total_spend"] == 5.0
+    assert data["summary"]["campaigns"] == 1
+
+
+def test_outreach_draft_endpoint(client):
+    prep = client.post("/pipeline/prepare-supplier-outreach", json={
+        "supplier_name": "Acme",
+        "product_name": "Kit",
+    })
+    approval_id = prep.json()["approval_id"]
+    resp = client.get(f"/pipeline/outreach-draft/{approval_id}")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "subject" in data
+    assert "body" in data
+    assert "Acme" in data["body"]
+
+
+def test_outreach_draft_not_found(client):
+    resp = client.get("/pipeline/outreach-draft/apr_missing")
+    assert resp.status_code == 404

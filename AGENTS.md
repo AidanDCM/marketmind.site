@@ -35,7 +35,7 @@ it is a hard system invariant. Every code change must preserve it.
 - Update `docs/issues/` when you discover, investigate, or fix a meaningful issue.
 - Update `OWNER_MANUAL.md` when install, run, test, deploy, or rollback instructions change.
 - Prefer reusing `marketmind/` utilities (event_ledger, commerce_approval_policy,
-  experiment_checklist, operator_preflight) before creating new one-off logic.
+  experiment_checklist, operator_preflight, mistake_tracker) before creating new one-off logic.
 
 ## High-risk actions — always require an approved ApprovalRow before execution
 
@@ -73,6 +73,12 @@ Every non-trivial fix must record in `docs/issues/`:
 
 A task is not done until: code, tests, CHANGELOG entry, OWNER_MANUAL (if ops changed),
 and issue log (if a bug was fixed) are all consistent and passing CI.
+
+## Experiment ID convention
+
+All experiment IDs must match `exp_<slug>`: lowercase letters, digits, underscores, and
+hyphens only (e.g. `exp_interior_kit`, `exp_test_01`). The API rejects invalid IDs on
+snapshot submit. Never reuse an ID for a different product — end the old experiment first.
 
 ## Parts-and-Pieces origin
 

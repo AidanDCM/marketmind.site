@@ -117,6 +117,71 @@ Run:
 python -m pip install -e .[dev]
 python -m pytest
 python -m marketmind.cli
+cd desktop && npm test
 ```
 
 Then update this audit with actual results.
+
+## Verification run 2026-06-23 (Slice 39 operator health panel)
+
+Environment: Windows 11, Python 3.14.5.
+
+```text
+[x] python -m pytest                       -> 360 passed
+[x] python -m ruff check .                 -> All checks passed
+[x] cd desktop && npm test                 -> 9 passed (Vitest)
+```
+
+Desktop now surfaces:
+- Overview preflight banner (`safe_to_operate`, blockers, attention experiments)
+- Active experiment scale-readiness checklist on expanded cards
+
+Backend endpoints consumed: `GET /operator/preflight`, `GET /experiment/{id}/checklist`.
+No new backend code; no external APIs; no secrets required.
+
+## Verification run 2026-06-23 (Slices 40–42)
+
+Environment: Windows 11, Python 3.14.5.
+
+```text
+[x] python -m pytest                       -> 374 passed
+[x] python -m ruff check .                 -> All checks passed
+```
+
+New capabilities:
+- Checklist thresholds configurable via `MARKETMIND_CHECKLIST_*` env vars
+- Mistake tracker at `logs/mistakes.jsonl` with API + desktop UI
+- Deploy/rollback scripts: `scripts/deploy_marketmind.ps1`, `scripts/rollback_marketmind.ps1`
+- API execute endpoint defaults to `dry_run=True` when body omitted (regression test)
+
+## Verification run 2026-06-23 (Slices 43–50)
+
+```text
+[x] python -m pytest                       -> 399 passed
+[x] python -m ruff check .                 -> All checks passed
+```
+
+Slices 43–50 add: snapshot retention, experiment ID validation, order lifecycle,
+supplier outreach drafts, decision gate wiring, lessons library, portfolio summary,
+and runner prune hook.
+
+## Verification run 2026-06-23 (Slices 51–54)
+
+```text
+[x] python -m pytest                       -> 409 passed
+[x] python -m ruff check .                 -> All checks passed
+[x] cd desktop && npm test                 -> Vitest (portfolio + ad import client helpers)
+```
+
+Slices 51–54 add: Gmail-ready draft file export, Overview portfolio widget,
+Docker scheduler service, ad CSV import with spend summary on Live Data.
+
+## Verification run 2026-06-23 (Slice 55)
+
+```text
+[x] python -m pytest                       -> 412 passed
+[x] python -m ruff check .                 -> All checks passed
+```
+
+Slice 55 adds: imported ad spend on Overview, `GET /operator/integrations`,
+scheduler prune env passthrough in Docker compose.

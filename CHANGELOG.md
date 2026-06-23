@@ -2,6 +2,175 @@
 
 ---
 
+## 2026-06-23 — Slice 55: Overview ad spend + integration status
+
+### Slice 55: Operator integration readiness
+
+- **`marketmind/integrations_status.py`** — read-only Gmail/ad-import/scheduler flags.
+- **`GET /operator/integrations`** — exposes `gmail.mode` (`draft_file_only` by default),
+  latest ad CSV batch id, and scheduler prune env flags.
+- **Desktop `Overview.tsx`** — imported ad spend cards alongside portfolio metrics.
+- **`docker-compose.yml`** — scheduler passes `MARKETMIND_SNAPSHOT_PRUNE_APPLY` and retention days.
+- **`.env.example`** — `MARKETMIND_GMAIL_ENABLED` documented (off by default).
+- **`tests/test_integrations_status.py`**.
+
+---
+
+## 2026-06-23 — Slices 51–54: Gmail draft export, portfolio widget, scheduler, ad CSV
+
+### Slice 51: Gmail-ready outreach draft export
+
+- **`marketmind/gmail_draft.py`** — writes plain-text draft files to
+  `logs/outreach_drafts/{approval_id}.txt` (no Gmail API; manual send).
+- **`executor`** — `contact_supplier` dry-run saves draft file and returns `draft_file` path.
+- **`GET /pipeline/outreach-draft/{approval_id}`** — returns stored outreach payload.
+- **`tests/test_gmail_draft.py`** — file export tests.
+
+### Slice 52: Portfolio summary on Overview
+
+- **Desktop `Overview.tsx`** — experiment portfolio cards (counts, attention, lessons).
+- **`fetchExperimentPortfolio()`** in `desktop/src/api/client.ts`.
+
+### Slice 53: Docker scheduler service
+
+- **`docker-compose.yml`** — `scheduler` service runs `marketmind-scheduler --hour 6`
+  after API healthcheck; shares DB + logs volumes.
+- **`docs/DEPLOYMENT.md`** — scheduler section updated.
+
+### Slice 54: Ad CSV import + spend summary
+
+- **`marketmind/ad_summary.py`** — aggregates latest ad import batch.
+- **`POST /imports/ads/csv`**, **`GET /imports/ads/summary`**.
+- **Desktop `LiveData.tsx`** — paste-to-import ad CSV + spend summary cards.
+- **`tests/test_ad_summary.py`**, extended **`tests/test_api.py`**.
+
+Suite: see `docs/qa/final_audit.md`.
+
+---
+
+## 2026-06-23 — Slices 43–48: Retention, validation, orders, outreach, lessons
+
+### Slice 43: Snapshot retention
+
+- **`marketmind/snapshot_retention.py`** — prune rows older than
+  `MARKETMIND_SNAPSHOT_RETENTION_DAYS` (default 365).
+- **`POST /snapshots/prune`** — dry-run by default.
+- **`scripts/prune_snapshots.py`** — CLI operator tool.
+
+### Slice 44: Experiment ID validation
+
+- **`marketmind/experiment_ids.py`** — `exp_<slug>` format enforced on snapshot submit.
+- Documented in **`AGENTS.md`**.
+
+### Slice 45: Order lifecycle view
+
+- **`marketmind/order_lifecycle.py`** — pipeline stages from import batches.
+- **`GET /orders/lifecycle`** — read-only order list with stage counts.
+- **Desktop:** order table on Live Data page.
+
+### Slice 46: Supplier outreach drafts
+
+- **`marketmind/outreach_drafts.py`** — dry-run email draft generator.
+- **`POST /pipeline/prepare-supplier-outreach`** — queues `contact_supplier` approval.
+- **`executor`** — `contact_supplier` dry-run handler.
+- **Desktop:** Supplier Outreach page.
+
+### Slice 47: Decision gate + commerce policy wiring
+
+- **`marketmind/decision_gate.py`** — formal sequential gate runner.
+- **`approvals.py`** — uses `DecisionGate`.
+- **`executor.py`** — checks `commerce_approval_policy` before execution.
+- **`commerce_approval_policy.py`** — action name aliases for approval-queue actions.
+
+### Slice 48: Lessons library + report integration
+
+- Daily report includes recent mistake lessons.
+- **Desktop:** Lessons Library page (`GET /operator/mistakes`).
+- **`desktop/src/api/client.ts`** — deduplicated; added order lifecycle, prune, outreach APIs.
+
+Suite: see `docs/qa/final_audit.md`.
+
+### Slice 49: Runner prune hook + lessons in cycle
+
+- **`runner.py`** — daily report includes recent mistakes; optional
+  `MARKETMIND_SNAPSHOT_PRUNE_ON_CYCLE` preview/apply via `snapshot_prune` in `RunResult`.
+
+### Slice 50: Experiment portfolio summary
+
+- **`GET /experiment/portfolio`** — counts by status, ruling, lessons recorded.
+
+---
+
+## 2026-06-23 — Slices 40–42: Checklist config, mistake tracker, deploy hardening
+
+### Slice 40: Configurable checklist thresholds
+
+- **`marketmind/checklist_config.py`** — reads `MARKETMIND_CHECKLIST_MIN_VISITS`,
+  `MIN_ORDERS`, `MIN_SPEND` from env (defaults 100 / 5 / 50.0).
+- **`marketmind/experiment_checklist.py`** — uses config instead of hardcoded values.
+- **`GET /operator/checklist-config`** — exposes active thresholds.
+- **`.env.example`**, **`docker-compose.yml`** — env passthrough.
+- **`tests/test_checklist_config.py`** — 3 tests.
+
+### Slice 41: Mistake tracker
+
+- **`marketmind/mistake_tracker.py`** — append-only `logs/mistakes.jsonl` (Parts &
+  Pieces `mistake_tracker` pattern). Categories: `cac_too_high`, `low_conversion`,
+  `high_refunds`, `offer_miss`, `shipping_overrun`, `other`.
+- **`GET /operator/mistakes`**, **`POST /operator/mistakes`** — list/record lessons.
+- **`GET /experiment/{id}/mistakes`** — recorded + auto-suggested lessons from
+  rulings, risks, and notes.
+- **Desktop:** `MistakesSection` in Active Experiments; client helpers +
+  Vitest coverage.
+- **`tests/test_mistake_tracker.py`**, extended **`tests/test_operator.py`**.
+
+### Slice 42: Deployment hardening
+
+- **`scripts/deploy_marketmind.ps1`** — build, start, health-poll.
+- **`scripts/rollback_marketmind.ps1`** — stop + rollback checklist.
+- **`docker-compose.yml`** — healthcheck, logs volume, checklist env.
+- **`docs/DEPLOYMENT.md`** — post-deploy verification, backup, rollback.
+- **`docs/issues/0002-deploy-rollback-runbook.md`** — dated issue record.
+- **`tests/test_api.py::test_execute_defaults_to_dry_run`** — API safety regression.
+
+Suite: **374** Python passing; ruff clean.
+
+---
+
+## 2026-06-23 — Slice 39: Operator Health Panel (desktop)
+
+Wires the Parts & Pieces backend endpoints (`/operator/preflight`,
+`/experiment/{id}/checklist`) into the desktop dashboard so Aidan can see
+system readiness and scale-readiness without calling the API manually.
+
+### Desktop API client
+
+- **`desktop/src/api/client.ts`**
+  - `OperatorPreflight`, `ExperimentAttention`, `ChecklistItem`,
+    `ExperimentChecklist` interfaces.
+  - `fetchOperatorPreflight()` → `GET /operator/preflight`.
+  - `fetchExperimentChecklist(id)` → `GET /experiment/{id}/checklist`.
+
+### Desktop UI
+
+- **`desktop/src/components/Overview.tsx`**
+  - Preflight banner at top: `safe_to_operate` status, blockers list, experiments
+    needing attention (kill / pause_ads rulings).
+- **`desktop/src/components/ActiveExperiments.tsx`**
+  - `ChecklistSection` in expanded active experiment cards: scale-readiness items
+    with pass/fail, evidence, and blocker summary.
+- **`desktop/src/index.css`**
+  - `.alert-ok` style for the green preflight-safe banner.
+
+### Tests added
+
+- **`desktop/src/api/client.test.ts`** — 2 tests: preflight GET URL/shape;
+  checklist GET URL/shape.
+
+Suite: **360** Python + **9** Vitest passing; ruff clean.
+
+---
+
 ## 2026-06-23 — Parts & Pieces Integration
 
 All applicable patterns from the `Parts-and-Pieces` shared library have been

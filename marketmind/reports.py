@@ -122,6 +122,7 @@ def _derive_recommendations_and_risks(
 def _derive_lessons(
     metrics: DailyMetrics,
     pending_approvals: list[ApprovalRecord],
+    recent_mistakes: list[str] | None = None,
 ) -> tuple[str, ...]:
     lessons: list[str] = []
 
@@ -133,6 +134,9 @@ def _derive_lessons(
         lessons.append(
             f"{len(pending)} approval(s) pending — unblocking these may unlock next steps."
         )
+
+    for mistake_lesson in recent_mistakes or []:
+        lessons.append(f"Past lesson: {mistake_lesson}")
 
     if metrics.ad_spend > 0:
         roas = metrics.revenue / metrics.ad_spend
@@ -156,6 +160,7 @@ def generate_daily_report(
     date: str,
     snapshots: list[ExperimentSnapshot],
     pending_approvals: list[ApprovalRecord] | None = None,
+    recent_mistakes: list[str] | None = None,
 ) -> DailyReport:
     """Generate a structured daily report from today's experiment snapshots.
 
@@ -166,7 +171,7 @@ def generate_daily_report(
 
     metrics = _aggregate_metrics(date, snapshots)
     recommendations, risks = _derive_recommendations_and_risks(metrics, snapshots)
-    lessons = _derive_lessons(metrics, pending_approvals)
+    lessons = _derive_lessons(metrics, pending_approvals, recent_mistakes)
     pending_ids = tuple(
         r.approval_id for r in pending_approvals if r.status == ApprovalStatus.PENDING
     )

@@ -1,16 +1,20 @@
-"""Operator API — preflight check and audit-log endpoints.
+"""Operator API — preflight check, audit-log, and mistake-tracker endpoints.
 
 Parts-and-Pieces integration (Parts & Pieces → MarketMind):
 - GET /operator/preflight  uses marketmind.operator_preflight (from operator_status part)
 - POST /operator/log-event uses marketmind.event_ledger       (from event_ledger part)
+- GET/POST /operator/mistakes uses marketmind.mistake_tracker (from mistake_tracker part)
 """
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Request
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException, Query, Request
+from pydantic import BaseModel, Field
 
+from ...checklist_config import get_checklist_thresholds
 from ...event_ledger import get_ledger
+from ...integrations_status import get_integrations_status
+from ...mistake_tracker import VALID_CATEGORIES, get_mistake_tracker
 from ...operator_preflight import run_preflight
 
 router = APIRouter(tags=["operator"])
@@ -35,6 +39,24 @@ def operator_preflight(request: Request) -> dict:
     }
 
 
+@router.get("/checklist-config")
+def operator_checklist_config() -> dict:
+    """Return the active scale-readiness thresholds (from env vars)."""
+    t = get_checklist_thresholds()
+    return {
+        "min_visits": t.min_visits,
+        "min_orders": t.min_orders,
+        "min_spend": t.min_spend,
+    }
+
+
+@router.get("/integrations")
+def operator_integrations(request: Request) -> dict:
+    """Return optional integration readiness (Gmail, ad CSV, scheduler prune flags)."""
+    engine = request.app.state.engine
+    return get_integrations_status(engine)
+
+
 class LogEventRequest(BaseModel):
     event_type: str
     event_id: str
@@ -54,10 +76,8 @@ def log_operator_event(body: LogEventRequest) -> dict:
     The log is append-only. Entries are never edited or deleted.
     """
     if not body.event_type.strip():
-        from fastapi import HTTPException
         raise HTTPException(status_code=422, detail="event_type must not be empty")
     if not body.event_id.strip():
-        from fastapi import HTTPException
         raise HTTPException(status_code=422, detail="event_id must not be empty")
 
     ledger = get_ledger()
@@ -68,3 +88,77 @@ def log_operator_event(body: LogEventRequest) -> dict:
         "event_id": event.event_id,
         "created_at": event.created_at,
     }
+
+
+class RecordMistakeRequest(BaseModel):
+    category: str
+    experiment_id: str
+    summary: str
+    lesson: str
+    mistake_id: str | None = None
+    tags: list[str] = Field(default_factory=list)
+
+
+def _mistake_to_dict(record) -> dict:
+    return {
+        "mistake_id": record.mistake_id,
+        "category": record.category,
+        "experiment_id": record.experiment_id,
+        "summary": record.summary,
+        "lesson": record.lesson,
+        "source": record.source,
+        "created_at": record.created_at,
+        "tags": list(record.tags),
+    }
+
+
+@router.get("/mistakes")
+def list_operator_mistakes(
+    experiment_id: str | None = Query(default=None),
+    category: str | None = Query(default=None),
+    limit: int = Query(default=100, ge=1, le=500),
+) -> dict:
+    """Return recorded experiment lessons from logs/mistakes.jsonl."""
+    tracker = get_mistake_tracker()
+    records = tracker.list_mistakes(
+        experiment_id=experiment_id,
+        category=category,
+        limit=limit,
+    )
+    return {
+        "count": len(records),
+        "mistakes": [_mistake_to_dict(r) for r in records],
+    }
+
+
+@router.post("/mistakes")
+def record_operator_mistake(body: RecordMistakeRequest) -> dict:
+    """Record a durable lesson so future experiments avoid the same mistake."""
+    if body.category.strip().lower() not in VALID_CATEGORIES:
+        raise HTTPException(
+            status_code=422,
+            detail=f"category must be one of {sorted(VALID_CATEGORIES)}",
+        )
+    tracker = get_mistake_tracker()
+    try:
+        record = tracker.append(
+            category=body.category,
+            experiment_id=body.experiment_id,
+            summary=body.summary,
+            lesson=body.lesson,
+            mistake_id=body.mistake_id,
+            tags=body.tags,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    get_ledger().append(
+        "mistake.recorded",
+        record.mistake_id,
+        {
+            "experiment_id": record.experiment_id,
+            "category": record.category,
+            "summary": record.summary,
+        },
+    )
+    return {"recorded": True, "mistake": _mistake_to_dict(record)}
