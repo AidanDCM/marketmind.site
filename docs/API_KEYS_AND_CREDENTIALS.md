@@ -128,6 +128,29 @@ TIKTOK_ADS_ACCESS_TOKEN
 GOOGLE_ADS_DEVELOPER_TOKEN
 ```
 
+## 5b. Gmail (supplier outreach drafts — approval-gated)
+
+- **Off by default.** `contact_supplier` exports a local `.txt` draft until
+  `MARKETMIND_GMAIL_ENABLED=true`.
+- **Simulate first:** keep `MARKETMIND_GMAIL_DRY_RUN=true` (default) to exercise
+  the approval + execute path without calling Google.
+- **Live drafts** create an inbox draft via `users.drafts.create` — the operator
+  still reviews and sends manually. Requires:
+  - `MARKETMIND_GMAIL_DRY_RUN=false`
+  - `MARKETMIND_ENABLE_LIVE_WRITES=true`
+  - OAuth desktop/web app credentials with Gmail compose scope
+- Check readiness without printing secrets: `python scripts/check_gmail_config.py`
+
+Variables:
+```
+MARKETMIND_GMAIL_ENABLED
+MARKETMIND_GMAIL_DRY_RUN
+GMAIL_CLIENT_ID
+GMAIL_CLIENT_SECRET
+GMAIL_REFRESH_TOKEN
+GMAIL_OPERATOR_EMAIL
+```
+
 ## 6. Secret handling checklist
 
 ```

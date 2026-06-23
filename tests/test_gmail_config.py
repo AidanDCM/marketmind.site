@@ -39,10 +39,12 @@ def test_gmail_config_simulate_when_wired(monkeypatch):
 def test_gmail_config_live_mode_requires_dry_run_off(monkeypatch):
     monkeypatch.setenv("MARKETMIND_GMAIL_ENABLED", "true")
     monkeypatch.setenv("GMAIL_CLIENT_ID", "cid")
+    monkeypatch.setenv("GMAIL_CLIENT_SECRET", "sec")
     monkeypatch.setenv("GMAIL_REFRESH_TOKEN", "rtok")
     monkeypatch.setenv("MARKETMIND_GMAIL_DRY_RUN", "false")
     cfg = get_gmail_config()
     assert cfg.mode == "live_send"
+    assert cfg.live_ready is True
 
 
 def test_create_gmail_draft_simulated(monkeypatch):
@@ -69,6 +71,62 @@ def test_create_gmail_draft_rejects_when_disabled(monkeypatch):
             subject="S",
             body="B",
         )
+
+
+def test_create_gmail_draft_live_requires_client_secret(monkeypatch):
+    monkeypatch.setenv("MARKETMIND_GMAIL_ENABLED", "true")
+    monkeypatch.setenv("GMAIL_CLIENT_ID", "cid")
+    monkeypatch.setenv("GMAIL_REFRESH_TOKEN", "rtok")
+    monkeypatch.setenv("MARKETMIND_GMAIL_DRY_RUN", "false")
+    monkeypatch.setenv("MARKETMIND_ENABLE_LIVE_WRITES", "true")
+    monkeypatch.delenv("GMAIL_CLIENT_SECRET", raising=False)
+    with pytest.raises(ValueError, match="GMAIL_CLIENT_SECRET"):
+        create_supplier_gmail_draft(
+            approval=_approval(),
+            to_address="buyer@acme.example",
+            subject="S",
+            body="B",
+        )
+
+
+def test_create_gmail_draft_live_calls_api(monkeypatch):
+    monkeypatch.setenv("MARKETMIND_GMAIL_ENABLED", "true")
+    monkeypatch.setenv("GMAIL_CLIENT_ID", "cid")
+    monkeypatch.setenv("GMAIL_CLIENT_SECRET", "sec")
+    monkeypatch.setenv("GMAIL_REFRESH_TOKEN", "rtok")
+    monkeypatch.setenv("MARKETMIND_GMAIL_DRY_RUN", "false")
+    monkeypatch.setenv("MARKETMIND_ENABLE_LIVE_WRITES", "true")
+
+    def fake_create_draft(self, *, to_address, subject, body):
+        assert subject == "Sample inquiry"
+        return {"id": "draft_live_99"}
+
+    monkeypatch.setattr(
+        "marketmind.adapters.gmail_client.GmailClient.create_draft",
+        fake_create_draft,
+    )
+
+    result = create_supplier_gmail_draft(
+        approval=_approval(),
+        to_address="buyer@acme.example",
+        subject="Sample inquiry",
+        body="Hello",
+    )
+    assert result["simulated"] is False
+    assert result["gmail_draft_id"] == "draft_live_99"
+
+
+def test_encode_raw_message_roundtrip():
+    from marketmind.adapters.gmail_client import _encode_raw_message
+
+    raw = _encode_raw_message(
+        to_address="buyer@example.com",
+        subject="Test",
+        body="Body text",
+        from_email="me@example.com",
+    )
+    assert isinstance(raw, str)
+    assert "=" not in raw
 
 
 def test_live_writes_allowed_default_false(monkeypatch):
