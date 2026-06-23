@@ -57,8 +57,22 @@ BLOCKED_ACTIONS: frozenset[str] = frozenset({
     "delete_operator_log",
 })
 
+# Map approval-queue action names to commerce-policy action names.
+_ACTION_ALIASES: dict[str, str] = {
+    "create_stripe_payment_link": "send_payment_link",
+    "publish_shopify_product": "publish_product_page",
+    "scale_campaign": "scale_ad_spend",
+    "launch_paid_ad_campaign": "launch_ad_campaign",
+    "increase_ad_budget": "scale_ad_spend",
+}
+
+
+def normalize_commerce_action(action: str) -> str:
+    key = action.strip().lower()
+    return _ACTION_ALIASES.get(key, key)
+
+
 # Actions that are auto-allowed without an ApprovalRow.
-# Safe to execute immediately because they are read-only or draft-only.
 AUTO_ALLOWED_ACTIONS: frozenset[str] = frozenset({
     "score_product",
     "score_niche",
@@ -102,7 +116,7 @@ def evaluate_commerce_approval(request: CommerceApprovalRequest) -> CommerceAppr
         ``Auto-Allowed`` — safe to execute without an approval record.
         ``Approved``     — high-risk action with a valid approval.
     """
-    action = request.action_type.strip().lower()
+    action = normalize_commerce_action(request.action_type)
     reasons: list[str] = []
 
     if not action:

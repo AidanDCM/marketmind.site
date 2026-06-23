@@ -17,6 +17,7 @@ from __future__ import annotations
 from dataclasses import replace
 from uuid import uuid4
 
+from .decision_gate import DecisionGate
 from .schemas import ApprovalRecord, ApprovalStatus, RiskLevel
 
 # ---------------------------------------------------------------------------
@@ -50,6 +51,7 @@ _ACTION_RISK: dict[str, RiskLevel] = {
     "increase_ad_budget": RiskLevel.HIGH,
     "scale_campaign": RiskLevel.HIGH,
     "send_supplier_order": RiskLevel.HIGH,
+    "contact_supplier": RiskLevel.HIGH,
     # CRITICAL: irreversible or system-level
     "delete_product": RiskLevel.CRITICAL,
     "cancel_all_ads": RiskLevel.CRITICAL,
@@ -114,6 +116,7 @@ def _gate_low(record: ApprovalRecord) -> ApprovalRecord | None:
 
 
 _GATES = [_gate_critical, _gate_high, _gate_medium, _gate_low]
+_APPROVAL_GATE = DecisionGate(_GATES)
 
 
 # ---------------------------------------------------------------------------
@@ -164,20 +167,12 @@ def evaluate_approval(record: ApprovalRecord) -> ApprovalRecord:
     CRITICAL → BLOCKED; HIGH → PENDING (with checklist note);
     MEDIUM → PENDING; LOW → AUTO_ALLOWED.
     """
-    for gate in _GATES:
-        result = gate(record)
-        if result is not None:
-            if result.risk_level == RiskLevel.HIGH and result.status == ApprovalStatus.PENDING:
-                blockers = _check_high_risk_readiness(result)
-                if blockers:
-                    result = replace(
-                        result,
-                        reason=result.reason + " Missing: " + "; ".join(blockers) + ".",
-                    )
-            return result
-    # Unreachable — _gate_low always matches.
-    return replace(
-        record,
-        status=ApprovalStatus.BLOCKED,
-        reason="No gate matched (internal error).",
-    )
+    result = _APPROVAL_GATE.evaluate(record)
+    if result.risk_level == RiskLevel.HIGH and result.status == ApprovalStatus.PENDING:
+        blockers = _check_high_risk_readiness(result)
+        if blockers:
+            return replace(
+                result,
+                reason=result.reason + " Missing: " + "; ".join(blockers) + ".",
+            )
+    return result

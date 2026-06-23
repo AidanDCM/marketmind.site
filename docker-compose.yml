@@ -9,9 +9,42 @@ services:
     environment:
       - MARKETMIND_API_TOKEN=${MARKETMIND_API_TOKEN:-}
       - MARKETMIND_ENV=${MARKETMIND_ENV:-production}
+      - MARKETMIND_DATABASE_URL=sqlite:////data/marketmind.db
+      - MARKETMIND_CHECKLIST_MIN_VISITS=${MARKETMIND_CHECKLIST_MIN_VISITS:-100}
+      - MARKETMIND_CHECKLIST_MIN_ORDERS=${MARKETMIND_CHECKLIST_MIN_ORDERS:-5}
+      - MARKETMIND_CHECKLIST_MIN_SPEND=${MARKETMIND_CHECKLIST_MIN_SPEND:-50.0}
+      - MARKETMIND_SNAPSHOT_PRUNE_ON_CYCLE=${MARKETMIND_SNAPSHOT_PRUNE_ON_CYCLE:-false}
+      - MARKETMIND_SNAPSHOT_PRUNE_APPLY=${MARKETMIND_SNAPSHOT_PRUNE_APPLY:-false}
+      - MARKETMIND_SNAPSHOT_RETENTION_DAYS=${MARKETMIND_SNAPSHOT_RETENTION_DAYS:-365}
     volumes:
       - marketmind-data:/data
+      - marketmind-logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  scheduler:
+    build: .
+    command: ["marketmind-scheduler", "--hour", "6"]
+    environment:
+      - MARKETMIND_DATABASE_URL=sqlite:////data/marketmind.db
+      - MARKETMIND_ENV=${MARKETMIND_ENV:-production}
+      - MARKETMIND_SNAPSHOT_PRUNE_ON_CYCLE=${MARKETMIND_SNAPSHOT_PRUNE_ON_CYCLE:-false}
+      - MARKETMIND_SNAPSHOT_PRUNE_APPLY=${MARKETMIND_SNAPSHOT_PRUNE_APPLY:-false}
+      - MARKETMIND_SNAPSHOT_RETENTION_DAYS=${MARKETMIND_SNAPSHOT_RETENTION_DAYS:-365}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    volumes:
+      - marketmind-data:/data
+      - marketmind-logs:/app/logs
+    depends_on:
+      api:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:
   marketmind-data:
+  marketmind-logs:

@@ -11,6 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ...db.models import ExperimentRow, ExperimentSnapshotRow
+from ...experiment_ids import validate_experiment_id
 from ...runner import hydrate_snapshots, record_snapshot
 from ...schemas import ExperimentSnapshot
 
@@ -58,9 +59,13 @@ def _snap_dict(snap: ExperimentSnapshot, snap_date: str) -> dict:
 @router.post("")
 def submit_snapshot(request: Request, body: SnapshotRequest) -> dict:
     """Record a new experiment snapshot for today (or a specified date)."""
+    try:
+        experiment_id = validate_experiment_id(body.experiment_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     snap_date = body.snapshot_date or date_type.today().isoformat()
     snapshot = ExperimentSnapshot(
-        experiment_id=body.experiment_id,
+        experiment_id=experiment_id,
         product_name=body.product_name,
         break_even_cac=body.break_even_cac,
         qualified_visits=body.qualified_visits,
@@ -75,7 +80,31 @@ def submit_snapshot(request: Request, body: SnapshotRequest) -> dict:
         budget_cap=body.budget_cap,
     )
     record_snapshot(_engine(request), snapshot, snapshot_date=snap_date)
-    return {"recorded": True, "experiment_id": body.experiment_id, "snapshot_date": snap_date}
+    return {"recorded": True, "experiment_id": experiment_id, "snapshot_date": snap_date}
+
+
+class PruneRequest(BaseModel):
+    dry_run: bool = True
+    retention_days: int | None = None
+
+
+@router.post("/prune")
+def prune_snapshots_endpoint(request: Request, body: PruneRequest) -> dict:
+    """Prune experiment snapshot rows older than the retention window.
+
+    Defaults to dry_run=True. Experiment headers and notes are never deleted.
+    """
+    from ...snapshot_retention import prune_old_snapshots
+
+    try:
+        result = prune_old_snapshots(
+            _engine(request),
+            retention_days=body.retention_days,
+            dry_run=body.dry_run,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return result.to_dict()
 
 
 @router.get("")

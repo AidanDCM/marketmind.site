@@ -61,3 +61,12 @@ def test_unknown_action_needs_review():
     req = CommerceApprovalRequest(action_type="some_custom_action")
     result = evaluate_commerce_approval(req)
     assert result.status == "Needs Review"
+
+
+def test_stripe_action_alias_approved_with_approval():
+    req = CommerceApprovalRequest(
+        action_type="create_stripe_payment_link",
+        approval_status="approved",
+    )
+    result = evaluate_commerce_approval(req)
+    assert result.status == "Approved"

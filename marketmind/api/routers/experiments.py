@@ -29,6 +29,7 @@ from ...experiment_checklist import (
     checklist_ready,
 )
 from ...experiment_rules import evaluate_experiment
+from ...mistake_tracker import get_mistake_tracker, suggest_mistakes
 from ...schemas import ExperimentSnapshot
 
 router = APIRouter(tags=["experiments"])
@@ -54,6 +55,62 @@ class ExperimentEvaluateRequest(BaseModel):
 def evaluate_experiment_endpoint(req: ExperimentEvaluateRequest) -> dict:
     snapshot = ExperimentSnapshot(**req.model_dump())
     return evaluate_experiment(snapshot).to_dict()
+
+
+@router.get("/portfolio")
+def experiment_portfolio(request: Request) -> dict:
+    """Portfolio summary across all experiments."""
+    engine = request.app.state.engine
+    from ...mistake_tracker import get_mistake_tracker
+
+    with Session(engine) as session:
+        exps = session.scalars(select(ExperimentRow)).all()
+
+    active = sum(1 for e in exps if e.status == "active")
+    ended = len(exps) - active
+    by_ruling: dict[str, int] = {}
+    needs_attention = 0
+
+    for exp in exps:
+        with Session(engine) as session:
+            latest = session.scalars(
+                select(ExperimentSnapshotRow)
+                .where(ExperimentSnapshotRow.experiment_id == exp.experiment_id)
+                .order_by(ExperimentSnapshotRow.snapshot_date.desc())
+                .limit(1)
+            ).first()
+        ruling_value = None
+        if latest is not None:
+            snap = ExperimentSnapshot(
+                experiment_id=exp.experiment_id,
+                product_name=exp.product_name,
+                break_even_cac=exp.break_even_cac,
+                qualified_visits=latest.qualified_visits,
+                orders=latest.orders,
+                total_ad_spend=latest.total_ad_spend,
+                total_revenue=latest.total_revenue,
+                refund_count=latest.refund_count,
+                actual_shipping_cost=latest.actual_shipping_cost,
+                planned_shipping_cost=latest.planned_shipping_cost,
+                add_to_cart_count=latest.add_to_cart_count,
+                consecutive_losing_periods=latest.consecutive_losing_periods,
+                budget_cap=latest.budget_cap,
+            )
+            ruling_value = evaluate_experiment(snap).ruling.value
+        key = ruling_value or "no_data"
+        by_ruling[key] = by_ruling.get(key, 0) + 1
+        if ruling_value in {"kill", "pause_ads", "scale_requires_approval"}:
+            needs_attention += 1
+
+    mistakes = get_mistake_tracker().list_mistakes(limit=500)
+    return {
+        "total_experiments": len(exps),
+        "active": active,
+        "ended": ended,
+        "needs_attention": needs_attention,
+        "by_ruling": by_ruling,
+        "lessons_recorded": len(mistakes),
+    }
 
 
 @router.get("/active")
@@ -266,4 +323,85 @@ def get_experiment_checklist(experiment_id: str, request: Request) -> dict:
             }
             for i in items
         ],
+    }
+
+
+@router.get("/{experiment_id}/mistakes")
+def get_experiment_mistakes(experiment_id: str, request: Request) -> dict:
+    """Return recorded lessons and auto-suggested lessons for one experiment."""
+    engine = request.app.state.engine
+    with Session(engine) as session:
+        exp = session.get(ExperimentRow, experiment_id)
+        if exp is None:
+            raise HTTPException(status_code=404, detail="Experiment not found")
+        latest = session.scalars(
+            select(ExperimentSnapshotRow)
+            .where(ExperimentSnapshotRow.experiment_id == experiment_id)
+            .order_by(ExperimentSnapshotRow.snapshot_date.desc())
+            .limit(1)
+        ).first()
+        notes = session.scalars(
+            select(ExperimentNoteRow)
+            .where(ExperimentNoteRow.experiment_id == experiment_id)
+            .order_by(ExperimentNoteRow.created_at)
+        ).all()
+
+    ruling_value: str | None = None
+    risks: list[str] = []
+    if latest is not None:
+        snap = ExperimentSnapshot(
+            experiment_id=experiment_id,
+            product_name=exp.product_name,
+            break_even_cac=exp.break_even_cac,
+            qualified_visits=latest.qualified_visits,
+            orders=latest.orders,
+            total_ad_spend=latest.total_ad_spend,
+            total_revenue=latest.total_revenue,
+            refund_count=latest.refund_count,
+            actual_shipping_cost=latest.actual_shipping_cost,
+            planned_shipping_cost=latest.planned_shipping_cost,
+            add_to_cart_count=latest.add_to_cart_count,
+            consecutive_losing_periods=latest.consecutive_losing_periods,
+            budget_cap=latest.budget_cap,
+        )
+        result = evaluate_experiment(snap)
+        ruling_value = result.ruling.value
+        risks = list(result.risks)
+
+    recorded = get_mistake_tracker().list_mistakes(experiment_id=experiment_id)
+    suggestions = suggest_mistakes(
+        experiment_id=experiment_id,
+        product_name=exp.product_name,
+        ruling=ruling_value,
+        risks=risks,
+        note_bodies=[n.body for n in notes],
+    )
+
+    def _recorded_dict(r):
+        return {
+            "mistake_id": r.mistake_id,
+            "category": r.category,
+            "experiment_id": r.experiment_id,
+            "summary": r.summary,
+            "lesson": r.lesson,
+            "source": r.source,
+            "created_at": r.created_at,
+            "tags": list(r.tags),
+        }
+
+    def _suggestion_dict(s):
+        return {
+            "category": s.category,
+            "experiment_id": s.experiment_id,
+            "summary": s.summary,
+            "lesson": s.lesson,
+            "source": s.source,
+            "tags": list(s.tags),
+        }
+
+    return {
+        "experiment_id": experiment_id,
+        "product_name": exp.product_name,
+        "recorded": [_recorded_dict(r) for r in recorded],
+        "suggested": [_suggestion_dict(s) for s in suggestions],
     }

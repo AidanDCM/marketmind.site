@@ -37,6 +37,7 @@ from .routers import (
     health,
     imports,
     operator,
+    orders,
     pipeline,
     reports,
     scoring,
@@ -102,5 +103,6 @@ app.include_router(execution.router, prefix="/execute")
 app.include_router(sources.router, prefix="/sources")
 app.include_router(imports.router, prefix="/imports")
 app.include_router(snapshots.router, prefix="/snapshots")
+app.include_router(orders.router, prefix="/orders")
 app.include_router(webhooks.router, prefix="/webhooks")
 app.include_router(operator.router, prefix="/operator")

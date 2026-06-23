@@ -269,6 +269,19 @@ export function listActiveExperiments(): Promise<ActiveExperiment[]> {
   return req("GET", "/experiment/active");
 }
 
+export interface ExperimentPortfolio {
+  total_experiments: number;
+  active: number;
+  ended: number;
+  needs_attention: number;
+  by_ruling: Record<string, number>;
+  lessons_recorded: number;
+}
+
+export function fetchExperimentPortfolio(): Promise<ExperimentPortfolio> {
+  return req("GET", "/experiment/portfolio");
+}
+
 export function patchExperimentStatus(
   experimentId: string,
   status: "active" | "ended",
@@ -292,6 +305,117 @@ export function getExperimentNotes(experimentId: string): Promise<ExperimentNote
   return req("GET", `/experiment/${encodeURIComponent(experimentId)}/notes`);
 }
 
+// ---- Operator preflight (Parts & Pieces integration) ----
+export interface ExperimentAttention {
+  experiment_id: string;
+  product_name: string;
+  ruling: string;
+  risks: string[];
+}
+
+export interface OperatorPreflight {
+  safe_to_operate: boolean;
+  pending_approvals: number;
+  experiments_needing_attention: ExperimentAttention[];
+  operator_log_exists: boolean;
+  blockers: string[];
+  summary: string;
+}
+
+export function fetchOperatorPreflight(): Promise<OperatorPreflight> {
+  return req("GET", "/operator/preflight");
+}
+
+export interface LogEventRequest {
+  event_type: string;
+  event_id: string;
+  payload?: Record<string, unknown>;
+}
+
+export function logOperatorEvent(body: LogEventRequest): Promise<{ logged: boolean; event_type: string; event_id: string; created_at: string }> {
+  return req("POST", "/operator/log-event", body);
+}
+
+export function fetchChecklistConfig(): Promise<{ min_visits: number; min_orders: number; min_spend: number }> {
+  return req("GET", "/operator/checklist-config");
+}
+
+// ---- Experiment scale checklist (Parts & Pieces integration) ----
+export interface ChecklistItem {
+  item_id: string;
+  description: string;
+  required: boolean;
+  passed: boolean;
+  evidence: string;
+}
+
+export interface ExperimentChecklist {
+  experiment_id: string;
+  product_name: string;
+  ready: boolean;
+  blockers: string[];
+  items: ChecklistItem[];
+}
+
+export function fetchExperimentChecklist(experimentId: string): Promise<ExperimentChecklist> {
+  return req("GET", `/experiment/${encodeURIComponent(experimentId)}/checklist`);
+}
+
+// ---- Mistake tracker (Parts & Pieces integration) ----
+export interface MistakeRecord {
+  mistake_id: string;
+  category: string;
+  experiment_id: string;
+  summary: string;
+  lesson: string;
+  source: string;
+  created_at: string;
+  tags: string[];
+}
+
+export interface MistakeSuggestion {
+  category: string;
+  experiment_id: string;
+  summary: string;
+  lesson: string;
+  source: string;
+  tags: string[];
+}
+
+export interface ExperimentMistakes {
+  experiment_id: string;
+  product_name: string;
+  recorded: MistakeRecord[];
+  suggested: MistakeSuggestion[];
+}
+
+export function fetchOperatorMistakes(params?: {
+  experimentId?: string;
+  category?: string;
+  limit?: number;
+}): Promise<{ count: number; mistakes: MistakeRecord[] }> {
+  const qs = new URLSearchParams();
+  if (params?.experimentId) qs.set("experiment_id", params.experimentId);
+  if (params?.category) qs.set("category", params.category);
+  if (params?.limit) qs.set("limit", String(params.limit));
+  const q = qs.toString();
+  return req("GET", `/operator/mistakes${q ? `?${q}` : ""}`);
+}
+
+export function recordMistake(body: {
+  category: string;
+  experiment_id: string;
+  summary: string;
+  lesson: string;
+  tags?: string[];
+}): Promise<{ recorded: boolean; mistake: MistakeRecord }> {
+  return req("POST", "/operator/mistakes", body);
+}
+
+export function fetchExperimentMistakes(experimentId: string): Promise<ExperimentMistakes> {
+  return req("GET", `/experiment/${encodeURIComponent(experimentId)}/mistakes`);
+}
+
 // ---- Pipeline: offer -> approval ----
 export interface PrepareOfferRequest {
   product_name: string;
@@ -310,6 +434,23 @@ export interface PrepareOfferRequest {
 
 export function prepareOffer(input: PrepareOfferRequest): Promise<ApprovalRecord> {
   return req("POST", "/pipeline/prepare-offer", input);
+}
+
+export interface PrepareSupplierOutreachRequest {
+  supplier_name: string;
+  product_name: string;
+  sample_quantity?: number;
+  target_unit_cost?: number;
+  operator_note?: string;
+  expected_cost?: number;
+}
+
+export function prepareSupplierOutreach(input: PrepareSupplierOutreachRequest): Promise<ApprovalRecord> {
+  return req("POST", "/pipeline/prepare-supplier-outreach", input);
+}
+
+export function fetchOutreachDraft(approvalId: string): Promise<Record<string, unknown>> {
+  return req("GET", `/pipeline/outreach-draft/${encodeURIComponent(approvalId)}`);
 }
 
 // ---- Execution (matches ExecutionResult.to_dict) ----
@@ -400,6 +541,36 @@ export function getImportBatch(batchId: number): Promise<ImportBatchDetail> {
   return req("GET", `/imports/${batchId}`);
 }
 
+export function importAdCsv(csvText: string, source = "ad_report_csv"): Promise<ImportResult & { batch_id: number }> {
+  return req("POST", "/imports/ads/csv", { csv_text: csvText, source });
+}
+
+export interface AdSpendSummary {
+  batch_id: number | null;
+  source: string;
+  pulled_at: string;
+  campaigns: number;
+  total_spend: number;
+  total_clicks: number;
+  total_impressions: number;
+  total_purchases: number;
+  total_revenue: number;
+}
+
+export function fetchAdSpendSummary(): Promise<{ has_data: boolean; summary: AdSpendSummary | null }> {
+  return req("GET", "/imports/ads/summary");
+}
+
+export interface OperatorIntegrations {
+  gmail: { enabled: boolean; wired: boolean; mode: string };
+  ad_imports: { csv_available: boolean; has_latest_batch: boolean; latest_batch_id: number | null };
+  scheduler: { prune_on_cycle: boolean; prune_apply: boolean };
+}
+
+export function fetchOperatorIntegrations(): Promise<OperatorIntegrations> {
+  return req("GET", "/operator/integrations");
+}
+
 // ---- Snapshots (Slice 34) ----
 export interface SnapshotRequest {
   experiment_id: string;
@@ -444,4 +615,24 @@ export function listSnapshots(snapshotDate?: string): Promise<SnapshotRecord[]> 
 
 export function getSnapshotTrend(experimentId: string, days = 30): Promise<SnapshotRecord[]> {
   return req("GET", `/snapshots/trend/${encodeURIComponent(experimentId)}?days=${days}`);
+}
+
+export function pruneSnapshots(dryRun = true, retentionDays?: number): Promise<{ cutoff_date: string; dry_run: boolean; rows_matched: number; rows_deleted: number }> {
+  return req("POST", "/snapshots/prune", { dry_run: dryRun, retention_days: retentionDays ?? null });
+}
+
+// ---- Order lifecycle (Slice 45) ----
+export interface OrderLifecycleEntry {
+  order_id: string;
+  source: string;
+  stage: string;
+  amount: string;
+  currency: string;
+  raw_status: string;
+  batch_id: number;
+  pulled_at: string;
+}
+
+export function fetchOrderLifecycle(limitBatches = 30): Promise<{ count: number; by_stage: Record<string, number>; orders: OrderLifecycleEntry[] }> {
+  return req("GET", `/orders/lifecycle?limit_batches=${limitBatches}`);
 }

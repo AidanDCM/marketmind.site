@@ -4,8 +4,14 @@ import {
   patchExperimentStatus,
   addExperimentNote,
   getExperimentNotes,
+  fetchExperimentChecklist,
+  fetchExperimentMistakes,
+  recordMistake,
   type ActiveExperiment,
   type ExperimentNote,
+  type ExperimentChecklist,
+  type ExperimentMistakes,
+  type MistakeSuggestion,
 } from "../api/client";
 
 const RULING_COLOR: Record<string, string> = {
@@ -49,6 +55,136 @@ function StatusBadge({ status }: { status: string }) {
     }}>
       {status}
     </span>
+  );
+}
+
+function ChecklistSection({ experimentId }: { experimentId: string }) {
+  const [checklist, setChecklist] = useState<ExperimentChecklist | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    fetchExperimentChecklist(experimentId)
+      .then(setChecklist)
+      .catch((err: Error) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [experimentId]);
+
+  if (loading) return <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 14 }}>Loading checklist…</div>;
+  if (error) return <div style={{ fontSize: 11, color: "var(--red)", marginTop: 14 }}>{error}</div>;
+  if (!checklist) return null;
+
+  return (
+    <div style={{ marginTop: 14, borderTop: "1px solid var(--border)", paddingTop: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+        <div className="detail-label">Scale-readiness checklist</div>
+        <span style={{
+          padding: "2px 8px", borderRadius: 4, fontSize: 10, fontWeight: 600,
+          background: checklist.ready ? "var(--green)22" : "var(--yellow, #f5a623)22",
+          color: checklist.ready ? "var(--green)" : "var(--yellow, #f5a623)",
+          border: `1px solid ${checklist.ready ? "var(--green)" : "var(--yellow, #f5a623)"}55`,
+        }}>
+          {checklist.ready ? "Ready to scale" : "Not ready"}
+        </span>
+      </div>
+      {checklist.blockers.length > 0 && (
+        <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>
+          {checklist.blockers.map((b, i) => <div key={i}>• {b}</div>)}
+        </div>
+      )}
+      {checklist.items.map(item => (
+        <div key={item.item_id} style={{ display: "flex", gap: 8, fontSize: 12, marginBottom: 4, alignItems: "flex-start" }}>
+          <span style={{ color: item.passed ? "var(--green)" : "var(--red)", fontWeight: 700, flexShrink: 0 }}>
+            {item.passed ? "✓" : "✗"}
+          </span>
+          <div>
+            <div>{item.description}</div>
+            {item.evidence && (
+              <div style={{ color: "var(--text-muted)", fontSize: 11 }}>{item.evidence}</div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function MistakesSection({ experimentId }: { experimentId: string }) {
+  const [data, setData] = useState<ExperimentMistakes | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  function load() {
+    setLoading(true);
+    setError(null);
+    fetchExperimentMistakes(experimentId)
+      .then(setData)
+      .catch((err: Error) => setError(err.message))
+      .finally(() => setLoading(false));
+  }
+
+  useEffect(load, [experimentId]);
+
+  function saveSuggestion(s: MistakeSuggestion) {
+    setSaving(s.summary);
+    setError(null);
+    recordMistake({
+      category: s.category,
+      experiment_id: experimentId,
+      summary: s.summary,
+      lesson: s.lesson,
+      tags: [...s.tags],
+    })
+      .then(() => load())
+      .catch((err: Error) => setError(err.message))
+      .finally(() => setSaving(null));
+  }
+
+  if (loading) return <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 14 }}>Loading lessons…</div>;
+  if (error) return <div style={{ fontSize: 11, color: "var(--red)", marginTop: 14 }}>{error}</div>;
+  if (!data) return null;
+
+  return (
+    <div style={{ marginTop: 14, borderTop: "1px solid var(--border)", paddingTop: 12 }}>
+      <div className="detail-label" style={{ marginBottom: 8 }}>Lessons learned</div>
+      {data.recorded.length === 0 && data.suggested.length === 0 && (
+        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>No lessons recorded yet.</div>
+      )}
+      {data.recorded.map(m => (
+        <div key={m.mistake_id} style={{ fontSize: 12, marginBottom: 8 }}>
+          <div style={{ fontWeight: 600 }}>{m.summary}</div>
+          <div style={{ color: "var(--text-muted)" }}>{m.lesson}</div>
+          <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>
+            {m.category.replace(/_/g, " ")} · {m.created_at.slice(0, 10)}
+          </div>
+        </div>
+      ))}
+      {data.suggested.length > 0 && (
+        <div style={{ marginTop: 10 }}>
+          <div className="detail-label" style={{ marginBottom: 6 }}>Suggested (not yet saved)</div>
+          {data.suggested.map((s, i) => (
+            <div key={i} style={{ fontSize: 12, marginBottom: 8, display: "flex", gap: 8, alignItems: "flex-start" }}>
+              <div style={{ flex: 1 }}>
+                <div>{s.summary}</div>
+                <div style={{ color: "var(--text-muted)" }}>{s.lesson}</div>
+              </div>
+              <button
+                type="button"
+                className="btn-ghost"
+                style={{ fontSize: 11, padding: "2px 8px", flexShrink: 0 }}
+                disabled={saving === s.summary}
+                onClick={() => saveSuggestion(s)}
+              >
+                {saving === s.summary ? "…" : "Save"}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -193,6 +329,8 @@ function ExperimentCard({ exp, onStatusChange }: { exp: ActiveExperiment; onStat
             )}
           </div>
           <NotesSection experimentId={exp.experiment_id} />
+          <MistakesSection experimentId={exp.experiment_id} />
+          {exp.status === "active" && <ChecklistSection experimentId={exp.experiment_id} />}
         </div>
       )}
     </div>

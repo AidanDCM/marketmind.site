@@ -115,6 +115,14 @@ def test_empty_cycle(engine):
     assert result.approvals_created == []
     assert result.report is not None
     assert result.report.metrics.orders == 0
+    assert result.snapshot_prune is None
+
+
+def test_cycle_includes_prune_preview_when_enabled(engine, monkeypatch):
+    monkeypatch.setenv("MARKETMIND_SNAPSHOT_PRUNE_ON_CYCLE", "true")
+    result = run_daily_cycle(engine, DATE)
+    assert result.snapshot_prune is not None
+    assert result.snapshot_prune["dry_run"] is True
 
 
 def test_scale_snapshot_queues_high_risk_approval(engine):

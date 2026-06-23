@@ -20,6 +20,7 @@ Safety properties (consistent with APPROVAL_POLICY.md):
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from datetime import date as Date
 from typing import Any
@@ -174,6 +175,7 @@ class RunResult:
     rulings: list[ExperimentRulingResult] = field(default_factory=list)
     approvals_created: list[str] = field(default_factory=list)
     report: DailyReport | None = None
+    snapshot_prune: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -181,6 +183,7 @@ class RunResult:
             "rulings": [r.to_dict() for r in self.rulings],
             "approvals_created": list(self.approvals_created),
             "report": self.report.to_dict() if self.report else None,
+            "snapshot_prune": self.snapshot_prune,
         }
 
 
@@ -247,7 +250,19 @@ def run_daily_cycle(engine: Engine, date: str | None = None) -> RunResult:
                 approvals_created.append(created)
 
     pending = approval_store.list_approvals(engine, status=ApprovalStatus.PENDING)
-    report = generate_daily_report(run_date, snapshots, pending)
+    from .mistake_tracker import get_mistake_tracker
+
+    recent_mistakes = [m.lesson for m in get_mistake_tracker().list_mistakes(limit=5)]
+    report = generate_daily_report(run_date, snapshots, pending, recent_mistakes)
+
+    snapshot_prune = None
+    if os.environ.get("MARKETMIND_SNAPSHOT_PRUNE_ON_CYCLE", "").lower() in {"1", "true", "yes"}:
+        from .snapshot_retention import prune_old_snapshots
+
+        apply = os.environ.get("MARKETMIND_SNAPSHOT_PRUNE_APPLY", "").lower() in {
+            "1", "true", "yes",
+        }
+        snapshot_prune = prune_old_snapshots(engine, dry_run=not apply).to_dict()
 
     log.info(
         "daily cycle complete",
@@ -262,4 +277,5 @@ def run_daily_cycle(engine: Engine, date: str | None = None) -> RunResult:
         rulings=rulings,
         approvals_created=approvals_created,
         report=report,
+        snapshot_prune=snapshot_prune,
     )

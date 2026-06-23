@@ -169,3 +169,86 @@ def test_checklist_response_shape(client):
     item = data["items"][0]
     for key in ("item_id", "description", "required", "passed", "evidence"):
         assert key in item
+
+
+# ---- /operator/checklist-config ----
+
+def test_checklist_config_endpoint(client):
+    resp = client.get("/operator/checklist-config")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["min_visits"] == 100
+    assert data["min_orders"] == 5
+    assert data["min_spend"] == 50.0
+
+
+def test_checklist_config_respects_env(client, monkeypatch):
+    monkeypatch.setenv("MARKETMIND_CHECKLIST_MIN_VISITS", "50")
+    monkeypatch.setenv("MARKETMIND_CHECKLIST_MIN_ORDERS", "3")
+    monkeypatch.setenv("MARKETMIND_CHECKLIST_MIN_SPEND", "25")
+    resp = client.get("/operator/checklist-config")
+    data = resp.json()
+    assert data["min_visits"] == 50
+    assert data["min_orders"] == 3
+    assert data["min_spend"] == 25.0
+
+
+# ---- /operator/integrations ----
+
+def test_integrations_endpoint(client):
+    resp = client.get("/operator/integrations")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["gmail"]["mode"] == "draft_file_only"
+    assert data["ad_imports"]["csv_available"] is True
+    assert "scheduler" in data
+
+
+# ---- /operator/mistakes ----
+
+def test_record_and_list_mistakes(client, tmp_path, monkeypatch):
+    import marketmind.mistake_tracker as mt
+    mt._tracker = None
+    monkeypatch.setattr(mt, "_DEFAULT_PATH", tmp_path / "mistakes.jsonl")
+    resp = client.post("/operator/mistakes", json={
+        "category": "offer_miss",
+        "experiment_id": "exp_lesson",
+        "summary": "Headline did not resonate",
+        "lesson": "Test benefit-led headlines before scaling.",
+        "tags": ["creative"],
+    })
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["recorded"] is True
+    assert data["mistake"]["category"] == "offer_miss"
+
+    listed = client.get("/operator/mistakes?experiment_id=exp_lesson")
+    assert listed.status_code == 200
+    assert listed.json()["count"] >= 1
+
+
+def test_record_mistake_rejects_invalid_category(client, tmp_path, monkeypatch):
+    import marketmind.mistake_tracker as mt
+    mt._tracker = None
+    monkeypatch.setattr(mt, "_DEFAULT_PATH", tmp_path / "mistakes.jsonl")
+    resp = client.post("/operator/mistakes", json={
+        "category": "bogus",
+        "experiment_id": "exp_x",
+        "summary": "x",
+        "lesson": "y",
+    })
+    assert resp.status_code == 422
+
+
+def test_experiment_mistakes_endpoint(client, tmp_path, monkeypatch):
+    import marketmind.mistake_tracker as mt
+    mt._tracker = None
+    monkeypatch.setattr(mt, "_DEFAULT_PATH", tmp_path / "mistakes.jsonl")
+    _post_snap(client, "exp_mist", orders=1, ad_spend=500.0, revenue=10.0, visits=200)
+    resp = client.get("/experiment/exp_mist/mistakes")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["experiment_id"] == "exp_mist"
+    assert "recorded" in data
+    assert "suggested" in data
+    assert isinstance(data["suggested"], list)

@@ -31,6 +31,11 @@ from sqlalchemy.engine import Engine
 
 from .adapters.shopify_client import ShopifyClient, simulate_create_product_draft
 from .adapters.stripe_client import StripeClient, simulate_create_payment_link
+from .commerce_approval_policy import (
+    BLOCKED_ACTIONS,
+    CommerceApprovalRequest,
+    evaluate_commerce_approval,
+)
 from .db import approval_store
 from .db.event_store import append_event, event_exists, list_events
 from .logging_config import get_logger
@@ -87,6 +92,11 @@ def _load_payload(engine: Engine, approval_id: str) -> dict[str, Any] | None:
         if e["event_id"] == approval_id
     ]
     return events[-1]["payload"] if events else None
+
+
+def get_action_payload(engine: Engine, approval_id: str) -> dict[str, Any] | None:
+    """Return the stored action payload for an approval, if any."""
+    return _load_payload(engine, approval_id)
 
 
 # ---------------------------------------------------------------------------
@@ -170,10 +180,38 @@ def _handle_publish_shopify_product(
     }
 
 
+def _handle_contact_supplier(
+    engine: Engine, record: ApprovalRecord, dry_run: bool
+) -> dict[str, Any]:
+    from .gmail_draft import save_outreach_draft_file
+
+    payload = _load_payload(engine, record.approval_id) or {}
+    subject = str(payload.get("subject", ""))
+    body = str(payload.get("body", ""))
+    if dry_run:
+        draft_path = save_outreach_draft_file(
+            approval_id=record.approval_id,
+            subject=subject,
+            body=body,
+            supplier_name=str(payload.get("supplier_name", "")),
+        )
+        return {
+            "simulated": True,
+            "message": "Draft exported — open the file and paste into your email client.",
+            "subject": subject,
+            "body": body,
+            "draft_file": str(draft_path),
+        }
+    raise ValueError(
+        "Live supplier email is not wired. Run dry_run=True and send manually."
+    )
+
+
 _HANDLERS = {
     "scale_campaign": _handle_scale_campaign,
     "create_stripe_payment_link": _handle_create_stripe_payment_link,
     "publish_shopify_product": _handle_publish_shopify_product,
+    "contact_supplier": _handle_contact_supplier,
 }
 
 
@@ -201,6 +239,21 @@ def execute_approved(
             f"Refusing to execute {approval_id!r}: status is "
             f"{record.status.value!r}, not 'approved'."
         )
+
+    if record.action in BLOCKED_ACTIONS:
+        raise ValueError(f"Action {record.action!r} is permanently blocked by policy.")
+
+    policy = evaluate_commerce_approval(
+        CommerceApprovalRequest(
+            action_type=record.action,
+            approval_status="approved",
+            estimated_cost=record.expected_cost,
+        )
+    )
+    if policy.status == "Blocked":
+        raise ValueError("; ".join(policy.reasons) or "Blocked by commerce policy.")
+    if policy.status == "Needs Review":
+        raise ValueError("; ".join(policy.reasons) or "Needs review before execution.")
 
     if event_exists(engine, _EXECUTION_EVENT, approval_id):
         return ExecutionResult(
