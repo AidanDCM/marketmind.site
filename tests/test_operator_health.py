@@ -22,3 +22,12 @@ def test_build_operator_health_warns_missing_operator_log(monkeypatch, tmp_path)
     Base.metadata.create_all(engine)
     health = build_operator_health(engine)
     assert any("Operator event log" in w for w in health["warnings"])
+
+
+def test_build_operator_health_warns_live_writes_without_stripe(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("MARKETMIND_ENABLE_LIVE_WRITES", "true")
+    engine = make_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    health = build_operator_health(engine)
+    assert any("Stripe is not live-ready" in w for w in health["warnings"])

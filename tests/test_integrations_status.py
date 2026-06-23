@@ -20,6 +20,8 @@ def test_integrations_status_defaults(monkeypatch):
     status = get_integrations_status(engine)
     assert status["gmail"]["mode"] == "draft_file_only"
     assert status["gmail"]["enabled"] is False
+    assert status["stripe"]["configured"] is False
+    assert status["shopify"]["configured"] is False
     assert status["ad_imports"]["has_latest_batch"] is False
     assert status["scheduler"]["prune_on_cycle"] is False
 

@@ -28,6 +28,17 @@ def build_operator_health(engine: Engine) -> dict:
         warnings.append("MARKETMIND_ENABLE_LIVE_WRITES=true but Gmail is not live-ready")
     if integrations["gmail"].get("mode") == "live_missing_secret":
         warnings.append("Gmail live mode enabled but GMAIL_CLIENT_SECRET is missing")
+    if integrations.get("live_writes", {}).get("enabled"):
+        if not integrations["stripe"].get("live_ready"):
+            warnings.append(
+                "MARKETMIND_ENABLE_LIVE_WRITES=true but Stripe is not live-ready "
+                "(set STRIPE_API_KEY and MARKETMIND_STRIPE_DRY_RUN=false)"
+            )
+        if not integrations["shopify"].get("live_ready"):
+            warnings.append(
+                "MARKETMIND_ENABLE_LIVE_WRITES=true but Shopify is not live-ready "
+                "(set store credentials and MARKETMIND_SHOPIFY_READ_ONLY=false)"
+            )
 
     return {
         "safe_to_operate": preflight.safe_to_operate,
