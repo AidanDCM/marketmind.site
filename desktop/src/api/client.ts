@@ -582,10 +582,24 @@ export interface OperatorHealthPanel {
   portfolio: ExperimentPortfolio;
   ad_spend: { has_data: boolean; summary: AdSpendSummary | null };
   checklist: { min_visits: number; min_orders: number; min_spend: number };
+  last_cycle: DailyCycleStatus | null;
+}
+
+export interface DailyCycleStatus {
+  event_id: string;
+  created_at: string;
+  date: string;
+  experiments_evaluated: number;
+  approvals_created: number;
+  approval_ids: string[];
 }
 
 export function fetchOperatorHealthPanel(): Promise<OperatorHealthPanel> {
   return req("GET", "/operator/health-panel");
+}
+
+export function fetchOperatorLastCycle(): Promise<{ has_data: boolean; cycle: DailyCycleStatus | null }> {
+  return req("GET", "/operator/last-cycle");
 }
 
 // ---- Snapshots (Slice 34) ----

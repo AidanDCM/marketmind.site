@@ -175,6 +175,7 @@ describe("api client", () => {
       portfolio: { total_experiments: 0, active: 0, ended: 0, needs_attention: 0, by_ruling: {}, lessons_recorded: 0 },
       ad_spend: { has_data: false, summary: null },
       checklist: { min_visits: 100, min_orders: 5, min_spend: 50 },
+      last_cycle: null,
     });
     const { fetchOperatorHealthPanel } = await import("./client");
     const r = await fetchOperatorHealthPanel();

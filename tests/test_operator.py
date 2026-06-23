@@ -216,7 +216,20 @@ def test_health_panel_endpoint(client):
     assert "integrations" in data
     assert "ad_spend" in data
     assert "checklist" in data
+    assert "last_cycle" in data
     assert data["portfolio"]["total_experiments"] == 0
+
+
+def test_last_cycle_endpoint_empty(client, monkeypatch):
+    monkeypatch.setattr(
+        "marketmind.api.routers.operator.get_last_daily_cycle",
+        lambda: None,
+    )
+    resp = client.get("/operator/last-cycle")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["has_data"] is False
+    assert data["cycle"] is None
 
 
 # ---- /operator/mistakes ----

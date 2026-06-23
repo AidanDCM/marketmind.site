@@ -12,6 +12,7 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
 from ...checklist_config import get_checklist_thresholds
+from ...cycle_status import get_last_daily_cycle
 from ...event_ledger import get_ledger
 from ...integrations_status import get_integrations_status
 from ...mistake_tracker import VALID_CATEGORIES, get_mistake_tracker
@@ -63,6 +64,15 @@ def operator_health_panel(request: Request) -> dict:
     """Consolidated operator health: preflight, integrations, portfolio, ad spend, checklist."""
     engine = request.app.state.engine
     return build_operator_health(engine)
+
+
+@router.get("/last-cycle")
+def operator_last_cycle() -> dict:
+    """Return the most recent daily cycle recorded in the operator ledger."""
+    last = get_last_daily_cycle()
+    if last is None:
+        return {"has_data": False, "cycle": None}
+    return {"has_data": True, "cycle": last}
 
 
 class LogEventRequest(BaseModel):

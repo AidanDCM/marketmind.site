@@ -272,10 +272,14 @@ def run_daily_cycle(engine: Engine, date: str | None = None) -> RunResult:
             "approvals_created": len(approvals_created),
         },
     )
-    return RunResult(
+    result = RunResult(
         date=run_date,
         rulings=rulings,
         approvals_created=approvals_created,
         report=report,
         snapshot_prune=snapshot_prune,
     )
+    from .cycle_status import record_daily_cycle
+
+    record_daily_cycle(result)
+    return result

@@ -6,6 +6,7 @@ from sqlalchemy.engine import Engine
 
 from .ad_summary import summarize_latest_ad_batch
 from .checklist_config import get_checklist_thresholds
+from .cycle_status import get_last_daily_cycle
 from .experiment_portfolio import build_experiment_portfolio
 from .integrations_status import get_integrations_status
 from .operator_preflight import run_preflight
@@ -62,4 +63,5 @@ def build_operator_health(engine: Engine) -> dict:
             "min_orders": checklist.min_orders,
             "min_spend": checklist.min_spend,
         },
+        "last_cycle": get_last_daily_cycle(),
     }

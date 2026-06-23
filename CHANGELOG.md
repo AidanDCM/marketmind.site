@@ -2,6 +2,18 @@
 
 ---
 
+## 2026-06-23 — Slice 60: Daily cycle ledger status
+
+### Slice 60: Last daily cycle in operator health
+
+- **`marketmind/cycle_status.py`** — records `runner.daily_cycle` events to the operator
+  ledger after each `run_daily_cycle` (CLI, scheduler, or API-triggered later).
+- **`GET /operator/last-cycle`** — returns the most recent cycle summary.
+- **Health panel** — shows last cycle date, experiments evaluated, approvals queued.
+- **`runner.py`** — appends ledger entry on every completed cycle.
+
+---
+
 ## 2026-06-23 — Slice 59: Stripe/Shopify integration readiness
 
 ### Slice 59: Commerce credential status in health panel

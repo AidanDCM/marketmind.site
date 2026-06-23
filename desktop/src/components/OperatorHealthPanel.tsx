@@ -13,6 +13,13 @@ export interface OperatorHealthPanel {
   portfolio: ExperimentPortfolio;
   ad_spend: { has_data: boolean; summary: AdSpendSummary | null };
   checklist: { min_visits: number; min_orders: number; min_spend: number };
+  last_cycle: {
+    event_id: string;
+    created_at: string;
+    date: string;
+    experiments_evaluated: number;
+    approvals_created: number;
+  } | null;
 }
 
 interface OperatorHealthPanelProps {
@@ -72,6 +79,19 @@ export function OperatorHealthPanelView({ health }: OperatorHealthPanelProps) {
           <div className="metric-sub">{integrations.shopify.read_only ? "read-only" : "live-ready"}</div>
         </div>
       </div>
+
+      {health.last_cycle && (
+        <div className="card" style={{ marginBottom: 14 }}>
+          <div className="card-title">Last daily cycle</div>
+          <p className="dim" style={{ margin: "0 0 8px" }}>
+            {health.last_cycle.date} · ran {new Date(health.last_cycle.created_at).toLocaleString()}
+          </p>
+          <div style={{ fontSize: 13 }}>
+            {health.last_cycle.experiments_evaluated} experiment(s) evaluated ·{" "}
+            {health.last_cycle.approvals_created} approval(s) queued
+          </div>
+        </div>
+      )}
 
       {adSpend && (
         <div className="metric-grid" style={{ marginBottom: 14 }}>
