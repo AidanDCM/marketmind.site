@@ -183,17 +183,23 @@ def _handle_publish_shopify_product(
 def _handle_contact_supplier(
     engine: Engine, record: ApprovalRecord, dry_run: bool
 ) -> dict[str, Any]:
+    from .adapters.gmail_client import create_supplier_gmail_draft
+    from .gmail_config import get_gmail_config
     from .gmail_draft import save_outreach_draft_file
 
     payload = _load_payload(engine, record.approval_id) or {}
     subject = str(payload.get("subject", ""))
     body = str(payload.get("body", ""))
+    supplier_name = str(payload.get("supplier_name", ""))
+    to_address = str(payload.get("to_address", ""))
+
     if dry_run:
         draft_path = save_outreach_draft_file(
             approval_id=record.approval_id,
             subject=subject,
             body=body,
-            supplier_name=str(payload.get("supplier_name", "")),
+            supplier_name=supplier_name,
+            to_address=to_address,
         )
         return {
             "simulated": True,
@@ -202,8 +208,20 @@ def _handle_contact_supplier(
             "body": body,
             "draft_file": str(draft_path),
         }
+
+    cfg = get_gmail_config()
+    if cfg.enabled and cfg.wired:
+        return create_supplier_gmail_draft(
+            approval=record,
+            to_address=to_address,
+            subject=subject,
+            body=body,
+            supplier_name=supplier_name,
+        )
+
     raise ValueError(
-        "Live supplier email is not wired. Run dry_run=True and send manually."
+        "Live supplier email requires Gmail integration "
+        "(MARKETMIND_GMAIL_ENABLED + credentials) or dry_run=True for file export."
     )
 
 

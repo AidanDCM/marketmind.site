@@ -301,3 +301,22 @@ def test_contact_supplier_dry_run_exports_draft_file(engine, tmp_path, monkeypat
     draft_path = Path(result.detail["draft_file"])
     assert draft_path.exists()
     assert "Interior Kit" in draft_path.read_text(encoding="utf-8")
+
+
+def test_contact_supplier_live_uses_gmail_simulate_when_wired(engine, monkeypatch):
+    from marketmind.pipeline import prepare_supplier_outreach_for_approval
+
+    monkeypatch.setenv("MARKETMIND_GMAIL_ENABLED", "true")
+    monkeypatch.setenv("GMAIL_CLIENT_ID", "cid")
+    monkeypatch.setenv("GMAIL_REFRESH_TOKEN", "rtok")
+
+    record = prepare_supplier_outreach_for_approval(
+        engine,
+        supplier_name="Acme",
+        product_name="Interior Kit",
+        expected_cost=20.0,
+    )
+    approval_store.approve(engine, record.approval_id)
+    result = execute_approved(engine, record.approval_id, dry_run=False)
+    assert result.detail["simulated"] is True
+    assert "gmail_draft_id" in result.detail
