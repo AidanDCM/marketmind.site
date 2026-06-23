@@ -36,6 +36,7 @@ from .routers import (
     experiments,
     health,
     imports,
+    operator,
     pipeline,
     reports,
     scoring,
@@ -102,3 +103,4 @@ app.include_router(sources.router, prefix="/sources")
 app.include_router(imports.router, prefix="/imports")
 app.include_router(snapshots.router, prefix="/snapshots")
 app.include_router(webhooks.router, prefix="/webhooks")
+app.include_router(operator.router, prefix="/operator")
