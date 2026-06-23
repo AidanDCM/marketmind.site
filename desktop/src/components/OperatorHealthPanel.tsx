@@ -24,9 +24,11 @@ export interface OperatorHealthPanel {
 
 interface OperatorHealthPanelProps {
   health: OperatorHealthPanel;
+  onRunCycle?: () => void;
+  cycleRunning?: boolean;
 }
 
-export function OperatorHealthPanelView({ health }: OperatorHealthPanelProps) {
+export function OperatorHealthPanelView({ health, onRunCycle, cycleRunning }: OperatorHealthPanelProps) {
   const { preflight, integrations, portfolio, ad_spend: adSpendBlock } = health;
   const adSpend = adSpendBlock.has_data && adSpendBlock.summary ? adSpendBlock.summary : null;
 
@@ -80,15 +82,36 @@ export function OperatorHealthPanelView({ health }: OperatorHealthPanelProps) {
         </div>
       </div>
 
-      {health.last_cycle && (
+      {health.last_cycle ? (
         <div className="card" style={{ marginBottom: 14 }}>
-          <div className="card-title">Last daily cycle</div>
-          <p className="dim" style={{ margin: "0 0 8px" }}>
-            {health.last_cycle.date} · ran {new Date(health.last_cycle.created_at).toLocaleString()}
-          </p>
-          <div style={{ fontSize: 13 }}>
-            {health.last_cycle.experiments_evaluated} experiment(s) evaluated ·{" "}
-            {health.last_cycle.approvals_created} approval(s) queued
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+            <div>
+              <div className="card-title">Last daily cycle</div>
+              <p className="dim" style={{ margin: "0 0 8px" }}>
+                {health.last_cycle.date} · ran {new Date(health.last_cycle.created_at).toLocaleString()}
+              </p>
+              <div style={{ fontSize: 13 }}>
+                {health.last_cycle.experiments_evaluated} experiment(s) evaluated ·{" "}
+                {health.last_cycle.approvals_created} approval(s) queued
+              </div>
+            </div>
+            {onRunCycle && (
+              <button className="btn btn-secondary" onClick={onRunCycle} disabled={cycleRunning}>
+                {cycleRunning ? "Running…" : "Run cycle now"}
+              </button>
+            )}
+          </div>
+        </div>
+      ) : onRunCycle && (
+        <div className="card" style={{ marginBottom: 14 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <div className="card-title">Daily cycle</div>
+              <p className="dim" style={{ margin: 0 }}>No cycle recorded yet.</p>
+            </div>
+            <button className="btn" onClick={onRunCycle} disabled={cycleRunning}>
+              {cycleRunning ? "Running…" : "Run cycle now"}
+            </button>
           </div>
         </div>
       )}

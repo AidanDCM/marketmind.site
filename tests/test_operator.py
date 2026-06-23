@@ -232,6 +232,21 @@ def test_last_cycle_endpoint_empty(client, monkeypatch):
     assert data["cycle"] is None
 
 
+def test_run_cycle_endpoint(client, tmp_path, monkeypatch):
+    import marketmind.event_ledger as el
+
+    ledger_path = tmp_path / "operator_events.jsonl"
+    monkeypatch.setattr(el, "_ledger", None)
+    monkeypatch.setattr(el, "_DEFAULT_PATH", ledger_path)
+
+    resp = client.post("/operator/run-cycle?date=2026-06-23")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["date"] == "2026-06-23"
+    assert "rulings" in data
+    assert "approvals_created" in data
+
+
 # ---- /operator/mistakes ----
 
 def test_record_and_list_mistakes(client, tmp_path, monkeypatch):

@@ -3,6 +3,7 @@ import {
   fetchDailyReport,
   fetchPendingApprovals,
   fetchOperatorHealthPanel,
+  runOperatorDailyCycle,
   type DailyReport,
   type ApprovalRecord,
   type OperatorHealthPanel,
@@ -27,6 +28,7 @@ export function Overview() {
   const [pending, setPending] = useState<ApprovalRecord[]>([]);
   const [health, setHealth] = useState<OperatorHealthPanel | null>(null);
   const [loading, setLoading] = useState(false);
+  const [cycleRunning, setCycleRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -52,6 +54,21 @@ export function Overview() {
 
   const m = report?.metrics;
 
+  async function handleRunCycle() {
+    setCycleRunning(true);
+    setError(null);
+    try {
+      await runOperatorDailyCycle(date);
+      const [p, h] = await Promise.all([fetchPendingApprovals(), fetchOperatorHealthPanel()]);
+      setPending(p);
+      setHealth(h);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setCycleRunning(false);
+    }
+  }
+
   return (
     <div className="page">
       <div className="page-header" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
@@ -62,7 +79,13 @@ export function Overview() {
         <input type="date" value={date} max={todayStr()} onChange={(e) => setDate(e.target.value)} style={{ width: 160 }} />
       </div>
 
-      {health && <OperatorHealthPanelView health={health} />}
+      {health && (
+        <OperatorHealthPanelView
+          health={health}
+          onRunCycle={handleRunCycle}
+          cycleRunning={cycleRunning}
+        />
+      )}
 
       {pending.length > 0 && (
         <div className="alert alert-warn">

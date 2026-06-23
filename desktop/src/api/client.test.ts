@@ -182,4 +182,12 @@ describe("api client", () => {
     expect(r.safe_to_operate).toBe(true);
     expect(fn.mock.calls[0][0]).toBe("http://127.0.0.1:8000/operator/health-panel");
   });
+
+  it("runs operator daily cycle via POST", async () => {
+    const fn = mockFetch({ date: "2026-06-23", rulings: [], approvals_created: [] });
+    const { runOperatorDailyCycle } = await import("./client");
+    await runOperatorDailyCycle("2026-06-23");
+    expect(fn.mock.calls[0][0]).toBe("http://127.0.0.1:8000/operator/run-cycle?date=2026-06-23");
+    expect(fn.mock.calls[0][1].method).toBe("POST");
+  });
 });
