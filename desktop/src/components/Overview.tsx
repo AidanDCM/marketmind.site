@@ -5,11 +5,13 @@ import {
   fetchOperatorPreflight,
   fetchExperimentPortfolio,
   fetchAdSpendSummary,
+  fetchOperatorIntegrations,
   type DailyReport,
   type ApprovalRecord,
   type OperatorPreflight,
   type ExperimentPortfolio,
   type AdSpendSummary,
+  type OperatorIntegrations,
 } from "../api/client";
 
 function todayStr(): string {
@@ -31,6 +33,7 @@ export function Overview() {
   const [preflight, setPreflight] = useState<OperatorPreflight | null>(null);
   const [portfolio, setPortfolio] = useState<ExperimentPortfolio | null>(null);
   const [adSpend, setAdSpend] = useState<AdSpendSummary | null>(null);
+  const [integrations, setIntegrations] = useState<OperatorIntegrations | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,14 +47,16 @@ export function Overview() {
       fetchOperatorPreflight(),
       fetchExperimentPortfolio(),
       fetchAdSpendSummary(),
+      fetchOperatorIntegrations(),
     ])
-      .then(([r, p, pf, port, ads]) => {
+      .then(([r, p, pf, port, ads, integ]) => {
         if (!cancelled) {
           setReport(r);
           setPending(p);
           setPreflight(pf);
           setPortfolio(port);
           setAdSpend(ads.has_data && ads.summary ? ads.summary : null);
+          setIntegrations(integ);
         }
       })
       .catch((e: Error) => { if (!cancelled) setError(e.message); })
@@ -108,6 +113,15 @@ export function Overview() {
             <div className="metric-sub">{adSpend.total_purchases} purchases</div>
           </div>
         </div>
+      )}
+
+      {integrations && (
+        <p className="dim" style={{ marginBottom: 14, fontSize: 13 }}>
+          Gmail: <code>{integrations.gmail.mode}</code>
+          {integrations.scheduler.prune_on_cycle && (
+            <> · Scheduler prune: {integrations.scheduler.prune_apply ? "apply" : "preview"}</>
+          )}
+        </p>
       )}
 
       {preflight && (

@@ -562,9 +562,10 @@ export function fetchAdSpendSummary(): Promise<{ has_data: boolean; summary: AdS
 }
 
 export interface OperatorIntegrations {
-  gmail: { enabled: boolean; wired: boolean; mode: string };
+  gmail: { enabled: boolean; wired: boolean; dry_run: boolean; mode: string };
   ad_imports: { csv_available: boolean; has_latest_batch: boolean; latest_batch_id: number | null };
   scheduler: { prune_on_cycle: boolean; prune_apply: boolean };
+  live_writes: { enabled: boolean };
 }
 
 export function fetchOperatorIntegrations(): Promise<OperatorIntegrations> {

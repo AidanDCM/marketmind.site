@@ -200,8 +200,10 @@ def test_integrations_endpoint(client):
     assert resp.status_code == 200
     data = resp.json()
     assert data["gmail"]["mode"] == "draft_file_only"
+    assert data["gmail"]["dry_run"] is True
     assert data["ad_imports"]["csv_available"] is True
     assert "scheduler" in data
+    assert "live_writes" in data
 
 
 # ---- /operator/mistakes ----

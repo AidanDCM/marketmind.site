@@ -2,6 +2,22 @@
 
 ---
 
+## 2026-06-23 — Slice 56: Gmail integration gate (simulated live path)
+
+### Slice 56: Gmail config + simulated draft on approved execute
+
+- **`marketmind/gmail_config.py`** — `MARKETMIND_GMAIL_ENABLED`, `MARKETMIND_GMAIL_DRY_RUN`
+  (default true), credential checks, `live_writes_allowed()`.
+- **`marketmind/adapters/gmail_client.py`** — simulated Gmail draft creation when wired;
+  live API explicitly blocked until a future slice.
+- **`executor`** — `contact_supplier` with `dry_run=False` uses Gmail simulate path when
+  enabled + creds; otherwise file-export dry-run or clear error.
+- **`integrations_status`** — exposes `gmail.dry_run` and `live_writes.enabled`.
+- **Desktop Overview** — shows Gmail mode and scheduler prune status.
+- **`tests/test_gmail_config.py`**, extended executor/integration tests.
+
+---
+
 ## 2026-06-23 — Slice 55: Overview ad spend + integration status
 
 ### Slice 55: Operator integration readiness
