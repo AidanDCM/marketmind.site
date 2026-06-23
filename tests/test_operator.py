@@ -206,6 +206,19 @@ def test_integrations_endpoint(client):
     assert "live_writes" in data
 
 
+def test_health_panel_endpoint(client):
+    resp = client.get("/operator/health-panel")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "safe_to_operate" in data
+    assert "preflight" in data
+    assert "portfolio" in data
+    assert "integrations" in data
+    assert "ad_spend" in data
+    assert "checklist" in data
+    assert data["portfolio"]["total_experiments"] == 0
+
+
 # ---- /operator/mistakes ----
 
 def test_record_and_list_mistakes(client, tmp_path, monkeypatch):

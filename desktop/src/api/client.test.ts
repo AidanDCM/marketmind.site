@@ -165,4 +165,20 @@ describe("api client", () => {
     expect(r.has_data).toBe(true);
     expect(fn.mock.calls[0][0]).toBe("http://127.0.0.1:8000/imports/ads/summary");
   });
+
+  it("fetches operator health panel", async () => {
+    const fn = mockFetch({
+      safe_to_operate: true,
+      warnings: [],
+      preflight: { safe_to_operate: true, pending_approvals: 0, blockers: [], summary: "SAFE", experiments_needing_attention: [], operator_log_exists: true },
+      integrations: { gmail: { mode: "draft_file_only", enabled: false, wired: false, dry_run: true, live_ready: false }, ad_imports: { csv_available: true, has_latest_batch: false, latest_batch_id: null }, scheduler: { prune_on_cycle: false, prune_apply: false }, live_writes: { enabled: false } },
+      portfolio: { total_experiments: 0, active: 0, ended: 0, needs_attention: 0, by_ruling: {}, lessons_recorded: 0 },
+      ad_spend: { has_data: false, summary: null },
+      checklist: { min_visits: 100, min_orders: 5, min_spend: 50 },
+    });
+    const { fetchOperatorHealthPanel } = await import("./client");
+    const r = await fetchOperatorHealthPanel();
+    expect(r.safe_to_operate).toBe(true);
+    expect(fn.mock.calls[0][0]).toBe("http://127.0.0.1:8000/operator/health-panel");
+  });
 });

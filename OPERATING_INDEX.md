@@ -84,6 +84,7 @@ New API endpoints added by the integration:
 - `POST /operator/log-event` — append a named event to the operator audit log
 - `GET /operator/checklist-config` — active scale-readiness thresholds
 - `GET /operator/integrations` — Gmail/ad-import/scheduler readiness (read-only)
+- `GET /operator/health-panel` — consolidated operator health (preflight + portfolio + integrations)
 - `GET /operator/mistakes` / `POST /operator/mistakes` — experiment lesson tracker
 - `GET /experiment/{id}/checklist` — scale-readiness checklist for one experiment
 - `GET /experiment/{id}/mistakes` — recorded + suggested lessons for one experiment
@@ -97,7 +98,7 @@ New API endpoints added by the integration:
 
 - **Active owner:** Aidan
 - **Active maintainer:** Aidan / Codex agents
-- **Current phase:** Building — Slices 1–57 complete
+- **Current phase:** Building — Slices 1–58 complete
 - **Last reviewed:** 2026-06-23
 - **Known blockers:** None
 

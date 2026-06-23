@@ -15,6 +15,7 @@ from ...checklist_config import get_checklist_thresholds
 from ...event_ledger import get_ledger
 from ...integrations_status import get_integrations_status
 from ...mistake_tracker import VALID_CATEGORIES, get_mistake_tracker
+from ...operator_health import build_operator_health
 from ...operator_preflight import run_preflight
 
 router = APIRouter(tags=["operator"])
@@ -55,6 +56,13 @@ def operator_integrations(request: Request) -> dict:
     """Return optional integration readiness (Gmail, ad CSV, scheduler prune flags)."""
     engine = request.app.state.engine
     return get_integrations_status(engine)
+
+
+@router.get("/health-panel")
+def operator_health_panel(request: Request) -> dict:
+    """Consolidated operator health: preflight, integrations, portfolio, ad spend, checklist."""
+    engine = request.app.state.engine
+    return build_operator_health(engine)
 
 
 class LogEventRequest(BaseModel):
