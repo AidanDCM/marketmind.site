@@ -60,57 +60,10 @@ def evaluate_experiment_endpoint(req: ExperimentEvaluateRequest) -> dict:
 @router.get("/portfolio")
 def experiment_portfolio(request: Request) -> dict:
     """Portfolio summary across all experiments."""
+    from ...experiment_portfolio import build_experiment_portfolio
+
     engine = request.app.state.engine
-    from ...mistake_tracker import get_mistake_tracker
-
-    with Session(engine) as session:
-        exps = session.scalars(select(ExperimentRow)).all()
-
-    active = sum(1 for e in exps if e.status == "active")
-    ended = len(exps) - active
-    by_ruling: dict[str, int] = {}
-    needs_attention = 0
-
-    for exp in exps:
-        with Session(engine) as session:
-            latest = session.scalars(
-                select(ExperimentSnapshotRow)
-                .where(ExperimentSnapshotRow.experiment_id == exp.experiment_id)
-                .order_by(ExperimentSnapshotRow.snapshot_date.desc())
-                .limit(1)
-            ).first()
-        ruling_value = None
-        if latest is not None:
-            snap = ExperimentSnapshot(
-                experiment_id=exp.experiment_id,
-                product_name=exp.product_name,
-                break_even_cac=exp.break_even_cac,
-                qualified_visits=latest.qualified_visits,
-                orders=latest.orders,
-                total_ad_spend=latest.total_ad_spend,
-                total_revenue=latest.total_revenue,
-                refund_count=latest.refund_count,
-                actual_shipping_cost=latest.actual_shipping_cost,
-                planned_shipping_cost=latest.planned_shipping_cost,
-                add_to_cart_count=latest.add_to_cart_count,
-                consecutive_losing_periods=latest.consecutive_losing_periods,
-                budget_cap=latest.budget_cap,
-            )
-            ruling_value = evaluate_experiment(snap).ruling.value
-        key = ruling_value or "no_data"
-        by_ruling[key] = by_ruling.get(key, 0) + 1
-        if ruling_value in {"kill", "pause_ads", "scale_requires_approval"}:
-            needs_attention += 1
-
-    mistakes = get_mistake_tracker().list_mistakes(limit=500)
-    return {
-        "total_experiments": len(exps),
-        "active": active,
-        "ended": ended,
-        "needs_attention": needs_attention,
-        "by_ruling": by_ruling,
-        "lessons_recorded": len(mistakes),
-    }
+    return build_experiment_portfolio(engine)
 
 
 @router.get("/active")

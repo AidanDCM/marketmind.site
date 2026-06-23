@@ -572,6 +572,20 @@ export function fetchOperatorIntegrations(): Promise<OperatorIntegrations> {
   return req("GET", "/operator/integrations");
 }
 
+export interface OperatorHealthPanel {
+  safe_to_operate: boolean;
+  warnings: string[];
+  preflight: OperatorPreflight;
+  integrations: OperatorIntegrations;
+  portfolio: ExperimentPortfolio;
+  ad_spend: { has_data: boolean; summary: AdSpendSummary | null };
+  checklist: { min_visits: number; min_orders: number; min_spend: number };
+}
+
+export function fetchOperatorHealthPanel(): Promise<OperatorHealthPanel> {
+  return req("GET", "/operator/health-panel");
+}
+
 // ---- Snapshots (Slice 34) ----
 export interface SnapshotRequest {
   experiment_id: string;

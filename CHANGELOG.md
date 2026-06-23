@@ -2,6 +2,20 @@
 
 ---
 
+## 2026-06-23 — Slice 58: Operator health panel + deploy verification
+
+### Slice 58: Consolidated operator health
+
+- **`marketmind/operator_health.py`** — aggregates preflight, integrations, portfolio,
+  ad spend, and checklist config in one read-only payload.
+- **`GET /operator/health-panel`** — single endpoint for the desktop health panel.
+- **`marketmind/experiment_portfolio.py`** — shared portfolio builder (DRY with `/experiment/portfolio`).
+- **Desktop `OperatorHealthPanel.tsx`** — reusable panel; Overview uses one health fetch.
+- **`scripts/verify_marketmind_deploy.py`** — post-deploy checks `/health` + `/operator/health-panel`.
+- **`deploy_marketmind.ps1`** — runs verification after health poll.
+
+---
+
 ## 2026-06-23 — Slice 57: Live Gmail API drafts
 
 ### Slice 57: Gmail `users.drafts.create` behind approval gates

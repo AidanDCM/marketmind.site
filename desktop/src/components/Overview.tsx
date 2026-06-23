@@ -2,17 +2,12 @@ import { useEffect, useState } from "react";
 import {
   fetchDailyReport,
   fetchPendingApprovals,
-  fetchOperatorPreflight,
-  fetchExperimentPortfolio,
-  fetchAdSpendSummary,
-  fetchOperatorIntegrations,
+  fetchOperatorHealthPanel,
   type DailyReport,
   type ApprovalRecord,
-  type OperatorPreflight,
-  type ExperimentPortfolio,
-  type AdSpendSummary,
-  type OperatorIntegrations,
+  type OperatorHealthPanel,
 } from "../api/client";
+import { OperatorHealthPanelView } from "./OperatorHealthPanel";
 
 function todayStr(): string {
   return new Date().toISOString().slice(0, 10);
@@ -30,10 +25,7 @@ export function Overview() {
   const [date, setDate] = useState(todayStr());
   const [report, setReport] = useState<DailyReport | null>(null);
   const [pending, setPending] = useState<ApprovalRecord[]>([]);
-  const [preflight, setPreflight] = useState<OperatorPreflight | null>(null);
-  const [portfolio, setPortfolio] = useState<ExperimentPortfolio | null>(null);
-  const [adSpend, setAdSpend] = useState<AdSpendSummary | null>(null);
-  const [integrations, setIntegrations] = useState<OperatorIntegrations | null>(null);
+  const [health, setHealth] = useState<OperatorHealthPanel | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,19 +36,13 @@ export function Overview() {
     Promise.all([
       fetchDailyReport(date),
       fetchPendingApprovals(),
-      fetchOperatorPreflight(),
-      fetchExperimentPortfolio(),
-      fetchAdSpendSummary(),
-      fetchOperatorIntegrations(),
+      fetchOperatorHealthPanel(),
     ])
-      .then(([r, p, pf, port, ads, integ]) => {
+      .then(([r, p, h]) => {
         if (!cancelled) {
           setReport(r);
           setPending(p);
-          setPreflight(pf);
-          setPortfolio(port);
-          setAdSpend(ads.has_data && ads.summary ? ads.summary : null);
-          setIntegrations(integ);
+          setHealth(h);
         }
       })
       .catch((e: Error) => { if (!cancelled) setError(e.message); })
@@ -76,81 +62,7 @@ export function Overview() {
         <input type="date" value={date} max={todayStr()} onChange={(e) => setDate(e.target.value)} style={{ width: 160 }} />
       </div>
 
-      {portfolio && (
-        <div className="metric-grid" style={{ marginBottom: 14 }}>
-          <div className="metric-card">
-            <div className="metric-label">Experiments</div>
-            <div className="metric-value">{portfolio.total_experiments}</div>
-            <div className="metric-sub">{portfolio.active} active · {portfolio.ended} ended</div>
-          </div>
-          <div className="metric-card">
-            <div className="metric-label">Need attention</div>
-            <div className={`metric-value ${portfolio.needs_attention > 0 ? "metric-down" : "metric-up"}`}>
-              {portfolio.needs_attention}
-            </div>
-          </div>
-          <div className="metric-card">
-            <div className="metric-label">Lessons recorded</div>
-            <div className="metric-value">{portfolio.lessons_recorded}</div>
-          </div>
-        </div>
-      )}
-
-      {adSpend && (
-        <div className="metric-grid" style={{ marginBottom: 14 }}>
-          <div className="metric-card">
-            <div className="metric-label">Imported ad spend</div>
-            <div className="metric-value">{fmt$(adSpend.total_spend)}</div>
-            <div className="metric-sub">{adSpend.campaigns} campaigns (latest CSV batch)</div>
-          </div>
-          <div className="metric-card">
-            <div className="metric-label">Ad clicks</div>
-            <div className="metric-value">{adSpend.total_clicks.toLocaleString()}</div>
-          </div>
-          <div className="metric-card">
-            <div className="metric-label">Ad-attributed revenue</div>
-            <div className="metric-value">{fmt$(adSpend.total_revenue)}</div>
-            <div className="metric-sub">{adSpend.total_purchases} purchases</div>
-          </div>
-        </div>
-      )}
-
-      {integrations && (
-        <p className="dim" style={{ marginBottom: 14, fontSize: 13 }}>
-          Gmail: <code>{integrations.gmail.mode}</code>
-          {integrations.scheduler.prune_on_cycle && (
-            <> · Scheduler prune: {integrations.scheduler.prune_apply ? "apply" : "preview"}</>
-          )}
-        </p>
-      )}
-
-      {preflight && (
-        <div className={`alert ${preflight.safe_to_operate ? "alert-ok" : "alert-warn"}`} style={{ marginBottom: 14 }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            {preflight.safe_to_operate
-              ? <><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></>
-              : <><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></>
-            }
-          </svg>
-          <div>
-            <div style={{ fontWeight: 600 }}>{preflight.summary}</div>
-            {preflight.blockers.length > 0 && (
-              <ul style={{ margin: "6px 0 0", paddingLeft: 18, fontSize: 13 }}>
-                {preflight.blockers.map((b, i) => <li key={i}>{b}</li>)}
-              </ul>
-            )}
-            {preflight.experiments_needing_attention.length > 0 && (
-              <div style={{ marginTop: 8, fontSize: 12 }}>
-                {preflight.experiments_needing_attention.map(e => (
-                  <div key={e.experiment_id}>
-                    <code>{e.experiment_id}</code> — {e.ruling.replace(/_/g, " ")}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {health && <OperatorHealthPanelView health={health} />}
 
       {pending.length > 0 && (
         <div className="alert alert-warn">

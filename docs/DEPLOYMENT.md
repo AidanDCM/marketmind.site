@@ -64,7 +64,14 @@ The script builds, starts `docker compose`, and polls `/health` for up to 60s.
 ```bash
 curl http://127.0.0.1:8000/health
 curl http://127.0.0.1:8000/operator/preflight
+curl http://127.0.0.1:8000/operator/health-panel
 curl http://127.0.0.1:8000/operator/checklist-config
+```
+
+Or run the bundled verifier after deploy:
+
+```bash
+python scripts/verify_marketmind_deploy.py
 ```
 
 Healthy: `health.status == "ok"`. Review `preflight.blockers` before any live

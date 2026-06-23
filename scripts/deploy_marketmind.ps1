@@ -58,5 +58,9 @@ if (-not $ok) {
 }
 
 Write-Host "==> Health OK: $($resp | ConvertTo-Json -Compress)"
-Write-Host "==> Preflight: GET http://127.0.0.1:8000/operator/preflight"
+
+Write-Host "==> Running deploy verification"
+python "$Root\scripts\verify_marketmind_deploy.py"
+if ($LASTEXITCODE -ne 0) { throw "Deploy verification failed" }
+
 Write-Host "==> Deploy complete. Data volume: marketmind-data | Logs volume: marketmind-logs"
