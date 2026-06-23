@@ -18,6 +18,7 @@ def get_integrations_status(engine: Engine) -> dict:
             "enabled": gmail.enabled,
             "wired": gmail.wired,
             "dry_run": gmail.dry_run,
+            "live_ready": gmail.live_ready,
             "mode": gmail.mode,
         },
         "ad_imports": {

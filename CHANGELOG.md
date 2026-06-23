@@ -2,6 +2,20 @@
 
 ---
 
+## 2026-06-23 — Slice 57: Live Gmail API drafts
+
+### Slice 57: Gmail `users.drafts.create` behind approval gates
+
+- **`marketmind/adapters/gmail_client.py`** — `GmailClient` with OAuth refresh +
+  live draft creation via Gmail REST API (httpx; no google SDK).
+- **`gmail_config`** — `GMAIL_CLIENT_SECRET`, `live_ready`, `live_missing_secret` mode.
+- Live path requires `MARKETMIND_GMAIL_DRY_RUN=false`, `MARKETMIND_ENABLE_LIVE_WRITES=true`,
+  and full OAuth credentials.
+- **`scripts/check_gmail_config.py`** — masked readiness check for operators.
+- **`GET /operator/integrations`** — exposes `gmail.live_ready`.
+
+---
+
 ## 2026-06-23 — Slice 56: Gmail integration gate (simulated live path)
 
 ### Slice 56: Gmail config + simulated draft on approved execute
