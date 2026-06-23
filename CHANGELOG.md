@@ -2,6 +2,18 @@
 
 ---
 
+## 2026-06-23 — Slice 61: Operator run-cycle API + desktop trigger
+
+### Slice 61: Manual daily cycle from API/desktop
+
+- **`POST /operator/run-cycle`** — runs `run_daily_cycle` (safe; no external spend).
+  Optional `date` query param (ISO, defaults to today).
+- **Desktop Overview** — “Run cycle now” button on the health panel; refreshes
+  pending approvals and last-cycle status after completion.
+- **`runOperatorDailyCycle()`** in `desktop/src/api/client.ts`.
+
+---
+
 ## 2026-06-23 — Slice 60: Daily cycle ledger status
 
 ### Slice 60: Last daily cycle in operator health

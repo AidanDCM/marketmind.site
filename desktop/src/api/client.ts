@@ -602,6 +602,11 @@ export function fetchOperatorLastCycle(): Promise<{ has_data: boolean; cycle: Da
   return req("GET", "/operator/last-cycle");
 }
 
+export function runOperatorDailyCycle(date?: string): Promise<Record<string, unknown>> {
+  const qs = date ? `?date=${encodeURIComponent(date)}` : "";
+  return req("POST", `/operator/run-cycle${qs}`);
+}
+
 // ---- Snapshots (Slice 34) ----
 export interface SnapshotRequest {
   experiment_id: string;

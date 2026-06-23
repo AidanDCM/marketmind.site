@@ -75,6 +75,23 @@ def operator_last_cycle() -> dict:
     return {"has_data": True, "cycle": last}
 
 
+@router.post("/run-cycle")
+def operator_run_cycle(request: Request, date: str | None = None) -> dict:
+    """Run one daily experiment cycle (safe — no external API calls or spend).
+
+    Evaluates snapshots, queues scale approvals, generates the daily report,
+    and records the outcome in the operator ledger. Optional ``date`` (ISO) defaults
+    to today.
+    """
+    from ...runner import run_daily_cycle
+
+    if date is not None and not date.strip():
+        raise HTTPException(status_code=422, detail="date must not be empty when provided")
+    engine = request.app.state.engine
+    result = run_daily_cycle(engine, date=date)
+    return result.to_dict()
+
+
 class LogEventRequest(BaseModel):
     event_type: str
     event_id: str
