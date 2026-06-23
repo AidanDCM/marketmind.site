@@ -10,6 +10,7 @@ from .cycle_status import get_last_daily_cycle
 from .experiment_portfolio import build_experiment_portfolio
 from .integrations_status import get_integrations_status
 from .operator_preflight import run_preflight
+from .snapshot_gaps import list_snapshot_gaps
 
 
 def build_operator_health(engine: Engine) -> dict:
@@ -19,10 +20,18 @@ def build_operator_health(engine: Engine) -> dict:
     portfolio = build_experiment_portfolio(engine)
     ad_summary = summarize_latest_ad_batch(engine)
     checklist = get_checklist_thresholds()
+    snapshot_gaps = list_snapshot_gaps(engine)
 
     warnings: list[str] = []
     if not preflight.operator_log_exists:
         warnings.append("Operator event log not found at logs/operator_events.jsonl")
+    if snapshot_gaps["missing_count"] > 0:
+        ids = ", ".join(m["experiment_id"] for m in snapshot_gaps["missing"][:5])
+        suffix = "…" if snapshot_gaps["missing_count"] > 5 else ""
+        warnings.append(
+            f"{snapshot_gaps['missing_count']} active experiment(s) missing snapshot "
+            f"for {snapshot_gaps['snapshot_date']}: {ids}{suffix}"
+        )
     if integrations.get("live_writes", {}).get("enabled") and not integrations["gmail"].get(
         "live_ready"
     ):
@@ -64,4 +73,5 @@ def build_operator_health(engine: Engine) -> dict:
             "min_spend": checklist.min_spend,
         },
         "last_cycle": get_last_daily_cycle(),
+        "snapshot_gaps": snapshot_gaps,
     }

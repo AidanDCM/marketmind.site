@@ -20,6 +20,13 @@ export interface OperatorHealthPanel {
     experiments_evaluated: number;
     approvals_created: number;
   } | null;
+  snapshot_gaps: {
+    snapshot_date: string;
+    active_count: number;
+    missing_count: number;
+    missing: { experiment_id: string; product_name: string }[];
+    all_recorded: boolean;
+  };
 }
 
 interface OperatorHealthPanelProps {
@@ -113,6 +120,26 @@ export function OperatorHealthPanelView({ health, onRunCycle, cycleRunning }: Op
               {cycleRunning ? "Running…" : "Run cycle now"}
             </button>
           </div>
+        </div>
+      )}
+
+      {health.snapshot_gaps.active_count > 0 && (
+        <div className={`alert ${health.snapshot_gaps.all_recorded ? "alert-ok" : "alert-warn"}`} style={{ marginBottom: 14 }}>
+          <div style={{ fontWeight: 600 }}>
+            Snapshots for {health.snapshot_gaps.snapshot_date}:{" "}
+            {health.snapshot_gaps.all_recorded
+              ? "all active experiments recorded"
+              : `${health.snapshot_gaps.missing_count} missing`}
+          </div>
+          {health.snapshot_gaps.missing.length > 0 && (
+            <ul style={{ margin: "6px 0 0", paddingLeft: 18, fontSize: 13 }}>
+              {health.snapshot_gaps.missing.map(m => (
+                <li key={m.experiment_id}>
+                  <code>{m.experiment_id}</code> — {m.product_name}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 

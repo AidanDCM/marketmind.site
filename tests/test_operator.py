@@ -217,7 +217,16 @@ def test_health_panel_endpoint(client):
     assert "ad_spend" in data
     assert "checklist" in data
     assert "last_cycle" in data
+    assert "snapshot_gaps" in data
     assert data["portfolio"]["total_experiments"] == 0
+
+
+def test_snapshot_gaps_endpoint(client):
+    resp = client.get("/operator/snapshot-gaps?date=2026-06-23")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["snapshot_date"] == "2026-06-23"
+    assert "missing_count" in data
 
 
 def test_last_cycle_endpoint_empty(client, monkeypatch):
