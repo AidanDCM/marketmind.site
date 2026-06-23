@@ -2,6 +2,17 @@
 
 ---
 
+## 2026-06-23 — Slice 62: Snapshot gap detection
+
+### Slice 62: Active experiments missing today's snapshot
+
+- **`marketmind/snapshot_gaps.py`** — lists active experiments with no snapshot for a date.
+- **`GET /operator/snapshot-gaps`** — optional `date` query param (default today).
+- **Health panel** — snapshot status banner + warning when gaps exist.
+- **`operator_health`** — includes `snapshot_gaps` in consolidated payload.
+
+---
+
 ## 2026-06-23 — Slice 61: Operator run-cycle API + desktop trigger
 
 ### Slice 61: Manual daily cycle from API/desktop

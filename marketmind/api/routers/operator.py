@@ -18,6 +18,7 @@ from ...integrations_status import get_integrations_status
 from ...mistake_tracker import VALID_CATEGORIES, get_mistake_tracker
 from ...operator_health import build_operator_health
 from ...operator_preflight import run_preflight
+from ...snapshot_gaps import list_snapshot_gaps
 
 router = APIRouter(tags=["operator"])
 
@@ -90,6 +91,13 @@ def operator_run_cycle(request: Request, date: str | None = None) -> dict:
     engine = request.app.state.engine
     result = run_daily_cycle(engine, date=date)
     return result.to_dict()
+
+
+@router.get("/snapshot-gaps")
+def operator_snapshot_gaps(request: Request, date: str | None = None) -> dict:
+    """List active experiments missing a snapshot for the given date (default today)."""
+    engine = request.app.state.engine
+    return list_snapshot_gaps(engine, snapshot_date=date)
 
 
 class LogEventRequest(BaseModel):

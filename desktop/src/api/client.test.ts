@@ -176,6 +176,7 @@ describe("api client", () => {
       ad_spend: { has_data: false, summary: null },
       checklist: { min_visits: 100, min_orders: 5, min_spend: 50 },
       last_cycle: null,
+      snapshot_gaps: { snapshot_date: "2026-06-23", active_count: 0, missing_count: 0, missing: [], all_recorded: false },
     });
     const { fetchOperatorHealthPanel } = await import("./client");
     const r = await fetchOperatorHealthPanel();

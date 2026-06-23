@@ -583,6 +583,15 @@ export interface OperatorHealthPanel {
   ad_spend: { has_data: boolean; summary: AdSpendSummary | null };
   checklist: { min_visits: number; min_orders: number; min_spend: number };
   last_cycle: DailyCycleStatus | null;
+  snapshot_gaps: SnapshotGaps;
+}
+
+export interface SnapshotGaps {
+  snapshot_date: string;
+  active_count: number;
+  missing_count: number;
+  missing: { experiment_id: string; product_name: string }[];
+  all_recorded: boolean;
 }
 
 export interface DailyCycleStatus {

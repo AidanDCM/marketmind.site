@@ -87,6 +87,7 @@ New API endpoints added by the integration:
 - `GET /operator/health-panel` — consolidated operator health (preflight + portfolio + integrations)
 - `GET /operator/last-cycle` — most recent daily runner cycle from the operator ledger
 - `POST /operator/run-cycle` — manually trigger one safe daily cycle (optional `date`)
+- `GET /operator/snapshot-gaps` — active experiments missing a snapshot for a date
 - `GET /operator/mistakes` / `POST /operator/mistakes` — experiment lesson tracker
 - `GET /experiment/{id}/checklist` — scale-readiness checklist for one experiment
 - `GET /experiment/{id}/mistakes` — recorded + suggested lessons for one experiment
@@ -100,7 +101,7 @@ New API endpoints added by the integration:
 
 - **Active owner:** Aidan
 - **Active maintainer:** Aidan / Codex agents
-- **Current phase:** Building — Slices 1–61 complete
+- **Current phase:** Building — Slices 1–62 complete
 - **Last reviewed:** 2026-06-23
 - **Known blockers:** None
 
