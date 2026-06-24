@@ -2,6 +2,14 @@
 
 ---
 
+## 2026-06-23 — Slice 114: Overview revenue Live Data link
+
+### Slice 114: Jump from daily report revenue to Live Data
+
+- **`OverviewReportPrimaryMetrics`** — daily report **Revenue** metric opens Live Data.
+
+---
+
 ## 2026-06-23 — Slice 113: Overview contribution profit link
 
 ### Slice 113: Jump from daily report contribution profit to Active Experiments

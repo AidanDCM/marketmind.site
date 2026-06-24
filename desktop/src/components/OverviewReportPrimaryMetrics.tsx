@@ -29,7 +29,12 @@ export function OverviewReportPrimaryMetrics({
         <div className="metric-value">{metrics.orders}</div>
         <div className="metric-sub">for {date}</div>
       </div>
-      <div className="metric-card">
+      <div
+        className="metric-card"
+        style={onOpenLiveData ? { cursor: "pointer" } : undefined}
+        onClick={onOpenLiveData}
+        title={onOpenLiveData ? "Open Live Data" : undefined}
+      >
         <div className="metric-label">Revenue</div>
         <div className="metric-value">{fmt$(metrics.revenue)}</div>
         <div className="metric-sub">gross</div>
