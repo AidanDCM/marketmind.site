@@ -178,6 +178,19 @@ export function OperatorHealthPanelView({
             {health.snapshot_gaps.all_recorded
               ? "all active experiments recorded"
               : `${health.snapshot_gaps.missing_count} missing`}
+            {!health.snapshot_gaps.all_recorded && onOpenSnapshots && (
+              <button
+                type="button"
+                className="inline-link inline-link-danger"
+                style={{ marginLeft: 6, fontSize: 13, fontWeight: 600 }}
+                onClick={() => onOpenSnapshots(
+                  health.snapshot_gaps.snapshot_date,
+                  health.snapshot_gaps.missing[0]?.experiment_id,
+                )}
+              >
+                Record snapshots
+              </button>
+            )}
           </div>
           {health.snapshot_gaps.missing.length > 0 && (
             <ul style={{ margin: "6px 0 0", paddingLeft: 18, fontSize: 13 }}>

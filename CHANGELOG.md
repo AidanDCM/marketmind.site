@@ -2,6 +2,14 @@
 
 ---
 
+## 2026-06-23 — Slice 95: Snapshot gaps header link
+
+### Slice 95: Jump to Snapshot Recorder from health panel gaps
+
+- **Operator health panel** — missing snapshot summary shows **Record snapshots**; opens recorder with date and first missing experiment pre-filled.
+
+---
+
 ## 2026-06-23 — Slice 94: Pending approvals shortcuts in health panel
 
 ### Slice 94: Jump to approval queue from health metrics
