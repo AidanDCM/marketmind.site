@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-23 — Slice 102: Daily report lesson shortcuts
+
+### Slice 102: Jump from lesson lines to queue or Live Data
+
+- **`dailyReportNavigation.ts`** — pending-approval and no-orders lesson text resolve to navigation targets.
+- **Lessons card** — shows **Open queue** or **Check Live Data** on matching generated lesson lines.
+
+---
+
 ## 2026-06-23 — Slice 101: Scale recommendation approval link
 
 ### Slice 101: Jump from scale recommendations to Approval Queue

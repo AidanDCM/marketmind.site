@@ -1,9 +1,21 @@
+import {
+  dailyReportLessonActionLabel,
+  resolveDailyReportLessonAction,
+} from "../dailyReportNavigation";
+
 interface DailyReportLessonsCardProps {
   lessons: string[];
   onOpenLessons?: () => void;
+  onOpenApprovals?: () => void;
+  onOpenLiveData?: () => void;
 }
 
-export function DailyReportLessonsCard({ lessons, onOpenLessons }: DailyReportLessonsCardProps) {
+export function DailyReportLessonsCard({
+  lessons,
+  onOpenLessons,
+  onOpenApprovals,
+  onOpenLiveData,
+}: DailyReportLessonsCardProps) {
   if (lessons.length === 0) {
     return null;
   }
@@ -18,12 +30,37 @@ export function DailyReportLessonsCard({ lessons, onOpenLessons }: DailyReportLe
           </button>
         )}
       </div>
-      {lessons.map((lesson, i) => (
-        <div key={i} className="list-item">
-          <div className="bullet" style={{ background: "var(--accent)" }} />
-          <div className="list-text">{lesson}</div>
-        </div>
-      ))}
+      {lessons.map((lesson, i) => {
+        const action = resolveDailyReportLessonAction(lesson);
+        const canAct = action != null && (
+          (action.kind === "approvals" && onOpenApprovals)
+          || (action.kind === "live" && onOpenLiveData)
+        );
+        return (
+          <div key={i} className="list-item">
+            <div className="bullet" style={{ background: "var(--accent)" }} />
+            <div className="list-text">
+              {lesson}
+              {canAct && action && (
+                <button
+                  type="button"
+                  className="inline-link"
+                  style={{ marginLeft: 6, fontSize: 12 }}
+                  onClick={() => {
+                    if (action.kind === "approvals") {
+                      onOpenApprovals?.();
+                    } else {
+                      onOpenLiveData?.();
+                    }
+                  }}
+                >
+                  {dailyReportLessonActionLabel(action)}
+                </button>
+              )}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

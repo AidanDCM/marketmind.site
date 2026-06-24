@@ -20,4 +20,28 @@ describe("DailyReportLessonsCard", () => {
     fireEvent.click(screen.getByRole("button", { name: "View library" }));
     expect(onOpenLessons).toHaveBeenCalledOnce();
   });
+
+  it("opens approval queue from pending approval lesson", () => {
+    const onOpenApprovals = vi.fn();
+    render(
+      <DailyReportLessonsCard
+        lessons={["2 approval(s) pending — unblocking these may unlock next steps."]}
+        onOpenApprovals={onOpenApprovals}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Open queue" }));
+    expect(onOpenApprovals).toHaveBeenCalledOnce();
+  });
+
+  it("opens live data from no-orders lesson", () => {
+    const onOpenLiveData = vi.fn();
+    render(
+      <DailyReportLessonsCard
+        lessons={["No orders: verify that the payment link / checkout is live and working."]}
+        onOpenLiveData={onOpenLiveData}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Check Live Data" }));
+    expect(onOpenLiveData).toHaveBeenCalledOnce();
+  });
 });

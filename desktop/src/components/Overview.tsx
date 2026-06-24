@@ -421,7 +421,12 @@ export function Overview({
             />
           </div>
 
-          <DailyReportLessonsCard lessons={report!.lessons} onOpenLessons={onOpenLessons} />
+          <DailyReportLessonsCard
+            lessons={report!.lessons}
+            onOpenLessons={onOpenLessons}
+            onOpenApprovals={() => onOpenApprovals(pending[0]?.approval_id)}
+            onOpenLiveData={onOpenLiveData}
+          />
         </>
       )}
 
