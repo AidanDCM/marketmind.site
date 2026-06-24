@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-23 — Slice 75: Configurable trend lookback on Overview
+
+### Slice 75: 7/14/30-day CAC trend window
+
+- **`overviewPreferences.ts`** — shared localStorage helpers for Overview trend controls.
+- **Desktop Overview** — lookback selector (7d / 14d / 30d), persisted in `localStorage`.
+
+---
+
 ## 2026-06-23 — Slice 74: Shared ruling badges on Overview trends
 
 ### Slice 74: Color-coded ruling badges in trend table
