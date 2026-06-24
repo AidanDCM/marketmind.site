@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-23 — Slice 81: Approval badge and attention-filter navigation
+
+### Slice 81: Nav badges link to filtered views
+
+- **`usePendingApprovalCount`** — yellow badge on Approval Queue when pending items exist.
+- **Active Experiments badge click** — opens page with “Needs attention” filter enabled.
+- **Active Experiments** — “Needs attention” checkbox; shared `experimentAttention` helper.
+
+---
+
 ## 2026-06-23 — Slice 80: Active Experiments nav attention badge
 
 ### Slice 80: Surface experiment attention count in sidebar

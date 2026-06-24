@@ -14,6 +14,7 @@ import {
   type MistakeSuggestion,
 } from "../api/client";
 import { RulingBadge } from "./RulingBadge";
+import { experimentNeedsAttention } from "../experimentAttention";
 
 const StatusBadge({ status }: { status: string }) {
   const active = status === "active";
@@ -341,9 +342,11 @@ const STATUS_FILTERS = ["all", "active", "ended"] as const;
 
 export function ActiveExperiments({
   focusExperimentId = null,
+  initialAttentionOnly = false,
   onOpenTrend,
 }: {
   focusExperimentId?: string | null;
+  initialAttentionOnly?: boolean;
   onOpenTrend?: (experimentId: string) => void;
 } = {}) {
   const [experiments, setExperiments] = useState<ActiveExperiment[]>([]);
@@ -352,6 +355,7 @@ export function ActiveExperiments({
   const [filter, setFilter] = useState<"all" | "active" | "ended">(
     focusExperimentId ? "all" : "active",
   );
+  const [attentionOnly, setAttentionOnly] = useState(initialAttentionOnly);
 
   function load() {
     setLoading(true);
@@ -364,15 +368,16 @@ export function ActiveExperiments({
 
   useEffect(load, []);
 
-  const visible = experiments.filter(e =>
-    filter === "all" ? true :
-    filter === "active" ? e.status === "active" :
-    e.status !== "active"
-  );
+  const visible = experiments.filter(e => {
+    const statusMatch =
+      filter === "all" ? true :
+      filter === "active" ? e.status === "active" :
+      e.status !== "active";
+    const attentionMatch = !attentionOnly || experimentNeedsAttention(e);
+    return statusMatch && attentionMatch;
+  });
 
-  const needsAction = experiments.filter(e =>
-    e.ruling === "kill" || e.ruling === "pause_ads" || e.ruling === "scale_requires_approval"
-  ).length;
+  const needsAction = experiments.filter(experimentNeedsAttention).length;
 
   return (
     <div>
@@ -390,13 +395,23 @@ export function ActiveExperiments({
       )}
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "1.25rem" }}>
-        <div className="filter-bar">
-          {STATUS_FILTERS.map(f => (
-            <button key={f} className={`filter-btn ${filter === f ? "active" : ""}`}
-              onClick={() => setFilter(f)}>
-              {f}
-            </button>
-          ))}
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div className="filter-bar">
+            {STATUS_FILTERS.map(f => (
+              <button key={f} className={`filter-btn ${filter === f ? "active" : ""}`}
+                onClick={() => setFilter(f)}>
+                {f}
+              </button>
+            ))}
+          </div>
+          <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
+            <input
+              type="checkbox"
+              checked={attentionOnly}
+              onChange={(e) => setAttentionOnly(e.target.checked)}
+            />
+            Needs attention
+          </label>
         </div>
         <button className="btn-ghost" onClick={load}>↺ Refresh</button>
       </div>
@@ -410,7 +425,11 @@ export function ActiveExperiments({
             <path d="M9 2v6l-5 9a2 2 0 002 3h12a2 2 0 002-3l-5-9V2"/>
             <line x1="9" y1="2" x2="15" y2="2"/>
           </svg>
-          <p>No {filter === "all" ? "" : filter} experiments. Record a snapshot to create one.</p>
+          <p>
+            {attentionOnly
+              ? "No experiments need attention for the current filters."
+              : `No ${filter === "all" ? "" : filter} experiments. Record a snapshot to create one.`}
+          </p>
         </div>
       )}
 

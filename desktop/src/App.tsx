@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { fetchHealth } from "./api/client";
 import { readTrendDaysPreference } from "./components/overviewPreferences";
 import { useExperimentAttentionCount } from "./useExperimentAttentionCount";
+import { usePendingApprovalCount } from "./usePendingApprovalCount";
 import { Overview } from "./components/Overview";
 import { ApprovalQueue } from "./components/ApprovalQueue";
 import { ScoreProduct } from "./components/ScoreProduct";
@@ -46,6 +47,7 @@ export function App() {
   const [pageContext, setPageContext] = useState<PageContext | null>(null);
   const [apiOk, setApiOk] = useState<boolean | null>(null);
   const attentionCount = useExperimentAttentionCount(apiOk);
+  const pendingCount = usePendingApprovalCount(apiOk);
 
   function navigate(next: Page, context?: PageContext) {
     setPageContext(context ?? null);
@@ -81,8 +83,29 @@ export function App() {
             <button key={n.id} className={`nav-item ${page === n.id ? "active" : ""}`} onClick={() => navigate(n.id)}>
               <Icon d={n.icon} />
               <span className="nav-label">{n.label}</span>
+              {n.id === "approvals" && pendingCount > 0 && (
+                <span
+                  className="nav-badge nav-badge-warn"
+                  title="Pending approvals"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate("approvals");
+                  }}
+                >
+                  {pendingCount}
+                </span>
+              )}
               {n.id === "active" && attentionCount > 0 && (
-                <span className="nav-badge" title="Experiments need attention">{attentionCount}</span>
+                <span
+                  className="nav-badge"
+                  title="Show experiments needing attention"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate("active", { attentionOnly: true });
+                  }}
+                >
+                  {attentionCount}
+                </span>
               )}
             </button>
           ))}
@@ -124,8 +147,9 @@ export function App() {
         )}
         {page === "active" && (
           <ActiveExperiments
-            key={pageContext?.experimentId ?? "active-default"}
+            key={`${pageContext?.experimentId ?? "active-default"}-${pageContext?.attentionOnly ? "attention" : "all"}`}
             focusExperimentId={pageContext?.experimentId}
+            initialAttentionOnly={pageContext?.attentionOnly ?? false}
             onOpenTrend={(experimentId) => openTrendFromOverview(experimentId, readTrendDaysPreference())}
           />
         )}
