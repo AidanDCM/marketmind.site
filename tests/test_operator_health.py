@@ -31,3 +31,10 @@ def test_build_operator_health_warns_live_writes_without_stripe(monkeypatch, tmp
     Base.metadata.create_all(engine)
     health = build_operator_health(engine)
     assert any("Stripe is not live-ready" in w for w in health["warnings"])
+
+
+def test_build_operator_health_snapshot_date_param():
+    engine = make_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    health = build_operator_health(engine, snapshot_date="2026-06-15")
+    assert health["snapshot_gaps"]["snapshot_date"] == "2026-06-15"

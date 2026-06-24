@@ -61,10 +61,15 @@ def operator_integrations(request: Request) -> dict:
 
 
 @router.get("/health-panel")
-def operator_health_panel(request: Request) -> dict:
-    """Consolidated operator health: preflight, integrations, portfolio, ad spend, checklist."""
+def operator_health_panel(request: Request, date: str | None = None) -> dict:
+    """Consolidated operator health: preflight, integrations, portfolio, ad spend, checklist.
+
+    Optional ``date`` (ISO) scopes snapshot-gap detection to that day (default today).
+    """
+    if date is not None and not date.strip():
+        raise HTTPException(status_code=422, detail="date must not be empty when provided")
     engine = request.app.state.engine
-    return build_operator_health(engine)
+    return build_operator_health(engine, snapshot_date=date)
 
 
 @router.get("/last-cycle")

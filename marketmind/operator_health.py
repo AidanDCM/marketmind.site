@@ -13,14 +13,14 @@ from .operator_preflight import run_preflight
 from .snapshot_gaps import list_snapshot_gaps
 
 
-def build_operator_health(engine: Engine) -> dict:
+def build_operator_health(engine: Engine, snapshot_date: str | None = None) -> dict:
     """Aggregate preflight, integrations, portfolio, ad spend, and checklist config."""
     preflight = run_preflight(engine)
     integrations = get_integrations_status(engine)
     portfolio = build_experiment_portfolio(engine)
     ad_summary = summarize_latest_ad_batch(engine)
     checklist = get_checklist_thresholds()
-    snapshot_gaps = list_snapshot_gaps(engine)
+    snapshot_gaps = list_snapshot_gaps(engine, snapshot_date=snapshot_date)
 
     warnings: list[str] = []
     if not preflight.operator_log_exists:

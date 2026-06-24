@@ -603,8 +603,9 @@ export interface DailyCycleStatus {
   approval_ids: string[];
 }
 
-export function fetchOperatorHealthPanel(): Promise<OperatorHealthPanel> {
-  return req("GET", "/operator/health-panel");
+export function fetchOperatorHealthPanel(date?: string): Promise<OperatorHealthPanel> {
+  const qs = date ? `?date=${encodeURIComponent(date)}` : "";
+  return req("GET", `/operator/health-panel${qs}`);
 }
 
 export function fetchOperatorLastCycle(): Promise<{ has_data: boolean; cycle: DailyCycleStatus | null }> {

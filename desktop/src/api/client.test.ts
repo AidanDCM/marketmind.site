@@ -184,6 +184,23 @@ describe("api client", () => {
     expect(fn.mock.calls[0][0]).toBe("http://127.0.0.1:8000/operator/health-panel");
   });
 
+  it("fetches operator health panel for a date", async () => {
+    const fn = mockFetch({
+      safe_to_operate: true,
+      warnings: [],
+      preflight: { safe_to_operate: true, pending_approvals: 0, blockers: [], summary: "SAFE", experiments_needing_attention: [], operator_log_exists: true },
+      integrations: { gmail: { mode: "draft_file_only", enabled: false, wired: false, dry_run: true, live_ready: false }, stripe: { configured: false, dry_run: true, live_ready: false }, shopify: { configured: false, read_only: true, live_ready: false }, ad_imports: { csv_available: true, has_latest_batch: false, latest_batch_id: null }, scheduler: { prune_on_cycle: false, prune_apply: false }, live_writes: { enabled: false } },
+      portfolio: { total_experiments: 0, active: 0, ended: 0, needs_attention: 0, by_ruling: {}, lessons_recorded: 0 },
+      ad_spend: { has_data: false, summary: null },
+      checklist: { min_visits: 100, min_orders: 5, min_spend: 50 },
+      last_cycle: null,
+      snapshot_gaps: { snapshot_date: "2026-06-20", active_count: 0, missing_count: 0, missing: [], all_recorded: false },
+    });
+    const { fetchOperatorHealthPanel } = await import("./client");
+    await fetchOperatorHealthPanel("2026-06-20");
+    expect(fn.mock.calls[0][0]).toBe("http://127.0.0.1:8000/operator/health-panel?date=2026-06-20");
+  });
+
   it("runs operator daily cycle via POST", async () => {
     const fn = mockFetch({ date: "2026-06-23", rulings: [], approvals_created: [] });
     const { runOperatorDailyCycle } = await import("./client");
