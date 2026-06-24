@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-23 — Slice 100: Daily report experiment links
+
+### Slice 100: Jump from risks and recommendations to experiment details
+
+- **`dailyReportNavigation.ts`** — maps `Product name: …` report lines to experiment ids.
+- **`DailyReportInsightList`** — Risks and Recommendations cards show **View experiment** when a product matches trend/preflight data.
+
+---
+
 ## 2026-06-23 — Slice 99: Integration metrics link to Live Data
 
 ### Slice 99: Jump from Gmail/Stripe/Shopify metrics to Live Data
