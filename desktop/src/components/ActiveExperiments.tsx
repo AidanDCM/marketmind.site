@@ -15,6 +15,10 @@ import {
 } from "../api/client";
 import { RulingBadge } from "./RulingBadge";
 import { experimentNeedsAttention, experimentCardNeedsHighlight } from "../experimentAttention";
+import {
+  readActiveAttentionOnlyPreference,
+  writeActiveAttentionOnlyPreference,
+} from "./activeExperimentsPreferences";
 
 const StatusBadge({ status }: { status: string }) {
   const active = status === "active";
@@ -365,7 +369,17 @@ export function ActiveExperiments({
   const [filter, setFilter] = useState<"all" | "active" | "ended">(
     focusExperimentId ? "all" : "active",
   );
-  const [attentionOnly, setAttentionOnly] = useState(initialAttentionOnly);
+  const [attentionOnly, setAttentionOnly] = useState(
+    () => initialAttentionOnly || readActiveAttentionOnlyPreference(),
+  );
+
+  useEffect(() => {
+    if (initialAttentionOnly) setAttentionOnly(true);
+  }, [initialAttentionOnly]);
+
+  useEffect(() => {
+    writeActiveAttentionOnlyPreference(attentionOnly);
+  }, [attentionOnly]);
 
   function load() {
     setLoading(true);

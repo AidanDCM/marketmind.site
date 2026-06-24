@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-23 — Slice 83: Persist Active Experiments attention filter
+
+### Slice 83: Remember attention filter; richer pending-approval banner
+
+- **`activeExperimentsPreferences.ts`** — persists “Needs attention” on Active Experiments (`localStorage`).
+- **Overview** — pending-approval banner shows first item summary (e.g. action name).
+- **`pendingApprovalBannerText`** — shared banner copy helper with tests.
+
+---
+
 ## 2026-06-23 — Slice 82: Overview alerts link out; highlight attention cards
 
 ### Slice 82: Clickable Overview warnings and matching experiment highlights
