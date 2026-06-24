@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-23 — Slice 97: Overview lessons library link
+
+### Slice 97: Jump from daily report lessons to Lessons library
+
+- **`DailyReportLessonsCard`** — daily report lessons section with **View library** action.
+- **Overview** — opens Lessons sidebar page from the report card.
+
+---
+
 ## 2026-06-23 — Slice 96: Portfolio metric navigation in health panel
 
 ### Slice 96: Jump from Experiments and Lessons metrics

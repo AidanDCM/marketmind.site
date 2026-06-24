@@ -15,6 +15,7 @@ import {
 import { pendingApprovalBannerText } from "../approvalDisplay";
 import { runOverviewDailyCycle } from "../overviewDailyCycle";
 import { OperatorHealthPanelView } from "./OperatorHealthPanel";
+import { DailyReportLessonsCard } from "./DailyReportLessonsCard";
 import { OperatorReadinessBanner } from "./OperatorReadinessBanner";
 import { RulingBadge } from "./RulingBadge";
 import {
@@ -408,14 +409,7 @@ export function Overview({
             </div>
           </div>
 
-          {report!.lessons.length > 0 && (
-            <div className="card" style={{ marginTop: 14 }}>
-              <div className="card-title">Lessons</div>
-              {report!.lessons.map((l, i) => (
-                <div key={i} className="list-item"><div className="bullet" style={{ background: "var(--accent)" }} /><div className="list-text">{l}</div></div>
-              ))}
-            </div>
-          )}
+          <DailyReportLessonsCard lessons={report!.lessons} onOpenLessons={onOpenLessons} />
         </>
       )}
 
