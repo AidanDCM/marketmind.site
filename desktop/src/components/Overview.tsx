@@ -190,6 +190,8 @@ export function Overview({
           onRecordSnapshot={onOpenSnapshots}
           onOpenExperiment={onOpenActive}
           onOpenAttention={onOpenAttention}
+          onOpenApprovals={() => onOpenApprovals(pending[0]?.approval_id)}
+          onOpenSnapshots={onOpenSnapshots}
         />
       )}
 
