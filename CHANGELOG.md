@@ -2,6 +2,14 @@
 
 ---
 
+## 2026-06-23 — Slice 109: Snapshot gap experiment links
+
+### Slice 109: Jump from missing snapshot rows to experiment details
+
+- **Operator health panel** — each missing snapshot row shows **Details** to open that experiment.
+
+---
+
 ## 2026-06-23 — Slice 108: Integration warning links
 
 ### Slice 108: Jump from live-write warnings to Live Data

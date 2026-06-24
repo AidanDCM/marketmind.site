@@ -262,6 +262,15 @@ export function OperatorHealthPanelView({
                   <span>
                     <code>{m.experiment_id}</code> — {m.product_name}
                   </span>
+                  {onOpenExperiment && (
+                    <button
+                      type="button"
+                      className="inline-link"
+                      onClick={() => onOpenExperiment(m.experiment_id)}
+                    >
+                      Details
+                    </button>
+                  )}
                   {onRecordSnapshot && (
                     <button
                       type="button"
