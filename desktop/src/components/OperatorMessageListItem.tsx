@@ -8,6 +8,7 @@ export type OperatorMessageHandlers = {
   onOpenApprovals?: () => void;
   onOpenActive?: (experimentId: string) => void;
   onOpenSnapshots?: (snapshotDate: string, experimentId?: string) => void;
+  onOpenLiveData?: () => void;
 };
 
 export function runReadinessBannerAction(
@@ -24,6 +25,9 @@ export function runReadinessBannerAction(
     case "snapshots":
       handlers.onOpenSnapshots?.(action.snapshotDate, action.experimentId);
       break;
+    case "live":
+      handlers.onOpenLiveData?.();
+      break;
   }
 }
 
@@ -33,16 +37,18 @@ export function OperatorMessageListItem({
   onOpenApprovals,
   onOpenActive,
   onOpenSnapshots,
+  onOpenLiveData,
 }: {
   text: string;
   muted?: boolean;
 } & OperatorMessageHandlers) {
   const action = parseReadinessBannerAction(text);
-  const handlers = { onOpenApprovals, onOpenActive, onOpenSnapshots };
+  const handlers = { onOpenApprovals, onOpenActive, onOpenSnapshots, onOpenLiveData };
   const canAct = action != null && (
     (action.kind === "approvals" && onOpenApprovals)
     || (action.kind === "active" && onOpenActive)
     || (action.kind === "snapshots" && onOpenSnapshots)
+    || (action.kind === "live" && onOpenLiveData)
   );
 
   return (

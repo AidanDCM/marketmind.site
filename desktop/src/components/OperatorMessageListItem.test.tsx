@@ -31,4 +31,19 @@ describe("OperatorMessageListItem", () => {
     fireEvent.click(screen.getByRole("button", { name: "Open queue" }));
     expect(onOpenApprovals).toHaveBeenCalledOnce();
   });
+
+  it("links integration live-write warnings to Live Data", () => {
+    const onOpenLiveData = vi.fn();
+    render(
+      <ul>
+        <OperatorMessageListItem
+          text="MARKETMIND_ENABLE_LIVE_WRITES=true but Gmail is not live-ready"
+          muted
+          onOpenLiveData={onOpenLiveData}
+        />
+      </ul>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Check Live Data" }));
+    expect(onOpenLiveData).toHaveBeenCalledOnce();
+  });
 });

@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-23 — Slice 108: Integration warning links
+
+### Slice 108: Jump from live-write warnings to Live Data
+
+- **`readinessBannerActions.ts`** — Gmail, Stripe, and Shopify live-write warnings link to Live Data.
+- **Health panel and readiness banner** — integration warnings show **Check Live Data**.
+
+---
+
 ## 2026-06-23 — Slice 107: Cycle and snapshot-complete links
 
 ### Slice 107: Jump from last cycle and complete snapshot gaps

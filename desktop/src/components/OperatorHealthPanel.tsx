@@ -69,6 +69,7 @@ export function OperatorHealthPanelView({
     onOpenApprovals,
     onOpenActive: onOpenExperiment,
     onOpenSnapshots,
+    onOpenLiveData,
   };
   const summaryActions = preflightSummaryActions({
     safeToOperate: preflight.safe_to_operate,

@@ -197,6 +197,7 @@ export function Overview({
           onOpenApprovals={() => onOpenApprovals(pending[0]?.approval_id)}
           onOpenActive={onOpenActive}
           onOpenSnapshots={onOpenSnapshots}
+          onOpenLiveData={onOpenLiveData}
         />
       )}
 

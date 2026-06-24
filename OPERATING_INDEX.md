@@ -102,7 +102,7 @@ New API endpoints added by the integration:
 
 - **Active owner:** Aidan
 - **Active maintainer:** Aidan / Codex agents
-- **Current phase:** Building — Slices 1–107 complete
+- **Current phase:** Building — Slices 1–108 complete
 - **Last reviewed:** 2026-06-23
 - **Known blockers:** None
 
