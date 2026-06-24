@@ -144,6 +144,7 @@ export function App() {
             onOpenApprovals={openApprovals}
             onOpenAttention={openAttentionExperiments}
             onOpenSnapshots={openSnapshots}
+            dataRevision={navRefresh}
           />
         )}
         {page === "approvals" && (

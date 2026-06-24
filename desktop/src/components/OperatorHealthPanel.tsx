@@ -34,6 +34,8 @@ interface OperatorHealthPanelProps {
   onRunCycle?: () => void;
   cycleRunning?: boolean;
   onRecordSnapshot?: (snapshotDate: string, experimentId: string) => void;
+  onOpenExperiment?: (experimentId: string) => void;
+  onOpenAttention?: () => void;
 }
 
 export function OperatorHealthPanelView({
@@ -41,6 +43,8 @@ export function OperatorHealthPanelView({
   onRunCycle,
   cycleRunning,
   onRecordSnapshot,
+  onOpenExperiment,
+  onOpenAttention,
 }: OperatorHealthPanelProps) {
   const { preflight, integrations, portfolio, ad_spend: adSpendBlock } = health;
   const adSpend = adSpendBlock.has_data && adSpendBlock.summary ? adSpendBlock.summary : null;
@@ -61,7 +65,12 @@ export function OperatorHealthPanelView({
           <div className="metric-value">{portfolio.total_experiments}</div>
           <div className="metric-sub">{portfolio.active} active · {portfolio.ended} ended</div>
         </div>
-        <div className="metric-card">
+        <div
+          className="metric-card"
+          style={portfolio.needs_attention > 0 && onOpenAttention ? { cursor: "pointer" } : undefined}
+          onClick={portfolio.needs_attention > 0 && onOpenAttention ? onOpenAttention : undefined}
+          title={portfolio.needs_attention > 0 && onOpenAttention ? "Show experiments needing attention" : undefined}
+        >
           <div className="metric-label">Need attention</div>
           <div className={`metric-value ${portfolio.needs_attention > 0 ? "metric-down" : "metric-up"}`}>
             {portfolio.needs_attention}
@@ -192,8 +201,22 @@ export function OperatorHealthPanelView({
         {preflight.experiments_needing_attention.length > 0 && (
           <div style={{ marginTop: 8, fontSize: 12 }}>
             {preflight.experiments_needing_attention.map(e => (
-              <div key={e.experiment_id}>
-                <code>{e.experiment_id}</code> — {e.ruling.replace(/_/g, " ")}
+              <div
+                key={e.experiment_id}
+                style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}
+              >
+                <span>
+                  <code>{e.experiment_id}</code> — {e.ruling.replace(/_/g, " ")}
+                </span>
+                {onOpenExperiment && (
+                  <button
+                    type="button"
+                    className="inline-link inline-link-danger"
+                    onClick={() => onOpenExperiment(e.experiment_id)}
+                  >
+                    Details
+                  </button>
+                )}
               </div>
             ))}
           </div>
