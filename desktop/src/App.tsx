@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchHealth } from "./api/client";
+import { readTrendDaysPreference } from "./components/overviewPreferences";
+import { useExperimentAttentionCount } from "./useExperimentAttentionCount";
 import { Overview } from "./components/Overview";
 import { ApprovalQueue } from "./components/ApprovalQueue";
 import { ScoreProduct } from "./components/ScoreProduct";
@@ -43,6 +45,7 @@ export function App() {
   const [page, setPage] = useState<Page>("overview");
   const [pageContext, setPageContext] = useState<PageContext | null>(null);
   const [apiOk, setApiOk] = useState<boolean | null>(null);
+  const attentionCount = useExperimentAttentionCount(apiOk);
 
   function navigate(next: Page, context?: PageContext) {
     setPageContext(context ?? null);
@@ -76,7 +79,11 @@ export function App() {
         <nav className="sidebar-nav">
           {NAV.map(n => (
             <button key={n.id} className={`nav-item ${page === n.id ? "active" : ""}`} onClick={() => navigate(n.id)}>
-              <Icon d={n.icon} /> {n.label}
+              <Icon d={n.icon} />
+              <span className="nav-label">{n.label}</span>
+              {n.id === "active" && attentionCount > 0 && (
+                <span className="nav-badge" title="Experiments need attention">{attentionCount}</span>
+              )}
             </button>
           ))}
         </nav>
@@ -119,7 +126,7 @@ export function App() {
           <ActiveExperiments
             key={pageContext?.experimentId ?? "active-default"}
             focusExperimentId={pageContext?.experimentId}
-            onOpenTrend={(experimentId) => openTrendFromOverview(experimentId, 30)}
+            onOpenTrend={(experimentId) => openTrendFromOverview(experimentId, readTrendDaysPreference())}
           />
         )}
       </main>
