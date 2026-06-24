@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-23 — Slice 86: Persist Active Experiments status filter
+
+### Slice 86: Remember all / active / ended filter on Active Experiments
+
+- **`activeExperimentsPreferences.ts`** — persists status filter (`all` / `active` / `ended`) in `localStorage`.
+- Focusing a specific experiment still switches to **all** for that navigation visit.
+
+---
+
 ## 2026-06-23 — Slice 85: Persist approval filter and badge deep-link
 
 ### Slice 85: Remember Approval Queue filter; badge opens first pending item
