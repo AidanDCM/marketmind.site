@@ -9,6 +9,7 @@ interface OverviewReportPrimaryMetricsProps {
   date: string;
   onOpenImportHistory?: () => void;
   onOpenLiveData?: () => void;
+  onOpenActiveList?: () => void;
 }
 
 export function OverviewReportPrimaryMetrics({
@@ -16,6 +17,7 @@ export function OverviewReportPrimaryMetrics({
   date,
   onOpenImportHistory,
   onOpenLiveData,
+  onOpenActiveList,
 }: OverviewReportPrimaryMetricsProps) {
   return (
     <div className="metric-grid">
@@ -49,7 +51,12 @@ export function OverviewReportPrimaryMetrics({
         <div className="metric-value metric-down">{fmt$(metrics.ad_spend)}</div>
         <div className="metric-sub">total spend</div>
       </div>
-      <div className="metric-card">
+      <div
+        className="metric-card"
+        style={onOpenActiveList ? { cursor: "pointer" } : undefined}
+        onClick={onOpenActiveList}
+        title={onOpenActiveList ? "Open Active Experiments" : undefined}
+      >
         <div className="metric-label">CAC</div>
         <div className="metric-value">{fmt$(metrics.cac)}</div>
         <div className="metric-sub">per order</div>

@@ -363,6 +363,7 @@ export function Overview({
             date={date}
             onOpenImportHistory={onOpenImportHistory}
             onOpenLiveData={onOpenLiveData}
+            onOpenActiveList={onOpenActiveList}
           />
 
           <OverviewReportSecondaryMetrics

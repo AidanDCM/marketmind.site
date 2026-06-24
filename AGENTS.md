@@ -5,14 +5,48 @@ This file is at the repo root so any AI agent or developer sees it before touchi
 ## Before changing anything, read in order
 
 1. `README.md` — what MarketMind Autopilot is and why it exists
-2. `OWNER_MANUAL.md` — how to run, test, deploy, and roll back the system
-3. `OPERATING_INDEX.md` — navigation map of every major doc and system area
-4. `ARCHITECTURE.md` — system layout, layer boundaries, DB schema
-5. `docs/issues/` — known failures and fixes (read before introducing similar changes)
-6. `CHANGELOG.md` — what changed recently and why
+2. `SLICE_WORKFLOW.md` — slice building vs system hardening; testing microscope; engineering log
+3. `OWNER_MANUAL.md` — how to run, test, deploy, and roll back the system
+4. `OPERATING_INDEX.md` — navigation map of every major doc and system area
+5. `docs/dev_manual/MARKETMIND_TESTING_AND_EVIDENCE.md` — commands and evidence rules
+6. `ARCHITECTURE.md` — system layout, layer boundaries, DB schema
+7. `docs/issues/` — known failures and fixes (read before introducing similar changes)
+8. `docs/engineering_log/` — forensic ledger of past changes (read before repeating mistakes)
+9. `CHANGELOG.md` — slice summary (what changed recently)
 
 Then confirm: you understand the approval gate, the experiment lifecycle, the DB models,
 the test suite structure, and the high-risk action list before editing anything.
+
+## Slice workflow (binding)
+
+When Aidan says **`proceed`** during Phase A (slice building):
+
+1. Implement **one** testable slice (Overview link, operator panel, API, etc.).
+2. Run **microscope testing** — full suite plus focused tests for touched modules;
+   desktop Vitest + build when `desktop/` changes. See `SLICE_WORKFLOW.md`.
+3. Update `CHANGELOG.md`, `OPERATING_INDEX.md` slice counter, and add
+   **`docs/engineering_log/YYYY-MM-DD-<slug>.md`** in the **same PR** (verbose: why,
+   where, when, commands + exit codes).
+4. Commit → push → PR → merge → sync `main` (unless Aidan says otherwise).
+
+When slice roadmap is **complete**, **`proceed`** enters **Phase B** (system hardening):
+each turn tests deeply, improves gaps, or rebuilds broken parts — see
+`.agents/skills/testing-marketmind-system/SKILL.md`. Still log every pass in
+`docs/engineering_log/`.
+
+## Testing discipline (non-negotiable)
+
+- **465+** backend pytest cases and **23+** desktop Vitest files — every behavior
+  change adds a regression test naming the failure it prevents.
+- Run `python -m ruff check .` and `python -m pytest -q` before every merge.
+- When touching UI: `cd desktop && npm test && npm run build`.
+- Record evidence in engineering log and optionally `python scripts/local_ci.py`
+  (appends `reports/local_ci/TEST_LOG.md`).
+- Never claim "tests passed" without command output. Never weaken tests to go green.
+
+## Audit triad (when adding recurring analyses)
+
+See `docs/audits/README.md`: tool + runbook + committed report per run.
 
 ## Prime directive
 
@@ -71,8 +105,9 @@ Every non-trivial fix must record in `docs/issues/`:
 
 ## Definition of done
 
-A task is not done until: code, tests, CHANGELOG entry, OWNER_MANUAL (if ops changed),
-and issue log (if a bug was fixed) are all consistent and passing CI.
+A task is not done until: code, tests, **engineering log entry** (`docs/engineering_log/`),
+`CHANGELOG` entry (if a slice), `OWNER_MANUAL` (if ops changed), and issue log (if a bug
+was fixed) are all consistent and passing CI / local_ci evidence.
 
 ## Experiment ID convention
 
