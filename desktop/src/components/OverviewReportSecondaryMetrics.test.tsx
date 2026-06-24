@@ -66,4 +66,30 @@ describe("OverviewReportSecondaryMetrics", () => {
       screen.queryByTitle("Open Active Experiments — review refund rate"),
     ).toBeNull();
   });
+
+  it("opens active experiments from conversion when spend with zero orders", () => {
+    const onOpenActiveList = vi.fn();
+    render(
+      <OverviewReportSecondaryMetrics
+        metrics={{
+          ...metrics,
+          orders: 0,
+          ad_spend: 120,
+          conversion_rate: 0,
+        }}
+        onOpenActiveList={onOpenActiveList}
+      />,
+    );
+    fireEvent.click(screen.getByTitle("Open Active Experiments — review conversion"));
+    expect(onOpenActiveList).toHaveBeenCalledOnce();
+  });
+
+  it("does not link conversion when orders exist", () => {
+    render(
+      <OverviewReportSecondaryMetrics metrics={metrics} onOpenActiveList={() => {}} />,
+    );
+    expect(
+      screen.queryByTitle("Open Active Experiments — review conversion"),
+    ).toBeNull();
+  });
 });

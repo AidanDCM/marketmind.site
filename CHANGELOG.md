@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-24 — Slice 117: Conversion zero-order link
+
+### Slice 117: Jump from zero-order conversion to Active Experiments
+
+- **`overviewReportSecondaryMetrics.ts`** — conversion links when ad spend > 0 and zero orders.
+- **Overview secondary metrics** — **Conversion** opens Active Experiments in that funnel-failure case.
+
+---
+
 ## 2026-06-24 — Slice 116: Secondary metrics risk links
 
 ### Slice 116: Jump from elevated refund / low add-to-cart to Active Experiments
