@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-23 — Slice 82: Overview alerts link out; highlight attention cards
+
+### Slice 82: Clickable Overview warnings and matching experiment highlights
+
+- **Overview** — pending-approvals banner opens Approval Queue; “need attention” opens filtered Active Experiments.
+- **Active Experiments** — red-tint cards for kill/pause/scale or CAC above break-even (matches Overview trend rows).
+- **`experimentCardNeedsHighlight`** — shared highlight rule.
+
+---
+
 ## 2026-06-23 — Slice 81: Approval badge and attention-filter navigation
 
 ### Slice 81: Nav badges link to filtered views
