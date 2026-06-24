@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-23 — Slice 88: Snapshot gap shortcuts and nav refresh
+
+### Slice 88: Record missing snapshots from health panel; refresh badges after submit
+
+- **Operator health panel** — missing snapshot list links to Snapshot Recorder (date + experiment pre-filled).
+- **Snapshot Recorder** — calls back after successful submit so sidebar attention counts refresh immediately.
+
+---
+
 ## 2026-06-23 — Slice 87: Overview links to Snapshots with date prefill
 
 ### Slice 87: Jump from Overview to Snapshot Recorder
