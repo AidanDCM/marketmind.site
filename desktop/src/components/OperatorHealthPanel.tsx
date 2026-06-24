@@ -180,6 +180,16 @@ export function OperatorHealthPanelView({
               <div style={{ fontSize: 13 }}>
                 {health.last_cycle.experiments_evaluated} experiment(s) evaluated ·{" "}
                 {health.last_cycle.approvals_created} approval(s) queued
+                {health.last_cycle.experiments_evaluated > 0 && onOpenActiveList && (
+                  <button
+                    type="button"
+                    className="inline-link"
+                    style={{ marginLeft: 6, fontSize: 13 }}
+                    onClick={onOpenActiveList}
+                  >
+                    View experiments
+                  </button>
+                )}
                 {health.last_cycle.approvals_created > 0 && onOpenApprovals && (
                   <button
                     type="button"
@@ -220,6 +230,16 @@ export function OperatorHealthPanelView({
             {health.snapshot_gaps.all_recorded
               ? "all active experiments recorded"
               : `${health.snapshot_gaps.missing_count} missing`}
+            {health.snapshot_gaps.all_recorded && onOpenSnapshots && (
+              <button
+                type="button"
+                className="inline-link"
+                style={{ marginLeft: 6, fontSize: 13, fontWeight: 600 }}
+                onClick={() => onOpenSnapshots(health.snapshot_gaps.snapshot_date)}
+              >
+                View snapshots
+              </button>
+            )}
             {!health.snapshot_gaps.all_recorded && onOpenSnapshots && (
               <button
                 type="button"

@@ -144,6 +144,24 @@ describe("OperatorHealthPanelView", () => {
     expect(onOpenImportHistory).toHaveBeenCalledOnce();
   });
 
+  it("opens active experiments from last cycle evaluated count link", () => {
+    const onOpenActiveList = vi.fn();
+    render(
+      <OperatorHealthPanelView health={baseHealth} onOpenActiveList={onOpenActiveList} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "View experiments" }));
+    expect(onOpenActiveList).toHaveBeenCalledOnce();
+  });
+
+  it("opens snapshots when all active experiments are recorded", () => {
+    const onOpenSnapshots = vi.fn();
+    render(
+      <OperatorHealthPanelView health={baseHealth} onOpenSnapshots={onOpenSnapshots} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "View snapshots" }));
+    expect(onOpenSnapshots).toHaveBeenCalledWith("2026-06-23");
+  });
+
   it("opens attention experiments from preflight summary link", () => {
     const onOpenAttention = vi.fn();
     const health: OperatorHealthPanel = {
