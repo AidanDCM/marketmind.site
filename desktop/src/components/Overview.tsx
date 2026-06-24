@@ -19,6 +19,7 @@ import { DailyReportLessonsCard } from "./DailyReportLessonsCard";
 import { DailyReportInsightList } from "./DailyReportInsightList";
 import type { ExperimentProductLookup } from "../dailyReportNavigation";
 import { OperatorReadinessBanner } from "./OperatorReadinessBanner";
+import { OverviewReportPrimaryMetrics } from "./OverviewReportPrimaryMetrics";
 import { RulingBadge } from "./RulingBadge";
 import {
   ATTENTION_ONLY_KEY,
@@ -360,28 +361,11 @@ export function Overview({
 
       {m && (
         <>
-          <div className="metric-grid">
-            <div className="metric-card">
-              <div className="metric-label">Orders</div>
-              <div className="metric-value">{m.orders}</div>
-              <div className="metric-sub">for {date}</div>
-            </div>
-            <div className="metric-card">
-              <div className="metric-label">Revenue</div>
-              <div className="metric-value">{fmt$(m.revenue)}</div>
-              <div className="metric-sub">gross</div>
-            </div>
-            <div className="metric-card">
-              <div className="metric-label">Ad Spend</div>
-              <div className="metric-value metric-down">{fmt$(m.ad_spend)}</div>
-              <div className="metric-sub">total spend</div>
-            </div>
-            <div className="metric-card">
-              <div className="metric-label">CAC</div>
-              <div className="metric-value">{fmt$(m.cac)}</div>
-              <div className="metric-sub">per order</div>
-            </div>
-          </div>
+          <OverviewReportPrimaryMetrics
+            metrics={m}
+            date={date}
+            onOpenImportHistory={onOpenImportHistory}
+          />
 
           <div className="metric-grid">
             <div className="metric-card">
