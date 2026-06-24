@@ -15,23 +15,7 @@ import { SnapshotTrend } from "./components/SnapshotTrend";
 import { ActiveExperiments } from "./components/ActiveExperiments";
 import { LessonsLibrary } from "./components/LessonsLibrary";
 import { SupplierOutreach } from "./components/SupplierOutreach";
-
-type Page =
-  | "overview"
-  | "approvals"
-  | "score"
-  | "niche"
-  | "economics"
-  | "experiment"
-  | "spec"
-  | "prepare"
-  | "supplier"
-  | "lessons"
-  | "live"
-  | "history"
-  | "snapshots"
-  | "trend"
-  | "active";
+import type { Page, PageContext } from "./navigation";
 
 function Icon({ d }: { d: string }) {
   return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" dangerouslySetInnerHTML={{ __html: d }} />;
@@ -57,7 +41,21 @@ const NAV: { id: Page; label: string; icon: string }[] = [
 
 export function App() {
   const [page, setPage] = useState<Page>("overview");
+  const [pageContext, setPageContext] = useState<PageContext | null>(null);
   const [apiOk, setApiOk] = useState<boolean | null>(null);
+
+  function navigate(next: Page, context?: PageContext) {
+    setPageContext(context ?? null);
+    setPage(next);
+  }
+
+  function openTrendFromOverview(experimentId: string, trendDays: number) {
+    navigate("trend", { experimentId, trendDays });
+  }
+
+  function openActiveFromOverview(experimentId: string) {
+    navigate("active", { experimentId });
+  }
 
   useEffect(() => {
     const check = () =>
@@ -77,7 +75,7 @@ export function App() {
 
         <nav className="sidebar-nav">
           {NAV.map(n => (
-            <button key={n.id} className={`nav-item ${page === n.id ? "active" : ""}`} onClick={() => setPage(n.id)}>
+            <button key={n.id} className={`nav-item ${page === n.id ? "active" : ""}`} onClick={() => navigate(n.id)}>
               <Icon d={n.icon} /> {n.label}
             </button>
           ))}
@@ -92,7 +90,12 @@ export function App() {
       </aside>
 
       <main className="main">
-        {page === "overview" && <Overview />}
+        {page === "overview" && (
+          <Overview
+            onOpenTrend={openTrendFromOverview}
+            onOpenActive={openActiveFromOverview}
+          />
+        )}
         {page === "approvals" && <ApprovalQueue />}
         {page === "score" && <ScoreProduct />}
         {page === "niche" && <ScoreNiche />}
@@ -105,8 +108,19 @@ export function App() {
         {page === "live" && <LiveData />}
         {page === "history" && <ImportHistory />}
         {page === "snapshots" && <SnapshotRecorder />}
-        {page === "trend" && <SnapshotTrend />}
-        {page === "active" && <ActiveExperiments />}
+        {page === "trend" && (
+          <SnapshotTrend
+            key={pageContext?.experimentId ?? "trend-default"}
+            initialExperimentId={pageContext?.experimentId}
+            initialDays={pageContext?.trendDays}
+          />
+        )}
+        {page === "active" && (
+          <ActiveExperiments
+            key={pageContext?.experimentId ?? "active-default"}
+            focusExperimentId={pageContext?.experimentId}
+          />
+        )}
       </main>
     </div>
   );

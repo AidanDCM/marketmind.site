@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   listActiveExperiments,
   patchExperimentStatus,
@@ -212,11 +212,25 @@ function NotesSection({ experimentId }: { experimentId: string }) {
   );
 }
 
-function ExperimentCard({ exp, onStatusChange }: { exp: ActiveExperiment; onStatusChange: () => void }) {
-  const [open, setOpen] = useState(false);
+function ExperimentCard({
+  exp,
+  onStatusChange,
+  defaultOpen = false,
+}: {
+  exp: ActiveExperiment;
+  onStatusChange: () => void;
+  defaultOpen?: boolean;
+}) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(defaultOpen);
   const [patching, setPatching] = useState(false);
   const [patchError, setPatchError] = useState<string | null>(null);
   const cacOver = exp.actual_cac !== null && exp.actual_cac > exp.break_even_cac;
+
+  useEffect(() => {
+    if (!defaultOpen || !cardRef.current) return;
+    cardRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [defaultOpen]);
 
   function toggleStatus(e: React.MouseEvent) {
     e.stopPropagation();
@@ -230,7 +244,7 @@ function ExperimentCard({ exp, onStatusChange }: { exp: ActiveExperiment; onStat
   }
 
   return (
-    <div className="approval-card" style={{ cursor: "pointer" }} onClick={() => setOpen(o => !o)}>
+    <div ref={cardRef} className="approval-card" style={{ cursor: "pointer" }} onClick={() => setOpen(o => !o)}>
       <div className="approval-header">
         <div style={{ minWidth: 0 }}>
           <div className="approval-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -310,11 +324,17 @@ function ExperimentCard({ exp, onStatusChange }: { exp: ActiveExperiment; onStat
 
 const STATUS_FILTERS = ["all", "active", "ended"] as const;
 
-export function ActiveExperiments() {
+export function ActiveExperiments({
+  focusExperimentId = null,
+}: {
+  focusExperimentId?: string | null;
+} = {}) {
   const [experiments, setExperiments] = useState<ActiveExperiment[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<"all" | "active" | "ended">("active");
+  const [filter, setFilter] = useState<"all" | "active" | "ended">(
+    focusExperimentId ? "all" : "active",
+  );
 
   function load() {
     setLoading(true);
@@ -378,7 +398,14 @@ export function ActiveExperiments() {
       )}
 
       <div className="approval-list" style={{ marginTop: "1rem" }}>
-        {visible.map(e => <ExperimentCard key={e.experiment_id} exp={e} onStatusChange={load} />)}
+        {visible.map(e => (
+          <ExperimentCard
+            key={e.experiment_id}
+            exp={e}
+            onStatusChange={load}
+            defaultOpen={focusExperimentId === e.experiment_id}
+          />
+        ))}
       </div>
     </div>
   );
