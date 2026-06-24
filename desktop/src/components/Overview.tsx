@@ -19,8 +19,10 @@ import { RulingBadge } from "./RulingBadge";
 import {
   ATTENTION_ONLY_KEY,
   TREND_DAYS_KEY,
+  OVERVIEW_DATE_KEY,
   TREND_DAY_OPTIONS,
   readAttentionOnlyPreference,
+  readOverviewDatePreference,
   readTrendDaysPreference,
   isSnapshotStale,
   type TrendDayOption,
@@ -60,7 +62,7 @@ export function Overview({
   onOpenSnapshots: (snapshotDate: string, experimentId?: string) => void;
   dataRevision?: number;
 }) {
-  const [date, setDate] = useState(todayStr());
+  const [date, setDate] = useState(readOverviewDatePreference);
   const [report, setReport] = useState<DailyReport | null>(null);
   const [pending, setPending] = useState<ApprovalRecord[]>([]);
   const [health, setHealth] = useState<OperatorHealthPanel | null>(null);
@@ -112,6 +114,14 @@ export function Overview({
       // ignore storage errors in non-browser contexts
     }
   }, [trendDays]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(OVERVIEW_DATE_KEY, date);
+    } catch {
+      // ignore storage errors in non-browser contexts
+    }
+  }, [date]);
 
   const m = report?.metrics;
 
