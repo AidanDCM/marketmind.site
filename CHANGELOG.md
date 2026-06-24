@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-23 — Slice 90: Persist Overview selected date
+
+### Slice 90: Remember Overview date picker across sessions
+
+- **`overviewPreferences.ts`** — persists selected Overview date in `localStorage`; rejects future or invalid values.
+- **Overview** — restores saved date on load and writes changes back to storage.
+
+---
+
 ## 2026-06-23 — Slice 89: Overview data refresh and preflight experiment links
 
 ### Slice 89: Refresh Overview after operator actions; link preflight attention rows
