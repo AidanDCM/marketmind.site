@@ -31,4 +31,19 @@ describe("usePendingApprovalCount", () => {
       expect(result.current).toBe(2);
     });
   });
+
+  it("refetches when refresh token changes", async () => {
+    vi.mocked(fetchPendingApprovals)
+      .mockResolvedValueOnce([{ id: "a1", status: "pending" } as never])
+      .mockResolvedValueOnce([]);
+
+    const { result, rerender } = renderHook(
+      ({ token }) => usePendingApprovalCount(true, token),
+      { initialProps: { token: 0 } },
+    );
+
+    await waitFor(() => expect(result.current).toBe(1));
+    rerender({ token: 1 });
+    await waitFor(() => expect(result.current).toBe(0));
+  });
 });

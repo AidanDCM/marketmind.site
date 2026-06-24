@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchPendingApprovals } from "./api/client";
 
-export function usePendingApprovalCount(apiOk: boolean | null): number {
+export function usePendingApprovalCount(apiOk: boolean | null, refreshToken = 0): number {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
@@ -18,7 +18,7 @@ export function usePendingApprovalCount(apiOk: boolean | null): number {
     refresh();
     const id = window.setInterval(refresh, 15_000);
     return () => window.clearInterval(id);
-  }, [apiOk]);
+  }, [apiOk, refreshToken]);
 
   return count;
 }

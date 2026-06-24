@@ -19,4 +19,5 @@ export type PageContext = {
   experimentId?: string;
   trendDays?: number;
   attentionOnly?: boolean;
+  focusApprovalId?: string;
 };
