@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-23 — Slice 78: Trend-summary day bounds and Chart from Active Experiments
+
+### Slice 78: Cap trend lookback at 90 days; Chart shortcut on experiment cards
+
+- **`normalize_trend_summary_days`** — shared 1–90 validation for `GET /experiment/trend-summary`.
+- **Active Experiments** — Chart button opens Trend page with experiment pre-filled (30d).
+- **CI deploy-verify** — also runs `check_operator_readiness.py --api` after deploy smoke.
+
+---
+
 ## 2026-06-23 — Slice 77: Overview trend row navigation
 
 ### Slice 77: Jump from Overview to Trend chart or experiment details

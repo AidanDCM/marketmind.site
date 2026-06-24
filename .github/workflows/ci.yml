@@ -46,6 +46,7 @@ jobs:
           done
           curl -sf http://127.0.0.1:8000/health
           MARKETMIND_API_BASE=http://127.0.0.1:8000 python scripts/verify_marketmind_deploy.py
+          MARKETMIND_API_BASE=http://127.0.0.1:8000 python scripts/check_operator_readiness.py --api
 
   frontend:
     name: Desktop frontend (typecheck + build)

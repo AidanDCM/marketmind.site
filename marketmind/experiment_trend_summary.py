@@ -14,6 +14,17 @@ from .schemas import ExperimentSnapshot
 
 _CAC_FLAT_EPSILON = 0.01
 _ATTENTION_RULINGS = {"kill", "pause_ads", "scale_requires_approval"}
+MIN_TREND_SUMMARY_DAYS = 1
+MAX_TREND_SUMMARY_DAYS = 90
+
+
+def normalize_trend_summary_days(days: int) -> int:
+    """Clamp-validated lookback window for trend summary queries."""
+    if days < MIN_TREND_SUMMARY_DAYS:
+        raise ValueError(f"days must be at least {MIN_TREND_SUMMARY_DAYS}")
+    if days > MAX_TREND_SUMMARY_DAYS:
+        raise ValueError(f"days must be at most {MAX_TREND_SUMMARY_DAYS}")
+    return days
 
 
 def _needs_attention(ruling: str | None, above_break_even: bool | None) -> bool:
@@ -57,6 +68,7 @@ def build_experiment_trend_summary(
     attention_only: bool = False,
 ) -> dict:
     """Summarize CAC direction for each active experiment over a lookback window."""
+    days = normalize_trend_summary_days(days)
     as_of = as_of_date or datetime.date.today().isoformat()
     as_of_day = datetime.date.fromisoformat(as_of)
     cutoff = (as_of_day - datetime.timedelta(days=days)).isoformat()

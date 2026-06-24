@@ -216,10 +216,12 @@ function ExperimentCard({
   exp,
   onStatusChange,
   defaultOpen = false,
+  onOpenTrend,
 }: {
   exp: ActiveExperiment;
   onStatusChange: () => void;
   defaultOpen?: boolean;
+  onOpenTrend?: (experimentId: string) => void;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(defaultOpen);
@@ -254,6 +256,19 @@ function ExperimentCard({
           <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 3 }}>{exp.product_name}</div>
         </div>
         <div className="approval-meta" style={{ flexShrink: 0 }}>
+          {onOpenTrend && (
+            <button
+              type="button"
+              className="btn-ghost"
+              style={{ fontSize: 12, padding: "2px 8px" }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenTrend(exp.experiment_id);
+              }}
+            >
+              Chart
+            </button>
+          )}
           <RulingBadge ruling={exp.ruling} />
           {exp.actual_cac !== null && (
             <span style={{ fontSize: 12, color: cacOver ? "var(--red)" : "var(--green)", fontWeight: 600 }}>
@@ -326,8 +341,10 @@ const STATUS_FILTERS = ["all", "active", "ended"] as const;
 
 export function ActiveExperiments({
   focusExperimentId = null,
+  onOpenTrend,
 }: {
   focusExperimentId?: string | null;
+  onOpenTrend?: (experimentId: string) => void;
 } = {}) {
   const [experiments, setExperiments] = useState<ActiveExperiment[]>([]);
   const [loading, setLoading] = useState(false);
@@ -404,6 +421,7 @@ export function ActiveExperiments({
             exp={e}
             onStatusChange={load}
             defaultOpen={focusExperimentId === e.experiment_id}
+            onOpenTrend={onOpenTrend}
           />
         ))}
       </div>
