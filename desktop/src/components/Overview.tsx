@@ -3,14 +3,17 @@ import {
   fetchDailyReport,
   fetchPendingApprovals,
   fetchOperatorHealthPanel,
+  fetchOperatorReadiness,
   fetchExperimentTrendSummary,
   runOperatorDailyCycle,
   type DailyReport,
   type ApprovalRecord,
   type OperatorHealthPanel,
+  type OperatorReadiness,
   type ExperimentTrendSummary,
 } from "../api/client";
 import { OperatorHealthPanelView } from "./OperatorHealthPanel";
+import { OperatorReadinessBanner } from "./OperatorReadinessBanner";
 
 function todayStr(): string {
   return new Date().toISOString().slice(0, 10);
@@ -36,6 +39,7 @@ export function Overview() {
   const [report, setReport] = useState<DailyReport | null>(null);
   const [pending, setPending] = useState<ApprovalRecord[]>([]);
   const [health, setHealth] = useState<OperatorHealthPanel | null>(null);
+  const [readiness, setReadiness] = useState<OperatorReadiness | null>(null);
   const [trendSummary, setTrendSummary] = useState<ExperimentTrendSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [cycleRunning, setCycleRunning] = useState(false);
@@ -49,13 +53,15 @@ export function Overview() {
       fetchDailyReport(date),
       fetchPendingApprovals(),
       fetchOperatorHealthPanel(date),
+      fetchOperatorReadiness(date),
       fetchExperimentTrendSummary(14, date),
     ])
-      .then(([r, p, h, trends]) => {
+      .then(([r, p, h, ready, trends]) => {
         if (!cancelled) {
           setReport(r);
           setPending(p);
           setHealth(h);
+          setReadiness(ready);
           setTrendSummary(trends);
         }
       })
@@ -71,15 +77,17 @@ export function Overview() {
     setError(null);
     try {
       await runOperatorDailyCycle(date);
-      const [r, p, h, trends] = await Promise.all([
+      const [r, p, h, ready, trends] = await Promise.all([
         fetchDailyReport(date),
         fetchPendingApprovals(),
         fetchOperatorHealthPanel(date),
+        fetchOperatorReadiness(date),
         fetchExperimentTrendSummary(14, date),
       ]);
       setReport(r);
       setPending(p);
       setHealth(h);
+      setReadiness(ready);
       setTrendSummary(trends);
     } catch (e) {
       setError((e as Error).message);
@@ -97,6 +105,8 @@ export function Overview() {
         </div>
         <input type="date" value={date} max={todayStr()} onChange={(e) => setDate(e.target.value)} style={{ width: 160 }} />
       </div>
+
+      {readiness && <OperatorReadinessBanner readiness={readiness} />}
 
       {health && (
         <OperatorHealthPanelView

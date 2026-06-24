@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-23 — Slice 69: Operator readiness banner on Overview
+
+### Slice 69: Readiness status in the desktop Overview
+
+- **`OperatorReadinessBanner.tsx`** — shows ready/not-ready, integration summary, blockers, and warnings.
+- **Overview** — fetches `GET /operator/readiness` for the selected date and refreshes after run-cycle.
+
+---
+
 ## 2026-06-23 — Slice 68: Trend summary as-of date
 
 ### Slice 68: Overview date scopes CAC trends
