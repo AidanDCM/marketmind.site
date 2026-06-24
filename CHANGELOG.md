@@ -2,6 +2,14 @@
 
 ---
 
+## 2026-06-23 — Slice 107: Cycle and snapshot-complete links
+
+### Slice 107: Jump from last cycle and complete snapshot gaps
+
+- **Operator health panel** — last cycle shows **View experiments** when evaluations ran; complete snapshot summary shows **View snapshots**.
+
+---
+
 ## 2026-06-23 — Slice 106: Generic daily report risk links
 
 ### Slice 106: Jump from portfolio-wide risks to Active Experiments
