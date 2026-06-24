@@ -88,6 +88,17 @@ export function OperatorHealthPanelView({
             {portfolio.needs_attention}
           </div>
         </div>
+        <div
+          className="metric-card"
+          style={preflight.pending_approvals > 0 && onOpenApprovals ? { cursor: "pointer" } : undefined}
+          onClick={preflight.pending_approvals > 0 && onOpenApprovals ? onOpenApprovals : undefined}
+          title={preflight.pending_approvals > 0 && onOpenApprovals ? "Open approval queue" : undefined}
+        >
+          <div className="metric-label">Pending approvals</div>
+          <div className={`metric-value ${preflight.pending_approvals > 0 ? "metric-down" : "metric-up"}`}>
+            {preflight.pending_approvals}
+          </div>
+        </div>
         <div className="metric-card">
           <div className="metric-label">Lessons recorded</div>
           <div className="metric-value">{portfolio.lessons_recorded}</div>
@@ -127,6 +138,16 @@ export function OperatorHealthPanelView({
               <div style={{ fontSize: 13 }}>
                 {health.last_cycle.experiments_evaluated} experiment(s) evaluated ·{" "}
                 {health.last_cycle.approvals_created} approval(s) queued
+                {health.last_cycle.approvals_created > 0 && onOpenApprovals && (
+                  <button
+                    type="button"
+                    className="inline-link inline-link-danger"
+                    style={{ marginLeft: 6, fontSize: 13 }}
+                    onClick={onOpenApprovals}
+                  >
+                    Open queue
+                  </button>
+                )}
               </div>
             </div>
             {onRunCycle && (
