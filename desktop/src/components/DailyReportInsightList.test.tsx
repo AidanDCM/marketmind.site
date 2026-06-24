@@ -29,4 +29,21 @@ describe("DailyReportInsightList", () => {
     );
     expect(screen.queryByRole("button", { name: "View experiment" })).toBeNull();
   });
+
+  it("opens approval queue for scale recommendations", () => {
+    const onOpenApprovals = vi.fn();
+    render(
+      <DailyReportInsightList
+        title="Recommendations"
+        bulletClass="rec"
+        items={[
+          "Silicone Mat: hitting scale criteria (CAC $24.00, 8 orders) — submit scale request for approval.",
+        ]}
+        experiments={[{ experiment_id: "exp-1", product_name: "Silicone Mat" }]}
+        onOpenApprovals={onOpenApprovals}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Open queue" }));
+    expect(onOpenApprovals).toHaveBeenCalledOnce();
+  });
 });

@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-23 — Slice 101: Scale recommendation approval link
+
+### Slice 101: Jump from scale recommendations to Approval Queue
+
+- **`dailyReportNavigation.ts`** — scale recommendations (`submit scale request for approval`) resolve to queue navigation.
+- **Recommendations card** — shows **Open queue** instead of **View experiment** for scale-ready products.
+
+---
+
 ## 2026-06-23 — Slice 100: Daily report experiment links
 
 ### Slice 100: Jump from risks and recommendations to experiment details

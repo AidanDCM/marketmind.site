@@ -34,3 +34,31 @@ export function resolveExperimentIdForReportLine(
   }
   return lookup.get(productName.toLowerCase());
 }
+
+export const SCALE_APPROVAL_PHRASE = "submit scale request for approval";
+
+export type DailyReportLineAction =
+  | { kind: "experiment"; experimentId: string }
+  | { kind: "approvals" };
+
+export function isScaleApprovalRecommendation(text: string): boolean {
+  return text.toLowerCase().includes(SCALE_APPROVAL_PHRASE);
+}
+
+export function resolveDailyReportLineAction(
+  text: string,
+  lookup: Map<string, string>,
+): DailyReportLineAction | null {
+  const experimentId = resolveExperimentIdForReportLine(text, lookup);
+  if (!experimentId) {
+    return null;
+  }
+  if (isScaleApprovalRecommendation(text)) {
+    return { kind: "approvals" };
+  }
+  return { kind: "experiment", experimentId };
+}
+
+export function dailyReportLineActionLabel(action: DailyReportLineAction): string {
+  return action.kind === "approvals" ? "Open queue" : "View experiment";
+}

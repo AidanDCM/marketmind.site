@@ -3,6 +3,8 @@ import {
   buildExperimentProductLookup,
   parseDailyReportProductPrefix,
   resolveExperimentIdForReportLine,
+  resolveDailyReportLineAction,
+  isScaleApprovalRecommendation,
 } from "./dailyReportNavigation";
 
 describe("dailyReportNavigation", () => {
@@ -29,5 +31,18 @@ describe("dailyReportNavigation", () => {
     expect(
       resolveExperimentIdForReportLine("Unknown Product: CAC $50.00 above break-even $30.00.", lookup),
     ).toBeUndefined();
+  });
+
+  it("routes scale recommendations to the approval queue", () => {
+    const line =
+      "Silicone Mat: hitting scale criteria (CAC $24.00, 8 orders) — submit scale request for approval.";
+    expect(isScaleApprovalRecommendation(line)).toBe(true);
+    expect(resolveDailyReportLineAction(line, lookup)).toEqual({ kind: "approvals" });
+  });
+
+  it("routes product risks to experiment details", () => {
+    expect(
+      resolveDailyReportLineAction("Silicone Mat: CAC $42.00 above break-even $30.00.", lookup),
+    ).toEqual({ kind: "experiment", experimentId: "exp-1" });
   });
 });
