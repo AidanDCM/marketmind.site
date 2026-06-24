@@ -13,6 +13,7 @@ import {
   type ExperimentTrendSummary,
 } from "../api/client";
 import { pendingApprovalBannerText } from "../approvalDisplay";
+import { runOverviewDailyCycle } from "../overviewDailyCycle";
 import { OperatorHealthPanelView } from "./OperatorHealthPanel";
 import { OperatorReadinessBanner } from "./OperatorReadinessBanner";
 import { RulingBadge } from "./RulingBadge";
@@ -54,6 +55,7 @@ export function Overview({
   onOpenAttention,
   onOpenSnapshots,
   dataRevision = 0,
+  onCycleComplete,
 }: {
   onOpenTrend: (experimentId: string, trendDays: number) => void;
   onOpenActive: (experimentId: string) => void;
@@ -61,6 +63,7 @@ export function Overview({
   onOpenAttention: () => void;
   onOpenSnapshots: (snapshotDate: string, experimentId?: string) => void;
   dataRevision?: number;
+  onCycleComplete?: () => void;
 }) {
   const [date, setDate] = useState(readOverviewDatePreference);
   const [report, setReport] = useState<DailyReport | null>(null);
@@ -129,14 +132,20 @@ export function Overview({
     setCycleRunning(true);
     setError(null);
     try {
-      await runOperatorDailyCycle(date);
-      const [r, p, h, ready, trends] = await Promise.all([
-        fetchDailyReport(date),
-        fetchPendingApprovals(),
-        fetchOperatorHealthPanel(date),
-        fetchOperatorReadiness(date),
-        fetchExperimentTrendSummary(trendDays, date, attentionOnly),
-      ]);
+      const [r, p, h, ready, trends] = await runOverviewDailyCycle({
+        date,
+        trendDays,
+        attentionOnly,
+        runCycle: runOperatorDailyCycle,
+        fetchOverviewData: async (d, td, att) => Promise.all([
+          fetchDailyReport(d),
+          fetchPendingApprovals(),
+          fetchOperatorHealthPanel(d),
+          fetchOperatorReadiness(d),
+          fetchExperimentTrendSummary(td, d, att),
+        ]),
+        onCycleComplete,
+      });
       setReport(r);
       setPending(p);
       setHealth(h);

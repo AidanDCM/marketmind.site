@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-23 — Slice 92: Refresh nav badges after daily cycle
+
+### Slice 92: Sidebar counts update when operator daily cycle completes
+
+- **`overviewDailyCycle.ts`** — shared run-cycle + refetch helper; fires `onCycleComplete` only on success.
+- **Overview** — bumps `navRefresh` after daily cycle so approval and attention badges refresh immediately.
+
+---
+
 ## 2026-06-23 — Slice 91: Link readiness banner blockers
 
 ### Slice 91: Operator readiness banner shortcuts to fix blockers
