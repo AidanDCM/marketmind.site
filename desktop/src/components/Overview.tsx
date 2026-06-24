@@ -34,6 +34,20 @@ function trendArrow(direction: ExperimentTrendSummary["experiments"][number]["ca
   return "·";
 }
 
+const ATTENTION_ONLY_KEY = "marketmind_attention_only";
+
+function readAttentionOnlyPreference(): boolean {
+  try {
+    return localStorage.getItem(ATTENTION_ONLY_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function isSnapshotStale(snapshotDate: string | null, asOf: string): boolean {
+  return snapshotDate != null && snapshotDate < asOf;
+}
+
 export function Overview() {
   const [date, setDate] = useState(todayStr());
   const [report, setReport] = useState<DailyReport | null>(null);
@@ -41,7 +55,7 @@ export function Overview() {
   const [health, setHealth] = useState<OperatorHealthPanel | null>(null);
   const [readiness, setReadiness] = useState<OperatorReadiness | null>(null);
   const [trendSummary, setTrendSummary] = useState<ExperimentTrendSummary | null>(null);
-  const [attentionOnly, setAttentionOnly] = useState(false);
+  const [attentionOnly, setAttentionOnly] = useState(readAttentionOnlyPreference);
   const [loading, setLoading] = useState(false);
   const [cycleRunning, setCycleRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,6 +84,14 @@ export function Overview() {
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [date, attentionOnly]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(ATTENTION_ONLY_KEY, attentionOnly ? "true" : "false");
+    } catch {
+      // ignore storage errors in non-browser contexts
+    }
+  }, [attentionOnly]);
 
   const m = report?.metrics;
 
@@ -171,8 +193,17 @@ export function Overview() {
                     {exp.latest_cac != null ? fmt$(exp.latest_cac) : "—"}
                   </td>
                   <td style={{ padding: "6px 8px" }}>{fmt$(exp.break_even_cac)}</td>
-                  <td style={{ padding: "6px 8px", color: "var(--text-muted)" }}>
+                  <td style={{
+                    padding: "6px 8px",
+                    color: isSnapshotStale(exp.latest_snapshot_date, trendSummary.as_of)
+                      ? "var(--yellow, #f5a623)"
+                      : "var(--text-muted)",
+                    fontWeight: isSnapshotStale(exp.latest_snapshot_date, trendSummary.as_of) ? 600 : undefined,
+                  }}>
                     {exp.latest_snapshot_date ?? "—"}
+                    {isSnapshotStale(exp.latest_snapshot_date, trendSummary.as_of) && (
+                      <span title="No snapshot on selected date"> · stale</span>
+                    )}
                   </td>
                   <td style={{ padding: "6px 8px", fontWeight: 600,
                     color: exp.cac_direction === "up" ? "var(--red, #ef4444)"
