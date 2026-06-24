@@ -1,6 +1,7 @@
 import {
   buildExperimentProductLookup,
-  resolveExperimentIdForReportLine,
+  dailyReportLineActionLabel,
+  resolveDailyReportLineAction,
   type ExperimentProductLookup,
 } from "../dailyReportNavigation";
 
@@ -10,6 +11,7 @@ interface DailyReportInsightListProps {
   bulletClass: "risk" | "rec";
   experiments: ExperimentProductLookup[];
   onOpenActive?: (experimentId: string) => void;
+  onOpenApprovals?: () => void;
 }
 
 export function DailyReportInsightList({
@@ -18,6 +20,7 @@ export function DailyReportInsightList({
   bulletClass,
   experiments,
   onOpenActive,
+  onOpenApprovals,
 }: DailyReportInsightListProps) {
   const lookup = buildExperimentProductLookup([experiments]);
 
@@ -30,20 +33,30 @@ export function DailyReportInsightList({
         </div>
       ) : (
         items.map((item, i) => {
-          const experimentId = resolveExperimentIdForReportLine(item, lookup);
+          const action = resolveDailyReportLineAction(item, lookup);
+          const canAct = action != null && (
+            (action.kind === "experiment" && onOpenActive)
+            || (action.kind === "approvals" && onOpenApprovals)
+          );
           return (
             <div key={i} className="list-item">
               <div className={`bullet ${bulletClass}`} />
               <div className="list-text">
                 {item}
-                {experimentId && onOpenActive && (
+                {canAct && action && (
                   <button
                     type="button"
                     className="inline-link"
                     style={{ marginLeft: 6, fontSize: 12 }}
-                    onClick={() => onOpenActive(experimentId)}
+                    onClick={() => {
+                      if (action.kind === "approvals") {
+                        onOpenApprovals?.();
+                      } else {
+                        onOpenActive?.(action.experimentId);
+                      }
+                    }}
                   >
-                    View experiment
+                    {dailyReportLineActionLabel(action)}
                   </button>
                 )}
               </div>

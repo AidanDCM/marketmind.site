@@ -417,6 +417,7 @@ export function Overview({
               items={report!.recommendations}
               experiments={reportExperimentLookup}
               onOpenActive={onOpenActive}
+              onOpenApprovals={() => onOpenApprovals(pending[0]?.approval_id)}
             />
           </div>
 
