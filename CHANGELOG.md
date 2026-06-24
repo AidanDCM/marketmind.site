@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-23 — Slice 70: Trend attention highlighting
+
+### Slice 70: Flag experiments needing attention in CAC trends
+
+- **Trend summary** — `needs_attention` per experiment, `needs_attention_count`, sorted attention-first.
+- **`GET /experiment/trend-summary?attention_only=true`** — filter to flagged experiments only.
+- **Overview** — BEP column, red CAC when above break-even, row highlight + attention count.
+
+---
+
 ## 2026-06-23 — Slice 69: Operator readiness banner on Overview
 
 ### Slice 69: Readiness status in the desktop Overview

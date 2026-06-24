@@ -71,10 +71,12 @@ def experiment_trend_summary(
     request: Request,
     days: int = 14,
     as_of: str | None = None,
+    attention_only: bool = False,
 ) -> dict:
     """CAC trend summary for active experiments over the last ``days`` (default 14).
 
     Optional ``as_of`` (ISO) ends the lookback window on that date (default today).
+    ``attention_only=true`` returns only experiments flagged for operator attention.
     """
     if days < 1:
         raise HTTPException(status_code=422, detail="days must be at least 1")
@@ -88,7 +90,12 @@ def experiment_trend_summary(
     from ...experiment_trend_summary import build_experiment_trend_summary
 
     engine = request.app.state.engine
-    return build_experiment_trend_summary(engine, days=days, as_of_date=as_of)
+    return build_experiment_trend_summary(
+        engine,
+        days=days,
+        as_of_date=as_of,
+        attention_only=attention_only,
+    )
 
 
 @router.get("/active")
