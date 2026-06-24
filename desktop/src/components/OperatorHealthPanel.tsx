@@ -41,6 +41,7 @@ interface OperatorHealthPanelProps {
   onOpenSnapshots?: (snapshotDate: string, experimentId?: string) => void;
   onOpenActiveList?: () => void;
   onOpenLessons?: () => void;
+  onOpenImportHistory?: () => void;
 }
 
 export function OperatorHealthPanelView({
@@ -54,6 +55,7 @@ export function OperatorHealthPanelView({
   onOpenSnapshots,
   onOpenActiveList,
   onOpenLessons,
+  onOpenImportHistory,
 }: OperatorHealthPanelProps) {
   const { preflight, integrations, portfolio, ad_spend: adSpendBlock } = health;
   const adSpend = adSpendBlock.has_data && adSpendBlock.summary ? adSpendBlock.summary : null;
@@ -231,7 +233,12 @@ export function OperatorHealthPanelView({
 
       {adSpend && (
         <div className="metric-grid" style={{ marginBottom: 14 }}>
-          <div className="metric-card">
+          <div
+            className="metric-card"
+            style={onOpenImportHistory ? { cursor: "pointer" } : undefined}
+            onClick={onOpenImportHistory}
+            title={onOpenImportHistory ? "Open Import History" : undefined}
+          >
             <div className="metric-label">Imported ad spend</div>
             <div className="metric-value">
               {adSpend.total_spend.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}

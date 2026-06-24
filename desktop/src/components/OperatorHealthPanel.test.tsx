@@ -99,4 +99,30 @@ describe("OperatorHealthPanelView", () => {
     fireEvent.click(screen.getByTitle("Open Lessons library"));
     expect(onOpenLessons).toHaveBeenCalledOnce();
   });
+
+  it("opens import history from imported ad spend metric", () => {
+    const onOpenImportHistory = vi.fn();
+    const health: OperatorHealthPanel = {
+      ...baseHealth,
+      ad_spend: {
+        has_data: true,
+        summary: {
+          batch_id: 1,
+          source: "csv",
+          pulled_at: "2026-06-23T10:00:00Z",
+          campaigns: 3,
+          total_spend: 1200,
+          total_clicks: 400,
+          total_impressions: 10000,
+          total_purchases: 12,
+          total_revenue: 2400,
+        },
+      },
+    };
+    render(
+      <OperatorHealthPanelView health={health} onOpenImportHistory={onOpenImportHistory} />,
+    );
+    fireEvent.click(screen.getByTitle("Open Import History"));
+    expect(onOpenImportHistory).toHaveBeenCalledOnce();
+  });
 });

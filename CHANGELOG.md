@@ -2,6 +2,14 @@
 
 ---
 
+## 2026-06-23 — Slice 98: Ad spend import history link
+
+### Slice 98: Jump from imported ad spend to Import History
+
+- **Operator health panel** — clickable **Imported ad spend** metric opens Import History when ad CSV data exists.
+
+---
+
 ## 2026-06-23 — Slice 97: Overview lessons library link
 
 ### Slice 97: Jump from daily report lessons to Lessons library
