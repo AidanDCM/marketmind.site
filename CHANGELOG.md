@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-23 — Slice 65: CI deploy verification job
+
+### Slice 65: Run verify script against live API in CI
+
+- **`marketmind/deploy_verify.py`** — testable `verify_marketmind_deploy()` extracted from the script.
+- **CI `deploy-verify` job** — starts uvicorn, polls `/health`, runs `verify_marketmind_deploy.py`.
+- **`scripts/verify_marketmind_deploy.py`** — thin CLI wrapper over the shared module.
+
+---
+
 ## 2026-06-23 — Slice 64: Health panel snapshot date
 
 ### Slice 64: Overview date drives snapshot-gap checks

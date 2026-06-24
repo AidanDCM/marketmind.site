@@ -78,6 +78,9 @@ Healthy: `health.status == "ok"`. Review `preflight.blockers` before any live
 execution. If `MARKETMIND_API_TOKEN` is set, add
 `-H "Authorization: Bearer <token>"` to every call except `/health`.
 
+CI runs the same verifier against a temporary uvicorn instance on every push/PR
+(see `.github/workflows/ci.yml`, job `deploy-verify`).
+
 ### Rollback
 
 ```powershell
