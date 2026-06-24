@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-23 — Slice 80: Active Experiments nav attention badge
+
+### Slice 80: Surface experiment attention count in sidebar
+
+- **`useExperimentAttentionCount`** — polls `GET /experiment/portfolio` when API is connected.
+- **Sidebar** — red badge on Active Experiments when `needs_attention > 0`.
+- **Active Experiments Chart** — uses saved Overview lookback preference instead of fixed 30d.
+
+---
+
 ## 2026-06-23 — Slice 79: Shared lookback bounds and 60/90d Overview
 
 ### Slice 79: Align snapshot-trend API and Overview with 1–90 day lookback
