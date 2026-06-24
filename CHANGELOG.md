@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-23 — Slice 91: Link readiness banner blockers
+
+### Slice 91: Operator readiness banner shortcuts to fix blockers
+
+- **`readinessBannerActions.ts`** — maps preflight blocker and snapshot-gap warning text to navigation targets.
+- **Operator readiness banner** — pending approvals, experiment rulings, and missing snapshots link to the right page.
+
+---
+
 ## 2026-06-23 — Slice 90: Persist Overview selected date
 
 ### Slice 90: Remember Overview date picker across sessions

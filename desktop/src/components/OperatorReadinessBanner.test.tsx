@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { OperatorReadinessBanner } from "./OperatorReadinessBanner";
 import type { OperatorReadiness } from "../api/client";
 
@@ -41,5 +41,54 @@ describe("OperatorReadinessBanner", () => {
     );
     expect(screen.getByText(/not ready/)).toBeInTheDocument();
     expect(screen.getByText(/pending approval/)).toBeInTheDocument();
+  });
+
+  it("links pending approval blockers to the queue", () => {
+    const onOpenApprovals = vi.fn();
+    render(
+      <OperatorReadinessBanner
+        readiness={{
+          ...base,
+          ready: false,
+          blockers: ["2 pending approval(s) have not been reviewed"],
+        }}
+        onOpenApprovals={onOpenApprovals}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Open queue" }));
+    expect(onOpenApprovals).toHaveBeenCalledOnce();
+  });
+
+  it("links experiment ruling blockers to experiment details", () => {
+    const onOpenActive = vi.fn();
+    render(
+      <OperatorReadinessBanner
+        readiness={{
+          ...base,
+          ready: false,
+          blockers: ["Experiment 'exp-7' ruling is 'kill' — action required"],
+        }}
+        onOpenActive={onOpenActive}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "View experiment" }));
+    expect(onOpenActive).toHaveBeenCalledWith("exp-7");
+  });
+
+  it("links missing snapshot warnings to snapshot recorder", () => {
+    const onOpenSnapshots = vi.fn();
+    render(
+      <OperatorReadinessBanner
+        readiness={{
+          ...base,
+          warnings: [
+            "2 active experiment(s) missing snapshot for 2026-06-23: exp-a, exp-b",
+          ],
+        }}
+        onOpenSnapshots={onOpenSnapshots}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Record snapshot" }));
+    expect(onOpenSnapshots).toHaveBeenCalledWith("2026-06-23", "exp-a");
   });
 });
