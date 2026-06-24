@@ -28,13 +28,21 @@ def _add_exp(engine, experiment_id: str, *, status: str = "active"):
         session.commit()
 
 
-def _add_snap(engine, experiment_id: str, snap_date: str, orders: int, ad_spend: float):
+def _add_snap(
+    engine,
+    experiment_id: str,
+    snap_date: str,
+    orders: int,
+    ad_spend: float,
+    *,
+    qualified_visits: int = 100,
+):
     with Session(engine) as session:
         session.add(
             ExperimentSnapshotRow(
                 experiment_id=experiment_id,
                 snapshot_date=snap_date,
-                qualified_visits=100,
+                qualified_visits=qualified_visits,
                 orders=orders,
                 total_ad_spend=ad_spend,
                 total_revenue=orders * 60.0,
@@ -43,7 +51,7 @@ def _add_snap(engine, experiment_id: str, snap_date: str, orders: int, ad_spend:
                 planned_shipping_cost=10.0,
                 add_to_cart_count=10,
                 consecutive_losing_periods=0,
-                budget_cap=0.0,
+                budget_cap=100.0,
             )
         )
         session.commit()
@@ -87,3 +95,31 @@ def test_trend_summary_ignores_ended_experiments(engine):
 
     summary = build_experiment_trend_summary(engine)
     assert summary["experiments"] == []
+    assert summary["needs_attention_count"] == 0
+
+
+def test_trend_summary_flags_above_break_even(engine):
+    _add_exp(engine, "exp_hot")
+    _add_snap(engine, "exp_hot", "2026-06-12", orders=5, ad_spend=110.0)
+
+    summary = build_experiment_trend_summary(engine, days=90, as_of_date="2026-06-12")
+    row = summary["experiments"][0]
+    assert row["above_break_even"] is True
+    assert row["needs_attention"] is True
+    assert summary["needs_attention_count"] == 1
+
+
+def test_trend_summary_attention_only_filter(engine):
+    _add_exp(engine, "exp_ok")
+    _add_exp(engine, "exp_hot")
+    _add_snap(engine, "exp_ok", "2026-06-12", orders=5, ad_spend=50.0, qualified_visits=50)
+    _add_snap(engine, "exp_hot", "2026-06-12", orders=5, ad_spend=110.0)
+
+    summary = build_experiment_trend_summary(
+        engine,
+        days=90,
+        as_of_date="2026-06-12",
+        attention_only=True,
+    )
+    assert len(summary["experiments"]) == 1
+    assert summary["experiments"][0]["experiment_id"] == "exp_hot"

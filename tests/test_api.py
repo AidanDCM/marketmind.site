@@ -627,6 +627,7 @@ def test_experiment_trend_summary_endpoint(client):
     data = resp.json()
     assert data["days"] == 7
     assert "as_of" in data
+    assert "needs_attention_count" in data
     assert data["experiments"] == []
 
 

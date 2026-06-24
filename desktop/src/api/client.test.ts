@@ -154,10 +154,19 @@ describe("api client", () => {
   });
 
   it("fetches experiment trend summary", async () => {
-    const fn = mockFetch({ days: 14, as_of: "2026-06-20", experiments: [] });
+    const fn = mockFetch({ days: 14, as_of: "2026-06-20", needs_attention_count: 0, experiments: [] });
     const { fetchExperimentTrendSummary } = await import("./client");
     await fetchExperimentTrendSummary(14, "2026-06-20");
     expect(fn.mock.calls[0][0]).toBe("http://127.0.0.1:8000/experiment/trend-summary?days=14&as_of=2026-06-20");
+  });
+
+  it("fetches attention-only trend summary", async () => {
+    const fn = mockFetch({ days: 14, as_of: "2026-06-20", needs_attention_count: 1, experiments: [] });
+    const { fetchExperimentTrendSummary } = await import("./client");
+    await fetchExperimentTrendSummary(14, "2026-06-20", true);
+    expect(fn.mock.calls[0][0]).toBe(
+      "http://127.0.0.1:8000/experiment/trend-summary?days=14&as_of=2026-06-20&attention_only=true",
+    );
   });
 
   it("fetches operator readiness", async () => {

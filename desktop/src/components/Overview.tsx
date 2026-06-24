@@ -118,26 +118,42 @@ export function Overview() {
 
       {trendSummary && trendSummary.experiments.length > 0 && (
         <div className="card" style={{ marginBottom: 14 }}>
-          <div className="card-title">Active experiment CAC trends ({trendSummary.days}d through {trendSummary.as_of})</div>
+          <div className="card-title">
+            Active experiment CAC trends ({trendSummary.days}d through {trendSummary.as_of})
+            {trendSummary.needs_attention_count > 0 && (
+              <span style={{ color: "var(--red, #ef4444)", fontWeight: 600, marginLeft: 8 }}>
+                · {trendSummary.needs_attention_count} need attention
+              </span>
+            )}
+          </div>
           <table style={{ width: "100%", fontSize: 13, borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ textAlign: "left", color: "var(--text-muted)" }}>
                 <th style={{ padding: "4px 8px 4px 0" }}>Experiment</th>
                 <th style={{ padding: "4px 8px" }}>Latest CAC</th>
+                <th style={{ padding: "4px 8px" }}>BEP</th>
                 <th style={{ padding: "4px 8px" }}>Trend</th>
                 <th style={{ padding: "4px 0 4px 8px" }}>Ruling</th>
               </tr>
             </thead>
             <tbody>
               {trendSummary.experiments.map(exp => (
-                <tr key={exp.experiment_id}>
+                <tr
+                  key={exp.experiment_id}
+                  style={exp.needs_attention ? { background: "rgba(239, 68, 68, 0.06)" } : undefined}
+                >
                   <td style={{ padding: "6px 8px 6px 0" }}>
                     <code>{exp.experiment_id}</code>
                     <div style={{ color: "var(--text-muted)", fontSize: 12 }}>{exp.product_name}</div>
                   </td>
-                  <td style={{ padding: "6px 8px" }}>
+                  <td style={{
+                    padding: "6px 8px",
+                    color: exp.above_break_even ? "var(--red, #ef4444)" : undefined,
+                    fontWeight: exp.above_break_even ? 600 : undefined,
+                  }}>
                     {exp.latest_cac != null ? fmt$(exp.latest_cac) : "—"}
                   </td>
+                  <td style={{ padding: "6px 8px" }}>{fmt$(exp.break_even_cac)}</td>
                   <td style={{ padding: "6px 8px", fontWeight: 600,
                     color: exp.cac_direction === "up" ? "var(--red, #ef4444)"
                       : exp.cac_direction === "down" ? "var(--green, #22c55e)"

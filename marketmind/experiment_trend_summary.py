@@ -13,6 +13,13 @@ from .experiment_rules import evaluate_experiment
 from .schemas import ExperimentSnapshot
 
 _CAC_FLAT_EPSILON = 0.01
+_ATTENTION_RULINGS = {"kill", "pause_ads", "scale_requires_approval"}
+
+
+def _needs_attention(ruling: str | None, above_break_even: bool | None) -> bool:
+    if ruling in _ATTENTION_RULINGS:
+        return True
+    return above_break_even is True
 
 
 def _snapshot_from_row(exp: ExperimentRow, row: ExperimentSnapshotRow) -> ExperimentSnapshot:
@@ -46,6 +53,8 @@ def build_experiment_trend_summary(
     engine: Engine,
     days: int = 14,
     as_of_date: str | None = None,
+    *,
+    attention_only: bool = False,
 ) -> dict:
     """Summarize CAC direction for each active experiment over a lookback window."""
     as_of = as_of_date or datetime.date.today().isoformat()
@@ -95,6 +104,23 @@ def build_experiment_trend_summary(
             "cac_direction": _cac_direction(latest_cac, prior_cac),
             "ruling": ruling,
             "above_break_even": above_break_even,
+            "needs_attention": _needs_attention(ruling, above_break_even),
         })
 
-    return {"days": days, "as_of": as_of, "experiments": experiments}
+    if attention_only:
+        experiments = [row for row in experiments if row["needs_attention"]]
+
+    experiments.sort(
+        key=lambda row: (
+            0 if row["needs_attention"] else 1,
+            row["experiment_id"],
+        )
+    )
+    needs_attention_count = sum(1 for row in experiments if row["needs_attention"])
+
+    return {
+        "days": days,
+        "as_of": as_of,
+        "needs_attention_count": needs_attention_count,
+        "experiments": experiments,
+    }

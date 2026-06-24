@@ -293,17 +293,24 @@ export interface ExperimentTrendSummaryItem {
   cac_direction: "up" | "down" | "flat" | "unknown";
   ruling: string | null;
   above_break_even: boolean | null;
+  needs_attention: boolean;
 }
 
 export interface ExperimentTrendSummary {
   days: number;
   as_of: string;
+  needs_attention_count: number;
   experiments: ExperimentTrendSummaryItem[];
 }
 
-export function fetchExperimentTrendSummary(days = 14, asOf?: string): Promise<ExperimentTrendSummary> {
+export function fetchExperimentTrendSummary(
+  days = 14,
+  asOf?: string,
+  attentionOnly = false,
+): Promise<ExperimentTrendSummary> {
   const params = new URLSearchParams({ days: String(days) });
   if (asOf) params.set("as_of", asOf);
+  if (attentionOnly) params.set("attention_only", "true");
   return req("GET", `/experiment/trend-summary?${params.toString()}`);
 }
 
