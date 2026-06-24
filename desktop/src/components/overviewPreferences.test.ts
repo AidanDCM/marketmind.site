@@ -16,9 +16,9 @@ describe("overviewPreferences", () => {
   });
 
   it("reads saved trend lookback when valid", () => {
-    localStorage.setItem(TREND_DAYS_KEY, "30");
-    expect(readTrendDaysPreference()).toBe(30);
-    expect(TREND_DAY_OPTIONS).toContain(30);
+    localStorage.setItem(TREND_DAYS_KEY, "60");
+    expect(readTrendDaysPreference()).toBe(60);
+    expect(TREND_DAY_OPTIONS).toContain(60);
   });
 
   it("flags snapshot stale when before as-of date", () => {

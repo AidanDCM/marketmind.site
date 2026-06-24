@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { getSnapshotTrend, type SnapshotRecord } from "../api/client";
-
-const DAY_OPTIONS = [7, 14, 30, 60, 90];
+import { LOOKBACK_DAY_OPTIONS } from "../lookbackOptions";
 
 // ---- tiny SVG line chart ----
 
@@ -211,7 +210,7 @@ export function SnapshotTrend({
             value={days}
             onChange={e => setDays(Number(e.target.value))}
           >
-            {DAY_OPTIONS.map(d => <option key={d} value={d}>{d} days</option>)}
+            {LOOKBACK_DAY_OPTIONS.map(d => <option key={d} value={d}>{d} days</option>)}
           </select>
         </label>
         <button className="btn" onClick={() => load()} disabled={loading || !experimentId.trim()}>

@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-23 — Slice 79: Shared lookback bounds and 60/90d Overview
+
+### Slice 79: Align snapshot-trend API and Overview with 1–90 day lookback
+
+- **`marketmind/lookback.py`** — shared `normalize_lookback_days` (1–90) for trend endpoints.
+- **`GET /snapshots/trend/{id}`** — rejects out-of-range `days` with 422.
+- **Overview** — lookback selector adds 60d and 90d; shared `lookbackOptions.ts` with Trend page.
+
+---
+
 ## 2026-06-23 — Slice 78: Trend-summary day bounds and Chart from Active Experiments
 
 ### Slice 78: Cap trend lookback at 90 days; Chart shortcut on experiment cards

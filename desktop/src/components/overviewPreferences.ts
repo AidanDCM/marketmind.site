@@ -1,8 +1,15 @@
+import {
+  LOOKBACK_DAY_OPTIONS,
+  DEFAULT_LOOKBACK_DAYS,
+  isLookbackDayOption,
+  type LookbackDayOption,
+} from "../lookbackOptions";
+
 export const ATTENTION_ONLY_KEY = "marketmind_attention_only";
 export const TREND_DAYS_KEY = "marketmind_trend_days";
-export const TREND_DAY_OPTIONS = [7, 14, 30] as const;
+export const TREND_DAY_OPTIONS = LOOKBACK_DAY_OPTIONS;
 
-export type TrendDayOption = (typeof TREND_DAY_OPTIONS)[number];
+export type TrendDayOption = LookbackDayOption;
 
 export function readAttentionOnlyPreference(): boolean {
   try {
@@ -15,13 +22,13 @@ export function readAttentionOnlyPreference(): boolean {
 export function readTrendDaysPreference(): TrendDayOption {
   try {
     const raw = Number(localStorage.getItem(TREND_DAYS_KEY));
-    if ((TREND_DAY_OPTIONS as readonly number[]).includes(raw)) {
-      return raw as TrendDayOption;
+    if (isLookbackDayOption(raw)) {
+      return raw;
     }
   } catch {
     // ignore storage errors in non-browser contexts
   }
-  return 14;
+  return DEFAULT_LOOKBACK_DAYS;
 }
 
 export function isSnapshotStale(snapshotDate: string | null, asOf: string): boolean {
