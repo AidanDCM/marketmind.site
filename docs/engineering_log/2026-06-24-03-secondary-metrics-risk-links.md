@@ -1,0 +1,21 @@
+# 2026-06-24 — Secondary metrics risk links (slice 116)
+
+- **Author:** AI agent (Cursor)
+- **Commit(s)/PR:** (this PR)
+- **Where:** `desktop/src/overviewReportSecondaryMetrics.ts`, `desktop/src/components/OverviewReportSecondaryMetrics.tsx`, tests
+- **When:** 2026-06-24 UTC
+- **What changed:**
+  - Extracted `shouldLinkRefundRateToExperiments` (refund rate ≥ 5%, matches Overview metric-down styling).
+  - Extracted `shouldLinkAddToCartToExperiments` (ad spend > 0, zero orders, add-to-cart rate < 3% — mirrors `KILL_ATC_RATE` and daily report zero-order spend risk).
+  - Refund Rate and Add-to-Cart cards link to Active Experiments only when thresholds fire; distinct `title` tooltips for tests.
+  - Contribution Profit link unchanged (always when handler present).
+- **Why (evidence):** Slice 106 linked generic refund/ATC **report lines** to Active Experiments; operators viewing elevated portfolio metrics on Overview had no direct shortcut from the metric cards themselves.
+- **What could still break:**
+  - Portfolio refund threshold (5%) is stricter than kill threshold (10%) in `marketmind/rules.py` — intentional for early UI warning; report risks may not appear until 10%.
+  - Add-to-cart link requires zero orders; low ATC with some orders does not link (matches backend risk only for zero-order spend case).
+- **Verification:**
+  - `python -m pytest -q` → 466 passed
+  - `python -m ruff check .` → all checks passed
+  - `python scripts/local_ci.py` → PASS
+  - Desktop Vitest: `overviewReportSecondaryMetrics.test.ts` + component tests (CI frontend job; npm not in agent shell)
+- **Follow-up:** Conversion metric link TBD; consider shared constants file syncing TS with Python thresholds.
