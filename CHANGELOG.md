@@ -2,6 +2,14 @@
 
 ---
 
+## 2026-06-23 — Slice 113: Overview contribution profit link
+
+### Slice 113: Jump from daily report contribution profit to Active Experiments
+
+- **`OverviewReportSecondaryMetrics`** — daily report **Contribution Profit** metric opens Active Experiments.
+
+---
+
 ## 2026-06-23 — Slice 112: Overview orders Live Data link
 
 ### Slice 112: Jump from daily report orders to Live Data

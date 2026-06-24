@@ -20,6 +20,7 @@ import { DailyReportInsightList } from "./DailyReportInsightList";
 import type { ExperimentProductLookup } from "../dailyReportNavigation";
 import { OperatorReadinessBanner } from "./OperatorReadinessBanner";
 import { OverviewReportPrimaryMetrics } from "./OverviewReportPrimaryMetrics";
+import { OverviewReportSecondaryMetrics } from "./OverviewReportSecondaryMetrics";
 import { RulingBadge } from "./RulingBadge";
 import {
   ATTENTION_ONLY_KEY,
@@ -39,10 +40,6 @@ function todayStr(): string {
 
 function fmt$(n: number): string {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
-}
-
-function fmtPct(n: number): string {
-  return (n * 100).toFixed(1) + "%";
 }
 
 function trendArrow(direction: ExperimentTrendSummary["experiments"][number]["cac_direction"]): string {
@@ -368,28 +365,10 @@ export function Overview({
             onOpenLiveData={onOpenLiveData}
           />
 
-          <div className="metric-grid">
-            <div className="metric-card">
-              <div className="metric-label">Contribution Profit</div>
-              <div className={`metric-value ${m.contribution_profit >= 0 ? "metric-up" : "metric-down"}`}>
-                {fmt$(m.contribution_profit)}
-              </div>
-            </div>
-            <div className="metric-card">
-              <div className="metric-label">Conversion</div>
-              <div className="metric-value">{fmtPct(m.conversion_rate)}</div>
-            </div>
-            <div className="metric-card">
-              <div className="metric-label">Add-to-Cart</div>
-              <div className="metric-value">{fmtPct(m.add_to_cart_rate)}</div>
-            </div>
-            <div className="metric-card">
-              <div className="metric-label">Refund Rate</div>
-              <div className={`metric-value ${m.refund_rate < 0.05 ? "metric-up" : "metric-down"}`}>
-                {fmtPct(m.refund_rate)}
-              </div>
-            </div>
-          </div>
+          <OverviewReportSecondaryMetrics
+            metrics={m}
+            onOpenActiveList={onOpenActiveList}
+          />
 
           <div className="two-col">
             <DailyReportInsightList
