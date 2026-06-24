@@ -125,4 +125,13 @@ describe("OperatorHealthPanelView", () => {
     fireEvent.click(screen.getByTitle("Open Import History"));
     expect(onOpenImportHistory).toHaveBeenCalledOnce();
   });
+
+  it("opens live data from integration metrics", () => {
+    const onOpenLiveData = vi.fn();
+    render(
+      <OperatorHealthPanelView health={baseHealth} onOpenLiveData={onOpenLiveData} />,
+    );
+    fireEvent.click(screen.getAllByTitle("Open Live Data")[0]);
+    expect(onOpenLiveData).toHaveBeenCalledOnce();
+  });
 });

@@ -2,6 +2,14 @@
 
 ---
 
+## 2026-06-23 — Slice 99: Integration metrics link to Live Data
+
+### Slice 99: Jump from Gmail/Stripe/Shopify metrics to Live Data
+
+- **Operator health panel** — Gmail, Stripe, and Shopify metric cards open the Live Data page.
+
+---
+
 ## 2026-06-23 — Slice 98: Ad spend import history link
 
 ### Slice 98: Jump from imported ad spend to Import History

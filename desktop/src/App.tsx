@@ -91,6 +91,10 @@ export function App() {
     navigate("history");
   }
 
+  function openLiveData() {
+    navigate("live");
+  }
+
   useEffect(() => {
     const check = () =>
       fetchHealth().then(() => setApiOk(true)).catch(() => setApiOk(false));
@@ -161,6 +165,7 @@ export function App() {
             onOpenActiveList={openActiveExperimentsList}
             onOpenLessons={openLessonsLibrary}
             onOpenImportHistory={openImportHistory}
+            onOpenLiveData={openLiveData}
           />
         )}
         {page === "approvals" && (
