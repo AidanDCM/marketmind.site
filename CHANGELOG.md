@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-23 — Slice 85: Persist approval filter and badge deep-link
+
+### Slice 85: Remember Approval Queue filter; badge opens first pending item
+
+- **`approvalQueuePreferences.ts`** — persists queue status filter in `localStorage`.
+- **`usePendingApprovalSummary`** — returns pending count plus first `approval_id` for deep links.
+- **Nav approval badge** — opens queue with first pending card focused (matches Overview banner).
+
+---
+
 ## 2026-06-23 — Slice 84: Focus pending approval and refresh nav badges
 
 ### Slice 84: Deep-link to first pending approval; immediate sidebar counts
