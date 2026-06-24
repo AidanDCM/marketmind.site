@@ -62,3 +62,26 @@ export function resolveDailyReportLineAction(
 export function dailyReportLineActionLabel(action: DailyReportLineAction): string {
   return action.kind === "approvals" ? "Open queue" : "View experiment";
 }
+
+export type DailyReportLessonAction =
+  | { kind: "approvals" }
+  | { kind: "live" };
+
+const PENDING_APPROVALS_LESSON =
+  /^(\d+) approval\(s\) pending — unblocking these may unlock next steps\.$/;
+const NO_ORDERS_LESSON_PREFIX =
+  "No orders: verify that the payment link / checkout is live and working.";
+
+export function resolveDailyReportLessonAction(text: string): DailyReportLessonAction | null {
+  if (PENDING_APPROVALS_LESSON.test(text)) {
+    return { kind: "approvals" };
+  }
+  if (text === NO_ORDERS_LESSON_PREFIX) {
+    return { kind: "live" };
+  }
+  return null;
+}
+
+export function dailyReportLessonActionLabel(action: DailyReportLessonAction): string {
+  return action.kind === "approvals" ? "Open queue" : "Check Live Data";
+}

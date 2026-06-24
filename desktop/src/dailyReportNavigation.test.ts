@@ -5,6 +5,8 @@ import {
   resolveExperimentIdForReportLine,
   resolveDailyReportLineAction,
   isScaleApprovalRecommendation,
+  resolveDailyReportLessonAction,
+  dailyReportLessonActionLabel,
 } from "./dailyReportNavigation";
 
 describe("dailyReportNavigation", () => {
@@ -44,5 +46,21 @@ describe("dailyReportNavigation", () => {
     expect(
       resolveDailyReportLineAction("Silicone Mat: CAC $42.00 above break-even $30.00.", lookup),
     ).toEqual({ kind: "experiment", experimentId: "exp-1" });
+  });
+
+  it("routes pending approval lessons to the queue", () => {
+    const action = resolveDailyReportLessonAction(
+      "2 approval(s) pending — unblocking these may unlock next steps.",
+    );
+    expect(action).toEqual({ kind: "approvals" });
+    expect(dailyReportLessonActionLabel(action!)).toBe("Open queue");
+  });
+
+  it("routes no-orders lessons to live data", () => {
+    const action = resolveDailyReportLessonAction(
+      "No orders: verify that the payment link / checkout is live and working.",
+    );
+    expect(action).toEqual({ kind: "live" });
+    expect(dailyReportLessonActionLabel(action!)).toBe("Check Live Data");
   });
 });
