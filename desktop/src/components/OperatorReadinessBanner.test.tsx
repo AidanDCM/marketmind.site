@@ -103,6 +103,15 @@ describe("OperatorReadinessBanner", () => {
         onOpenLiveData={onOpenLiveData}
       />,
     );
+    fireEvent.click(screen.getAllByRole("button", { name: "Check Live Data" })[1]);
+    expect(onOpenLiveData).toHaveBeenCalledOnce();
+  });
+
+  it("links integration summary to Live Data", () => {
+    const onOpenLiveData = vi.fn();
+    render(
+      <OperatorReadinessBanner readiness={base} onOpenLiveData={onOpenLiveData} />,
+    );
     fireEvent.click(screen.getByRole("button", { name: "Check Live Data" }));
     expect(onOpenLiveData).toHaveBeenCalledOnce();
   });
