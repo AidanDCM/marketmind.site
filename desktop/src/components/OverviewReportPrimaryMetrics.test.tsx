@@ -38,7 +38,20 @@ describe("OverviewReportPrimaryMetrics", () => {
         onOpenLiveData={onOpenLiveData}
       />,
     );
-    fireEvent.click(screen.getByTitle("Open Live Data"));
+    fireEvent.click(screen.getAllByTitle("Open Live Data")[0]);
+    expect(onOpenLiveData).toHaveBeenCalledOnce();
+  });
+
+  it("opens live data from revenue metric", () => {
+    const onOpenLiveData = vi.fn();
+    render(
+      <OverviewReportPrimaryMetrics
+        metrics={metrics}
+        date="2026-06-23"
+        onOpenLiveData={onOpenLiveData}
+      />,
+    );
+    fireEvent.click(screen.getAllByTitle("Open Live Data")[1]);
     expect(onOpenLiveData).toHaveBeenCalledOnce();
   });
 });
