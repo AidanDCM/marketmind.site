@@ -2,6 +2,14 @@
 
 ---
 
+## 2026-06-23 — Slice 96: Portfolio metric navigation in health panel
+
+### Slice 96: Jump from Experiments and Lessons metrics
+
+- **Operator health panel** — **Experiments** metric opens Active Experiments; **Lessons recorded** opens Lessons library.
+
+---
+
 ## 2026-06-23 — Slice 95: Snapshot gaps header link
 
 ### Slice 95: Jump to Snapshot Recorder from health panel gaps
