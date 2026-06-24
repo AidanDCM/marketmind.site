@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-23 — Slice 84: Focus pending approval and refresh nav badges
+
+### Slice 84: Deep-link to first pending approval; immediate sidebar counts
+
+- **Overview banner** — opens Approval Queue with the first pending card expanded and scrolled into view.
+- **Approval Queue** — supports `focusApprovalId` navigation context.
+- **Nav badges** — refresh immediately after approval actions or experiment status changes (not only on 15s poll).
+
+---
+
 ## 2026-06-23 — Slice 83: Persist Active Experiments attention filter
 
 ### Slice 83: Remember attention filter; richer pending-approval banner

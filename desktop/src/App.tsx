@@ -46,8 +46,9 @@ export function App() {
   const [page, setPage] = useState<Page>("overview");
   const [pageContext, setPageContext] = useState<PageContext | null>(null);
   const [apiOk, setApiOk] = useState<boolean | null>(null);
-  const attentionCount = useExperimentAttentionCount(apiOk);
-  const pendingCount = usePendingApprovalCount(apiOk);
+  const [navRefresh, setNavRefresh] = useState(0);
+  const attentionCount = useExperimentAttentionCount(apiOk, navRefresh);
+  const pendingCount = usePendingApprovalCount(apiOk, navRefresh);
 
   function navigate(next: Page, context?: PageContext) {
     setPageContext(context ?? null);
@@ -62,8 +63,12 @@ export function App() {
     navigate("active", { experimentId });
   }
 
-  function openApprovals() {
-    navigate("approvals");
+  function openApprovals(focusApprovalId?: string) {
+    navigate("approvals", focusApprovalId ? { focusApprovalId } : undefined);
+  }
+
+  function bumpNavRefresh() {
+    setNavRefresh((n) => n + 1);
   }
 
   function openAttentionExperiments() {
@@ -136,7 +141,13 @@ export function App() {
             onOpenAttention={openAttentionExperiments}
           />
         )}
-        {page === "approvals" && <ApprovalQueue />}
+        {page === "approvals" && (
+          <ApprovalQueue
+            key={pageContext?.focusApprovalId ?? "approvals-default"}
+            focusApprovalId={pageContext?.focusApprovalId}
+            onQueueChanged={bumpNavRefresh}
+          />
+        )}
         {page === "score" && <ScoreProduct />}
         {page === "niche" && <ScoreNiche />}
         {page === "economics" && <UnitEconomics />}
@@ -161,6 +172,7 @@ export function App() {
             focusExperimentId={pageContext?.experimentId}
             initialAttentionOnly={pageContext?.attentionOnly ?? false}
             onOpenTrend={(experimentId) => openTrendFromOverview(experimentId, readTrendDaysPreference())}
+            onExperimentsChanged={bumpNavRefresh}
           />
         )}
       </main>

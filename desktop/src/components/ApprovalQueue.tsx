@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   fetchApprovals,
   approveRecord,
@@ -31,8 +31,17 @@ function riskBadge(r: string) {
   return `badge ${map[r.toLowerCase()] ?? "badge-medium"}`;
 }
 
-function Card({ rec, onAction }: { rec: ApprovalRecord; onAction: () => void }) {
-  const [open, setOpen] = useState(false);
+function Card({
+  rec,
+  onAction,
+  defaultOpen = false,
+}: {
+  rec: ApprovalRecord;
+  onAction: () => void;
+  defaultOpen?: boolean;
+}) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(defaultOpen);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -40,6 +49,11 @@ function Card({ rec, onAction }: { rec: ApprovalRecord; onAction: () => void }) 
   const [execMsg, setExecMsg] = useState<string | null>(null);
   const canAct = rec.status === "pending";
   const canExecute = rec.status === "approved";
+
+  useEffect(() => {
+    if (!defaultOpen || !cardRef.current) return;
+    cardRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [defaultOpen]);
 
   async function act(fn: typeof approveRecord) {
     setBusy(true); setErr(null);
@@ -62,7 +76,7 @@ function Card({ rec, onAction }: { rec: ApprovalRecord; onAction: () => void }) 
   }
 
   return (
-    <div className="approval-card">
+    <div ref={cardRef} className="approval-card">
       <div className="approval-header" onClick={() => setOpen(o => !o)}>
         <div>
           <div className="approval-title">{rec.summary}</div>
@@ -148,7 +162,13 @@ function Card({ rec, onAction }: { rec: ApprovalRecord; onAction: () => void }) 
   );
 }
 
-export function ApprovalQueue() {
+export function ApprovalQueue({
+  focusApprovalId = null,
+  onQueueChanged,
+}: {
+  focusApprovalId?: string | null;
+  onQueueChanged?: () => void;
+} = {}) {
   const [filter, setFilter] = useState<string>("pending");
   const [records, setRecords] = useState<ApprovalRecord[]>([]);
   const [loading, setLoading] = useState(false);
@@ -158,7 +178,10 @@ export function ApprovalQueue() {
     setLoading(true); setError(null);
     const statusArg = filter === "all" ? undefined : filter;
     fetchApprovals(statusArg)
-      .then(setRecords)
+      .then((rows) => {
+        setRecords(rows);
+        onQueueChanged?.();
+      })
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
   }
@@ -195,7 +218,12 @@ export function ApprovalQueue() {
 
       <div className="approval-list">
         {records.map(r => (
-          <Card key={r.approval_id} rec={r} onAction={load} />
+          <Card
+            key={r.approval_id}
+            rec={r}
+            onAction={load}
+            defaultOpen={focusApprovalId === r.approval_id}
+          />
         ))}
       </div>
     </div>

@@ -358,10 +358,12 @@ export function ActiveExperiments({
   focusExperimentId = null,
   initialAttentionOnly = false,
   onOpenTrend,
+  onExperimentsChanged,
 }: {
   focusExperimentId?: string | null;
   initialAttentionOnly?: boolean;
   onOpenTrend?: (experimentId: string) => void;
+  onExperimentsChanged?: () => void;
 } = {}) {
   const [experiments, setExperiments] = useState<ActiveExperiment[]>([]);
   const [loading, setLoading] = useState(false);
@@ -388,6 +390,11 @@ export function ActiveExperiments({
       .then(setExperiments)
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
+  }
+
+  function reload() {
+    load();
+    onExperimentsChanged?.();
   }
 
   useEffect(load, []);
@@ -462,7 +469,7 @@ export function ActiveExperiments({
           <ExperimentCard
             key={e.experiment_id}
             exp={e}
-            onStatusChange={load}
+            onStatusChange={reload}
             defaultOpen={focusExperimentId === e.experiment_id}
             onOpenTrend={onOpenTrend}
           />
