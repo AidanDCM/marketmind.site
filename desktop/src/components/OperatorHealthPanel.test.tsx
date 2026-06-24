@@ -134,4 +134,13 @@ describe("OperatorHealthPanelView", () => {
     fireEvent.click(screen.getAllByTitle("Open Live Data")[0]);
     expect(onOpenLiveData).toHaveBeenCalledOnce();
   });
+
+  it("prompts import history when active experiments have no ad spend data", () => {
+    const onOpenImportHistory = vi.fn();
+    render(
+      <OperatorHealthPanelView health={baseHealth} onOpenImportHistory={onOpenImportHistory} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Import ads" }));
+    expect(onOpenImportHistory).toHaveBeenCalledOnce();
+  });
 });

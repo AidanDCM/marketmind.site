@@ -2,6 +2,14 @@
 
 ---
 
+## 2026-06-23 — Slice 103: Missing ad spend import prompt
+
+### Slice 103: Prompt to import ads when spend data is absent
+
+- **Operator health panel** — warns when active experiments exist but no ad CSV is imported; **Import ads** opens Import History.
+
+---
+
 ## 2026-06-23 — Slice 102: Daily report lesson shortcuts
 
 ### Slice 102: Jump from lesson lines to queue or Live Data
