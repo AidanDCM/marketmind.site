@@ -282,6 +282,28 @@ export function fetchExperimentPortfolio(): Promise<ExperimentPortfolio> {
   return req("GET", "/experiment/portfolio");
 }
 
+export interface ExperimentTrendSummaryItem {
+  experiment_id: string;
+  product_name: string;
+  break_even_cac: number;
+  snapshot_count: number;
+  latest_snapshot_date: string | null;
+  latest_cac: number | null;
+  prior_cac: number | null;
+  cac_direction: "up" | "down" | "flat" | "unknown";
+  ruling: string | null;
+  above_break_even: boolean | null;
+}
+
+export interface ExperimentTrendSummary {
+  days: number;
+  experiments: ExperimentTrendSummaryItem[];
+}
+
+export function fetchExperimentTrendSummary(days = 14): Promise<ExperimentTrendSummary> {
+  return req("GET", `/experiment/trend-summary?days=${days}`);
+}
+
 export function patchExperimentStatus(
   experimentId: string,
   status: "active" | "ended",

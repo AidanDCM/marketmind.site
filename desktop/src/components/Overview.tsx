@@ -3,10 +3,12 @@ import {
   fetchDailyReport,
   fetchPendingApprovals,
   fetchOperatorHealthPanel,
+  fetchExperimentTrendSummary,
   runOperatorDailyCycle,
   type DailyReport,
   type ApprovalRecord,
   type OperatorHealthPanel,
+  type ExperimentTrendSummary,
 } from "../api/client";
 import { OperatorHealthPanelView } from "./OperatorHealthPanel";
 
@@ -22,11 +24,19 @@ function fmtPct(n: number): string {
   return (n * 100).toFixed(1) + "%";
 }
 
+function trendArrow(direction: ExperimentTrendSummary["experiments"][number]["cac_direction"]): string {
+  if (direction === "up") return "↑";
+  if (direction === "down") return "↓";
+  if (direction === "flat") return "→";
+  return "·";
+}
+
 export function Overview() {
   const [date, setDate] = useState(todayStr());
   const [report, setReport] = useState<DailyReport | null>(null);
   const [pending, setPending] = useState<ApprovalRecord[]>([]);
   const [health, setHealth] = useState<OperatorHealthPanel | null>(null);
+  const [trendSummary, setTrendSummary] = useState<ExperimentTrendSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [cycleRunning, setCycleRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,12 +49,14 @@ export function Overview() {
       fetchDailyReport(date),
       fetchPendingApprovals(),
       fetchOperatorHealthPanel(date),
+      fetchExperimentTrendSummary(14),
     ])
-      .then(([r, p, h]) => {
+      .then(([r, p, h, trends]) => {
         if (!cancelled) {
           setReport(r);
           setPending(p);
           setHealth(h);
+          setTrendSummary(trends);
         }
       })
       .catch((e: Error) => { if (!cancelled) setError(e.message); })
@@ -85,6 +97,42 @@ export function Overview() {
           onRunCycle={handleRunCycle}
           cycleRunning={cycleRunning}
         />
+      )}
+
+      {trendSummary && trendSummary.experiments.length > 0 && (
+        <div className="card" style={{ marginBottom: 14 }}>
+          <div className="card-title">Active experiment CAC trends ({trendSummary.days}d)</div>
+          <table style={{ width: "100%", fontSize: 13, borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ textAlign: "left", color: "var(--text-muted)" }}>
+                <th style={{ padding: "4px 8px 4px 0" }}>Experiment</th>
+                <th style={{ padding: "4px 8px" }}>Latest CAC</th>
+                <th style={{ padding: "4px 8px" }}>Trend</th>
+                <th style={{ padding: "4px 0 4px 8px" }}>Ruling</th>
+              </tr>
+            </thead>
+            <tbody>
+              {trendSummary.experiments.map(exp => (
+                <tr key={exp.experiment_id}>
+                  <td style={{ padding: "6px 8px 6px 0" }}>
+                    <code>{exp.experiment_id}</code>
+                    <div style={{ color: "var(--text-muted)", fontSize: 12 }}>{exp.product_name}</div>
+                  </td>
+                  <td style={{ padding: "6px 8px" }}>
+                    {exp.latest_cac != null ? fmt$(exp.latest_cac) : "—"}
+                  </td>
+                  <td style={{ padding: "6px 8px", fontWeight: 600,
+                    color: exp.cac_direction === "up" ? "var(--red, #ef4444)"
+                      : exp.cac_direction === "down" ? "var(--green, #22c55e)"
+                      : "var(--text-muted)" }}>
+                    {trendArrow(exp.cac_direction)}
+                  </td>
+                  <td style={{ padding: "6px 0 6px 8px" }}>{exp.ruling ?? "no data"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {pending.length > 0 && (

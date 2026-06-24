@@ -621,6 +621,19 @@ def test_experiment_portfolio_empty(client):
     assert "by_ruling" in data
 
 
+def test_experiment_trend_summary_endpoint(client):
+    resp = client.get("/experiment/trend-summary?days=7")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["days"] == 7
+    assert data["experiments"] == []
+
+
+def test_experiment_trend_summary_rejects_invalid_days(client):
+    resp = client.get("/experiment/trend-summary?days=0")
+    assert resp.status_code == 422
+
+
 def test_import_ad_csv(client):
     csv_text = (
         "campaign_name,date,impressions,clicks,spend,purchases,revenue\n"

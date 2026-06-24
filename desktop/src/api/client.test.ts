@@ -153,6 +153,13 @@ describe("api client", () => {
     expect(fn.mock.calls[0][0]).toBe("http://127.0.0.1:8000/experiment/portfolio");
   });
 
+  it("fetches experiment trend summary", async () => {
+    const fn = mockFetch({ days: 14, experiments: [] });
+    const { fetchExperimentTrendSummary } = await import("./client");
+    await fetchExperimentTrendSummary(14);
+    expect(fn.mock.calls[0][0]).toBe("http://127.0.0.1:8000/experiment/trend-summary?days=14");
+  });
+
   it("imports ad CSV via POST /imports/ads/csv", async () => {
     const fn = mockFetch({ batch_id: 1, ok_count: 1, review_count: 0, total_rows: 1, ok_rows: [], review_rows: [], source: "ad_report_csv" });
     await importAdCsv("campaign_name,spend\nA,5");
