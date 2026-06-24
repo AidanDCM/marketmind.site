@@ -248,6 +248,20 @@ export function OperatorHealthPanelView({
         </div>
       )}
 
+      {!adSpendBlock.has_data && portfolio.active > 0 && onOpenImportHistory && (
+        <div className="alert alert-warn" style={{ marginBottom: 14, fontSize: 13 }}>
+          No imported ad spend data yet for active experiments.
+          <button
+            type="button"
+            className="inline-link inline-link-danger"
+            style={{ marginLeft: 6, fontSize: 13 }}
+            onClick={onOpenImportHistory}
+          >
+            Import ads
+          </button>
+        </div>
+      )}
+
       {adSpend && (
         <div className="metric-grid" style={{ marginBottom: 14 }}>
           <div
