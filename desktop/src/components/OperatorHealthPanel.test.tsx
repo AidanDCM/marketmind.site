@@ -62,4 +62,23 @@ describe("OperatorHealthPanelView", () => {
     fireEvent.click(screen.getByRole("button", { name: "Open queue" }));
     expect(onOpenApprovals).toHaveBeenCalledOnce();
   });
+
+  it("opens snapshot recorder from missing snapshot gaps header", () => {
+    const onOpenSnapshots = vi.fn();
+    const health: OperatorHealthPanel = {
+      ...baseHealth,
+      snapshot_gaps: {
+        snapshot_date: "2026-06-23",
+        active_count: 2,
+        missing_count: 1,
+        missing: [{ experiment_id: "exp-missing", product_name: "Widget" }],
+        all_recorded: false,
+      },
+    };
+    render(
+      <OperatorHealthPanelView health={health} onOpenSnapshots={onOpenSnapshots} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Record snapshots" }));
+    expect(onOpenSnapshots).toHaveBeenCalledWith("2026-06-23", "exp-missing");
+  });
 });
