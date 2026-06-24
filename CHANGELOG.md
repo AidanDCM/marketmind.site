@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-23 — Slice 64: Health panel snapshot date
+
+### Slice 64: Overview date drives snapshot-gap checks
+
+- **`GET /operator/health-panel?date=`** — optional ISO date scopes `snapshot_gaps` (default today).
+- **Desktop Overview** — passes the selected date into `fetchOperatorHealthPanel(date)` so
+  the snapshot banner matches the report date picker.
+
+---
+
 ## 2026-06-23 — Slice 63: Unified operator readiness check
 
 ### Slice 63: One local script for Gmail + commerce + preflight

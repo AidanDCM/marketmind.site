@@ -221,6 +221,17 @@ def test_health_panel_endpoint(client):
     assert data["portfolio"]["total_experiments"] == 0
 
 
+def test_health_panel_endpoint_accepts_snapshot_date(client):
+    resp = client.get("/operator/health-panel?date=2026-06-20")
+    assert resp.status_code == 200
+    assert resp.json()["snapshot_gaps"]["snapshot_date"] == "2026-06-20"
+
+
+def test_health_panel_rejects_empty_date(client):
+    resp = client.get("/operator/health-panel?date=")
+    assert resp.status_code == 422
+
+
 def test_snapshot_gaps_endpoint(client):
     resp = client.get("/operator/snapshot-gaps?date=2026-06-23")
     assert resp.status_code == 200

@@ -38,7 +38,7 @@ export function Overview() {
     Promise.all([
       fetchDailyReport(date),
       fetchPendingApprovals(),
-      fetchOperatorHealthPanel(),
+      fetchOperatorHealthPanel(date),
     ])
       .then(([r, p, h]) => {
         if (!cancelled) {
@@ -59,7 +59,7 @@ export function Overview() {
     setError(null);
     try {
       await runOperatorDailyCycle(date);
-      const [p, h] = await Promise.all([fetchPendingApprovals(), fetchOperatorHealthPanel()]);
+      const [p, h] = await Promise.all([fetchPendingApprovals(), fetchOperatorHealthPanel(date)]);
       setPending(p);
       setHealth(h);
     } catch (e) {
