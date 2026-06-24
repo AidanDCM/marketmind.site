@@ -14,6 +14,7 @@ import {
 } from "../api/client";
 import { OperatorHealthPanelView } from "./OperatorHealthPanel";
 import { OperatorReadinessBanner } from "./OperatorReadinessBanner";
+import { RulingBadge } from "./RulingBadge";
 
 function todayStr(): string {
   return new Date().toISOString().slice(0, 10);
@@ -211,7 +212,9 @@ export function Overview() {
                       : "var(--text-muted)" }}>
                     {trendArrow(exp.cac_direction)}
                   </td>
-                  <td style={{ padding: "6px 0 6px 8px" }}>{exp.ruling ?? "no data"}</td>
+                  <td style={{ padding: "6px 0 6px 8px" }}>
+                    <RulingBadge ruling={exp.ruling} />
+                  </td>
                 </tr>
               ))}
             </tbody>
