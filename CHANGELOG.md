@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-23 — Slice 73: Stale snapshot hints on Overview trends
+
+### Slice 73: Persist attention filter and flag stale snapshots
+
+- **Desktop Overview** — persists “Attention only” in `localStorage`.
+- Trend table marks snapshot dates older than the selected Overview date as stale.
+
+---
+
 ## 2026-06-23 — Slice 72: Latest snapshot date in trend table
 
 ### Slice 72: Snapshot date column on Overview CAC trends
