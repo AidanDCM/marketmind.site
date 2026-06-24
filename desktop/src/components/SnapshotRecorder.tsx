@@ -65,14 +65,36 @@ function SnapshotTable({ snapshots }: { snapshots: SnapshotRecord[] }) {
   );
 }
 
-export function SnapshotRecorder() {
-  const [form, setForm] = useState<SnapshotRequest>(DEFAULTS);
+export function SnapshotRecorder({
+  initialSnapshotDate = null,
+  initialExperimentId = null,
+}: {
+  initialSnapshotDate?: string | null;
+  initialExperimentId?: string | null;
+} = {}) {
+  const seedDate = initialSnapshotDate ?? TODAY;
+  const [form, setForm] = useState<SnapshotRequest>(() => ({
+    ...DEFAULTS,
+    snapshot_date: seedDate,
+    experiment_id: initialExperimentId ?? "",
+  }));
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [snapshots, setSnapshots] = useState<SnapshotRecord[]>([]);
-  const [listDate, setListDate] = useState(TODAY);
+  const [listDate, setListDate] = useState(seedDate);
   const [listLoading, setListLoading] = useState(false);
+
+  useEffect(() => {
+    if (!initialSnapshotDate) return;
+    setListDate(initialSnapshotDate);
+    setForm((f) => ({ ...f, snapshot_date: initialSnapshotDate }));
+  }, [initialSnapshotDate]);
+
+  useEffect(() => {
+    if (!initialExperimentId?.trim()) return;
+    setForm((f) => ({ ...f, experiment_id: initialExperimentId }));
+  }, [initialExperimentId]);
 
   function set(field: keyof SnapshotRequest, value: string | number) {
     setForm(f => ({ ...f, [field]: value }));

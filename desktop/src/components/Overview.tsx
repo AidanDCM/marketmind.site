@@ -50,11 +50,13 @@ export function Overview({
   onOpenActive,
   onOpenApprovals,
   onOpenAttention,
+  onOpenSnapshots,
 }: {
   onOpenTrend: (experimentId: string, trendDays: number) => void;
   onOpenActive: (experimentId: string) => void;
   onOpenApprovals: (focusApprovalId?: string) => void;
   onOpenAttention: () => void;
+  onOpenSnapshots: (snapshotDate: string, experimentId?: string) => void;
 }) {
   const [date, setDate] = useState(todayStr());
   const [report, setReport] = useState<DailyReport | null>(null);
@@ -142,7 +144,12 @@ export function Overview({
           <h2>Overview</h2>
           <p>Daily performance metrics and operator alerts</p>
         </div>
-        <input type="date" value={date} max={todayStr()} onChange={(e) => setDate(e.target.value)} style={{ width: 160 }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <input type="date" value={date} max={todayStr()} onChange={(e) => setDate(e.target.value)} style={{ width: 160 }} />
+          <button type="button" className="btn-ghost" style={{ fontSize: 13, whiteSpace: "nowrap" }} onClick={() => onOpenSnapshots(date)}>
+            Snapshots
+          </button>
+        </div>
       </div>
 
       {readiness && <OperatorReadinessBanner readiness={readiness} />}
@@ -237,7 +244,17 @@ export function Overview({
                   }}>
                     {exp.latest_snapshot_date ?? "—"}
                     {isSnapshotStale(exp.latest_snapshot_date, trendSummary.as_of) && (
-                      <span title="No snapshot on selected date"> · stale</span>
+                      <>
+                        <span title="No snapshot on selected date"> · stale</span>
+                        <button
+                          type="button"
+                          className="inline-link inline-link-danger"
+                          style={{ marginLeft: 6, fontSize: 12 }}
+                          onClick={() => onOpenSnapshots(trendSummary.as_of, exp.experiment_id)}
+                        >
+                          Record
+                        </button>
+                      </>
                     )}
                   </td>
                   <td style={{ padding: "6px 8px", fontWeight: 600,
@@ -367,6 +384,9 @@ export function Overview({
         <div className="empty">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg>
           <p>No report data for {date}</p>
+          <button type="button" className="btn-ghost" style={{ marginTop: 8 }} onClick={() => onOpenSnapshots(date)}>
+            Record a snapshot for {date}
+          </button>
         </div>
       )}
     </div>
