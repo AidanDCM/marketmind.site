@@ -6,6 +6,7 @@ interface OperatorReadinessBannerProps {
   onOpenApprovals?: () => void;
   onOpenActive?: (experimentId: string) => void;
   onOpenSnapshots?: (snapshotDate: string, experimentId?: string) => void;
+  onOpenLiveData?: () => void;
 }
 
 export function OperatorReadinessBanner({
@@ -13,13 +14,14 @@ export function OperatorReadinessBanner({
   onOpenApprovals,
   onOpenActive,
   onOpenSnapshots,
+  onOpenLiveData,
 }: OperatorReadinessBannerProps) {
   const gmail = readiness.gmail as { mode?: string; live_ready?: boolean };
   const commerce = readiness.commerce as {
     stripe?: { configured?: boolean; live_ready?: boolean };
     shopify?: { configured?: boolean; live_ready?: boolean };
   };
-  const messageHandlers = { onOpenApprovals, onOpenActive, onOpenSnapshots };
+  const messageHandlers = { onOpenApprovals, onOpenActive, onOpenSnapshots, onOpenLiveData };
 
   return (
     <div

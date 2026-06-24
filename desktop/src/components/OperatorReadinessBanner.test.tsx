@@ -91,4 +91,19 @@ describe("OperatorReadinessBanner", () => {
     fireEvent.click(screen.getByRole("button", { name: "Record snapshot" }));
     expect(onOpenSnapshots).toHaveBeenCalledWith("2026-06-23", "exp-a");
   });
+
+  it("links integration warnings to Live Data", () => {
+    const onOpenLiveData = vi.fn();
+    render(
+      <OperatorReadinessBanner
+        readiness={{
+          ...base,
+          warnings: ["Gmail live mode enabled but GMAIL_CLIENT_SECRET is missing"],
+        }}
+        onOpenLiveData={onOpenLiveData}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Check Live Data" }));
+    expect(onOpenLiveData).toHaveBeenCalledOnce();
+  });
 });

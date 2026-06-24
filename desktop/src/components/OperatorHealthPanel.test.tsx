@@ -189,4 +189,17 @@ describe("OperatorHealthPanelView", () => {
     fireEvent.click(within(preflightAlert as HTMLElement).getByRole("button", { name: "Open queue" }));
     expect(onOpenApprovals).toHaveBeenCalledOnce();
   });
+
+  it("links integration warnings to Live Data", () => {
+    const onOpenLiveData = vi.fn();
+    const health: OperatorHealthPanel = {
+      ...baseHealth,
+      warnings: ["MARKETMIND_ENABLE_LIVE_WRITES=true but Gmail is not live-ready"],
+    };
+    render(
+      <OperatorHealthPanelView health={health} onOpenLiveData={onOpenLiveData} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Check Live Data" }));
+    expect(onOpenLiveData).toHaveBeenCalledOnce();
+  });
 });

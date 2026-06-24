@@ -2,6 +2,8 @@ import { describe, it, expect } from "vitest";
 import {
   parseReadinessBannerAction,
   readinessBannerActionLabel,
+  GMAIL_LIVE_WARNING,
+  STRIPE_LIVE_WARNING_PREFIX,
 } from "./readinessBannerActions";
 
 describe("readinessBannerActions", () => {
@@ -35,5 +37,19 @@ describe("readinessBannerActions", () => {
 
   it("returns null for unrecognized messages", () => {
     expect(parseReadinessBannerAction("Gmail live mode enabled but secret missing")).toBeNull();
+  });
+
+  it("maps integration live-write warnings to Live Data", () => {
+    const action = parseReadinessBannerAction(GMAIL_LIVE_WARNING);
+    expect(action).toEqual({ kind: "live" });
+    expect(readinessBannerActionLabel(action!)).toBe("Check Live Data");
+  });
+
+  it("maps Stripe live-write warnings to Live Data", () => {
+    const action = parseReadinessBannerAction(
+      `${STRIPE_LIVE_WARNING_PREFIX} (set STRIPE_API_KEY and MARKETMIND_STRIPE_DRY_RUN=false)`,
+    );
+    expect(action).toEqual({ kind: "live" });
+    expect(readinessBannerActionLabel(action!)).toBe("Check Live Data");
   });
 });
