@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-23 — Slice 104: Preflight summary shortcuts
+
+### Slice 104: Jump from preflight summary to fix blockers
+
+- **`preflightSummaryActions.ts`** — derives summary actions when preflight is not safe.
+- **Operator health panel** — preflight summary shows **Open queue** and **Show attention** when applicable.
+
+---
+
 ## 2026-06-23 — Slice 103: Missing ad spend import prompt
 
 ### Slice 103: Prompt to import ads when spend data is absent

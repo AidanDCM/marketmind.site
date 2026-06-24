@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, within } from "@testing-library/react";
 import { OperatorHealthPanelView, type OperatorHealthPanel } from "./OperatorHealthPanel";
 
 const baseHealth: OperatorHealthPanel = {
@@ -142,5 +142,33 @@ describe("OperatorHealthPanelView", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "Import ads" }));
     expect(onOpenImportHistory).toHaveBeenCalledOnce();
+  });
+
+  it("opens attention experiments from preflight summary link", () => {
+    const onOpenAttention = vi.fn();
+    const health: OperatorHealthPanel = {
+      ...baseHealth,
+      preflight: {
+        ...baseHealth.preflight,
+        experiments_needing_attention: [
+          { experiment_id: "exp-kill", product_name: "Widget", ruling: "kill", risks: [] },
+        ],
+      },
+    };
+    render(
+      <OperatorHealthPanelView health={health} onOpenAttention={onOpenAttention} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Show attention" }));
+    expect(onOpenAttention).toHaveBeenCalledOnce();
+  });
+
+  it("opens approval queue from preflight summary link", () => {
+    const onOpenApprovals = vi.fn();
+    render(
+      <OperatorHealthPanelView health={baseHealth} onOpenApprovals={onOpenApprovals} />,
+    );
+    const preflightAlert = screen.getByText(/ATTENTION REQUIRED/).closest(".alert")!;
+    fireEvent.click(within(preflightAlert as HTMLElement).getByRole("button", { name: "Open queue" }));
+    expect(onOpenApprovals).toHaveBeenCalledOnce();
   });
 });

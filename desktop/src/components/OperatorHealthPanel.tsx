@@ -5,6 +5,10 @@ import type {
   AdSpendSummary,
 } from "../api/client";
 import { OperatorMessageListItem } from "./OperatorMessageListItem";
+import {
+  preflightSummaryActionLabel,
+  preflightSummaryActions,
+} from "../preflightSummaryActions";
 
 export interface OperatorHealthPanel {
   safe_to_operate: boolean;
@@ -66,6 +70,11 @@ export function OperatorHealthPanelView({
     onOpenActive: onOpenExperiment,
     onOpenSnapshots,
   };
+  const summaryActions = preflightSummaryActions({
+    safeToOperate: preflight.safe_to_operate,
+    pendingApprovals: preflight.pending_approvals,
+    experimentsNeedingAttention: preflight.experiments_needing_attention.length,
+  });
 
   return (
     <>
@@ -290,7 +299,26 @@ export function OperatorHealthPanelView({
       )}
 
       <div className={`alert ${preflight.safe_to_operate ? "alert-ok" : "alert-warn"}`} style={{ marginBottom: 14 }}>
-        <div style={{ fontWeight: 600 }}>{preflight.summary}</div>
+        <div style={{ fontWeight: 600 }}>
+          {preflight.summary}
+          {summaryActions.map((action) => {
+            const handler = action === "approvals" ? onOpenApprovals : onOpenAttention;
+            if (!handler) {
+              return null;
+            }
+            return (
+              <button
+                key={action}
+                type="button"
+                className="inline-link inline-link-danger"
+                style={{ marginLeft: 6, fontSize: 13, fontWeight: 600 }}
+                onClick={handler}
+              >
+                {preflightSummaryActionLabel(action)}
+              </button>
+            );
+          })}
+        </div>
         {preflight.blockers.length > 0 && (
           <ul style={{ margin: "6px 0 0", paddingLeft: 18, fontSize: 13 }}>
             {preflight.blockers.map((b, i) => (
