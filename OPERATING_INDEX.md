@@ -84,7 +84,8 @@ New API endpoints added by the integration:
 - `POST /operator/log-event` — append a named event to the operator audit log
 - `GET /operator/checklist-config` — active scale-readiness thresholds
 - `GET /operator/integrations` — Gmail/ad-import/scheduler readiness (read-only)
-- `GET /operator/health-panel` — consolidated operator health (preflight + portfolio + integrations); optional `date` for snapshot gaps
+- `GET /operator/health-panel` — consolidated operator health; optional `date` for snapshot gaps
+- `GET /operator/readiness` — unified Gmail/commerce/preflight readiness; optional `date`, `strict`
 - `GET /operator/last-cycle` — most recent daily runner cycle from the operator ledger
 - `POST /operator/run-cycle` — manually trigger one safe daily cycle (optional `date`)
 - `GET /operator/snapshot-gaps` — active experiments missing a snapshot for a date
@@ -101,7 +102,7 @@ New API endpoints added by the integration:
 
 - **Active owner:** Aidan
 - **Active maintainer:** Aidan / Codex agents
-- **Current phase:** Building — Slices 1–66 complete
+- **Current phase:** Building — Slices 1–67 complete
 - **Last reviewed:** 2026-06-23
 - **Known blockers:** None
 

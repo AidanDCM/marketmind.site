@@ -2,6 +2,17 @@
 
 ---
 
+## 2026-06-23 — Slice 67: Operator readiness API
+
+### Slice 67: `GET /operator/readiness`
+
+- **`GET /operator/readiness`** — unified readiness over HTTP; optional `date` and `strict`.
+- **`evaluate_operator_readiness()`** — accepts `snapshot_date` for scoped snapshot gaps.
+- **Deploy verifier** — also checks `/operator/readiness` after health-panel.
+- **Desktop client** — `fetchOperatorReadiness()`.
+
+---
+
 ## 2026-06-23 — Slice 66: Experiment trend summary on Overview
 
 ### Slice 66: Active experiment CAC trends

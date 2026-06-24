@@ -25,6 +25,7 @@ class DeployVerifyResult:
     warnings: tuple[str, ...] = ()
     health_version: str | None = None
     safe_to_operate: bool | None = None
+    ready: bool | None = None
     lines: tuple[str, ...] = field(default_factory=tuple)
 
 
@@ -81,6 +82,24 @@ def verify_marketmind_deploy(
     for blocker in panel.get("preflight", {}).get("blockers", []):
         failures.append(f"preflight blocker: {blocker}")
 
+    try:
+        readiness = get(f"{base}/operator/readiness", token)
+    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
+        return DeployVerifyResult(
+            ok=False,
+            failures=(f"operator/readiness: {exc}",),
+            lines=tuple(lines) + (f"FAIL operator/readiness: {exc}",),
+            health_version=health_version,
+            safe_to_operate=safe if isinstance(safe, bool) else None,
+        )
+
+    operator_ready = readiness.get("ready")
+    lines.append(f"OK  GET /operator/readiness -> ready={operator_ready}")
+    if operator_ready is not True:
+        failures.append("operator readiness not ready")
+        for blocker in readiness.get("blockers", []):
+            failures.append(f"readiness blocker: {blocker}")
+
     ok = not failures
     if ok:
         lines.append("Deploy verification passed.")
@@ -93,5 +112,6 @@ def verify_marketmind_deploy(
         warnings=tuple(warnings),
         health_version=health_version,
         safe_to_operate=safe if isinstance(safe, bool) else None,
+        ready=operator_ready if isinstance(operator_ready, bool) else None,
         lines=tuple(lines),
     )

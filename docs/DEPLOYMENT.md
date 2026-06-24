@@ -65,6 +65,7 @@ The script builds, starts `docker compose`, and polls `/health` for up to 60s.
 curl http://127.0.0.1:8000/health
 curl http://127.0.0.1:8000/operator/preflight
 curl http://127.0.0.1:8000/operator/health-panel
+curl http://127.0.0.1:8000/operator/readiness
 curl http://127.0.0.1:8000/operator/checklist-config
 ```
 

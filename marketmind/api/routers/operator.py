@@ -18,6 +18,7 @@ from ...integrations_status import get_integrations_status
 from ...mistake_tracker import VALID_CATEGORIES, get_mistake_tracker
 from ...operator_health import build_operator_health
 from ...operator_preflight import run_preflight
+from ...operator_readiness import evaluate_operator_readiness
 from ...snapshot_gaps import list_snapshot_gaps
 
 router = APIRouter(tags=["operator"])
@@ -70,6 +71,26 @@ def operator_health_panel(request: Request, date: str | None = None) -> dict:
         raise HTTPException(status_code=422, detail="date must not be empty when provided")
     engine = request.app.state.engine
     return build_operator_health(engine, snapshot_date=date)
+
+
+@router.get("/readiness")
+def operator_readiness(
+    request: Request,
+    date: str | None = None,
+    strict: bool = False,
+) -> dict:
+    """Unified operator readiness: Gmail/commerce env, preflight, and health warnings.
+
+    Optional ``date`` scopes snapshot-gap detection. ``strict=true`` fails when warnings exist.
+    """
+    if date is not None and not date.strip():
+        raise HTTPException(status_code=422, detail="date must not be empty when provided")
+    engine = request.app.state.engine
+    return evaluate_operator_readiness(
+        engine,
+        strict=strict,
+        snapshot_date=date,
+    ).to_dict()
 
 
 @router.get("/last-cycle")

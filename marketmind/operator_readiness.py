@@ -42,9 +42,14 @@ def masked_gmail_summary() -> dict:
     }
 
 
-def evaluate_operator_readiness(engine: Engine, *, strict: bool = False) -> OperatorReadinessResult:
+def evaluate_operator_readiness(
+    engine: Engine,
+    *,
+    strict: bool = False,
+    snapshot_date: str | None = None,
+) -> OperatorReadinessResult:
     """Combine Gmail/commerce env checks with local preflight and health warnings."""
-    health = build_operator_health(engine)
+    health = build_operator_health(engine, snapshot_date=snapshot_date)
     blockers = tuple(health["preflight"]["blockers"])
     warnings = tuple(health["warnings"])
 

@@ -630,6 +630,24 @@ export function fetchOperatorHealthPanel(date?: string): Promise<OperatorHealthP
   return req("GET", `/operator/health-panel${qs}`);
 }
 
+export interface OperatorReadiness {
+  ready: boolean;
+  blockers: string[];
+  warnings: string[];
+  safe_to_operate: boolean;
+  gmail: Record<string, unknown>;
+  commerce: Record<string, unknown>;
+  snapshot_gaps: SnapshotGaps;
+}
+
+export function fetchOperatorReadiness(date?: string, strict = false): Promise<OperatorReadiness> {
+  const params = new URLSearchParams();
+  if (date) params.set("date", date);
+  if (strict) params.set("strict", "true");
+  const qs = params.toString();
+  return req("GET", `/operator/readiness${qs ? `?${qs}` : ""}`);
+}
+
 export function fetchOperatorLastCycle(): Promise<{ has_data: boolean; cycle: DailyCycleStatus | null }> {
   return req("GET", "/operator/last-cycle");
 }

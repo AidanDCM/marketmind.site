@@ -160,6 +160,22 @@ describe("api client", () => {
     expect(fn.mock.calls[0][0]).toBe("http://127.0.0.1:8000/experiment/trend-summary?days=14");
   });
 
+  it("fetches operator readiness", async () => {
+    const fn = mockFetch({
+      ready: true,
+      blockers: [],
+      warnings: [],
+      safe_to_operate: true,
+      gmail: { mode: "draft_file_only" },
+      commerce: { stripe: { configured: false }, shopify: { configured: false } },
+      snapshot_gaps: { snapshot_date: "2026-06-23", active_count: 0, missing_count: 0, missing: [], all_recorded: false },
+    });
+    const { fetchOperatorReadiness } = await import("./client");
+    const r = await fetchOperatorReadiness("2026-06-20", true);
+    expect(r.ready).toBe(true);
+    expect(fn.mock.calls[0][0]).toBe("http://127.0.0.1:8000/operator/readiness?date=2026-06-20&strict=true");
+  });
+
   it("imports ad CSV via POST /imports/ads/csv", async () => {
     const fn = mockFetch({ batch_id: 1, ok_count: 1, review_count: 0, total_rows: 1, ok_rows: [], review_rows: [], source: "ad_report_csv" });
     await importAdCsv("campaign_name,spend\nA,5");
