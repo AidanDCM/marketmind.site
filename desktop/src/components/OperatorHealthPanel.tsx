@@ -4,6 +4,7 @@ import type {
   ExperimentPortfolio,
   AdSpendSummary,
 } from "../api/client";
+import { OperatorMessageListItem } from "./OperatorMessageListItem";
 
 export interface OperatorHealthPanel {
   safe_to_operate: boolean;
@@ -36,6 +37,8 @@ interface OperatorHealthPanelProps {
   onRecordSnapshot?: (snapshotDate: string, experimentId: string) => void;
   onOpenExperiment?: (experimentId: string) => void;
   onOpenAttention?: () => void;
+  onOpenApprovals?: () => void;
+  onOpenSnapshots?: (snapshotDate: string, experimentId?: string) => void;
 }
 
 export function OperatorHealthPanelView({
@@ -45,16 +48,25 @@ export function OperatorHealthPanelView({
   onRecordSnapshot,
   onOpenExperiment,
   onOpenAttention,
+  onOpenApprovals,
+  onOpenSnapshots,
 }: OperatorHealthPanelProps) {
   const { preflight, integrations, portfolio, ad_spend: adSpendBlock } = health;
   const adSpend = adSpendBlock.has_data && adSpendBlock.summary ? adSpendBlock.summary : null;
+  const messageHandlers = {
+    onOpenApprovals,
+    onOpenActive: onOpenExperiment,
+    onOpenSnapshots,
+  };
 
   return (
     <>
       {health.warnings.length > 0 && (
         <div className="alert alert-warn" style={{ marginBottom: 14 }}>
           <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13 }}>
-            {health.warnings.map((w, i) => <li key={i}>{w}</li>)}
+            {health.warnings.map((w, i) => (
+              <OperatorMessageListItem key={i} text={w} muted {...messageHandlers} />
+            ))}
           </ul>
         </div>
       )}
@@ -195,7 +207,9 @@ export function OperatorHealthPanelView({
         <div style={{ fontWeight: 600 }}>{preflight.summary}</div>
         {preflight.blockers.length > 0 && (
           <ul style={{ margin: "6px 0 0", paddingLeft: 18, fontSize: 13 }}>
-            {preflight.blockers.map((b, i) => <li key={i}>{b}</li>)}
+            {preflight.blockers.map((b, i) => (
+              <OperatorMessageListItem key={i} text={b} {...messageHandlers} />
+            ))}
           </ul>
         )}
         {preflight.experiments_needing_attention.length > 0 && (

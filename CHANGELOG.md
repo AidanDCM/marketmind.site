@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-23 — Slice 93: Link health panel warnings and blockers
+
+### Slice 93: Operator health panel message shortcuts
+
+- **`OperatorMessageListItem`** — shared list row with navigation links for known operator messages.
+- **Operator health panel** — warnings and preflight blockers link to approvals, experiments, or snapshots (same as readiness banner).
+
+---
+
 ## 2026-06-23 — Slice 92: Refresh nav badges after daily cycle
 
 ### Slice 92: Sidebar counts update when operator daily cycle completes
