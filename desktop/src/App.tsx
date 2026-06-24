@@ -62,6 +62,14 @@ export function App() {
     navigate("active", { experimentId });
   }
 
+  function openApprovals() {
+    navigate("approvals");
+  }
+
+  function openAttentionExperiments() {
+    navigate("active", { attentionOnly: true });
+  }
+
   useEffect(() => {
     const check = () =>
       fetchHealth().then(() => setApiOk(true)).catch(() => setApiOk(false));
@@ -124,6 +132,8 @@ export function App() {
           <Overview
             onOpenTrend={openTrendFromOverview}
             onOpenActive={openActiveFromOverview}
+            onOpenApprovals={openApprovals}
+            onOpenAttention={openAttentionExperiments}
           />
         )}
         {page === "approvals" && <ApprovalQueue />}

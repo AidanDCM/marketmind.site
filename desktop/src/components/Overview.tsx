@@ -47,9 +47,13 @@ function trendArrow(direction: ExperimentTrendSummary["experiments"][number]["ca
 export function Overview({
   onOpenTrend,
   onOpenActive,
+  onOpenApprovals,
+  onOpenAttention,
 }: {
   onOpenTrend: (experimentId: string, trendDays: number) => void;
   onOpenActive: (experimentId: string) => void;
+  onOpenApprovals: () => void;
+  onOpenAttention: () => void;
 }) {
   const [date, setDate] = useState(todayStr());
   const [report, setReport] = useState<DailyReport | null>(null);
@@ -156,9 +160,13 @@ export function Overview({
             <div className="card-title" style={{ margin: 0 }}>
               Active experiment CAC trends ({trendSummary.days}d through {trendSummary.as_of})
               {!attentionOnly && trendSummary.needs_attention_count > 0 && (
-                <span style={{ color: "var(--red, #ef4444)", fontWeight: 600, marginLeft: 8 }}>
+                <button
+                  type="button"
+                  className="inline-link inline-link-danger"
+                  onClick={onOpenAttention}
+                >
                   · {trendSummary.needs_attention_count} need attention
-                </span>
+                </button>
               )}
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 13, whiteSpace: "nowrap" }}>
@@ -267,10 +275,10 @@ export function Overview({
       )}
 
       {pending.length > 0 && (
-        <div className="alert alert-warn">
+        <button type="button" className="alert alert-warn alert-action" onClick={onOpenApprovals}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          {pending.length} pending approval{pending.length !== 1 ? "s" : ""} require your review.
-        </div>
+          {pending.length} pending approval{pending.length !== 1 ? "s" : ""} require your review — open queue
+        </button>
       )}
 
       {loading && <div className="loading-row"><div className="spinner" /></div>}

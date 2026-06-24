@@ -14,7 +14,7 @@ import {
   type MistakeSuggestion,
 } from "../api/client";
 import { RulingBadge } from "./RulingBadge";
-import { experimentNeedsAttention } from "../experimentAttention";
+import { experimentNeedsAttention, experimentCardNeedsHighlight } from "../experimentAttention";
 
 const StatusBadge({ status }: { status: string }) {
   const active = status === "active";
@@ -246,8 +246,18 @@ function ExperimentCard({
       .finally(() => setPatching(false));
   }
 
+  const needsHighlight = experimentCardNeedsHighlight(exp);
+
   return (
-    <div ref={cardRef} className="approval-card" style={{ cursor: "pointer" }} onClick={() => setOpen(o => !o)}>
+    <div
+      ref={cardRef}
+      className="approval-card"
+      style={{
+        cursor: "pointer",
+        background: needsHighlight ? "rgba(239, 68, 68, 0.06)" : undefined,
+      }}
+      onClick={() => setOpen(o => !o)}
+    >
       <div className="approval-header">
         <div style={{ minWidth: 0 }}>
           <div className="approval-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
