@@ -42,6 +42,7 @@ interface OperatorHealthPanelProps {
   onOpenActiveList?: () => void;
   onOpenLessons?: () => void;
   onOpenImportHistory?: () => void;
+  onOpenLiveData?: () => void;
 }
 
 export function OperatorHealthPanelView({
@@ -56,6 +57,7 @@ export function OperatorHealthPanelView({
   onOpenActiveList,
   onOpenLessons,
   onOpenImportHistory,
+  onOpenLiveData,
 }: OperatorHealthPanelProps) {
   const { preflight, integrations, portfolio, ad_spend: adSpendBlock } = health;
   const adSpend = adSpendBlock.has_data && adSpendBlock.summary ? adSpendBlock.summary : null;
@@ -122,19 +124,34 @@ export function OperatorHealthPanelView({
       </div>
 
       <div className="metric-grid" style={{ marginBottom: 14 }}>
-        <div className="metric-card">
+        <div
+          className="metric-card"
+          style={onOpenLiveData ? { cursor: "pointer" } : undefined}
+          onClick={onOpenLiveData}
+          title={onOpenLiveData ? "Open Live Data" : undefined}
+        >
           <div className="metric-label">Gmail</div>
           <div className="metric-value" style={{ fontSize: 18 }}>{integrations.gmail.mode}</div>
           <div className="metric-sub">{integrations.gmail.live_ready ? "live-ready" : "not live"}</div>
         </div>
-        <div className="metric-card">
+        <div
+          className="metric-card"
+          style={onOpenLiveData ? { cursor: "pointer" } : undefined}
+          onClick={onOpenLiveData}
+          title={onOpenLiveData ? "Open Live Data" : undefined}
+        >
           <div className="metric-label">Stripe</div>
           <div className="metric-value" style={{ fontSize: 18 }}>
             {integrations.stripe.configured ? "configured" : "missing"}
           </div>
           <div className="metric-sub">{integrations.stripe.dry_run ? "dry-run" : "live-ready"}</div>
         </div>
-        <div className="metric-card">
+        <div
+          className="metric-card"
+          style={onOpenLiveData ? { cursor: "pointer" } : undefined}
+          onClick={onOpenLiveData}
+          title={onOpenLiveData ? "Open Live Data" : undefined}
+        >
           <div className="metric-label">Shopify</div>
           <div className="metric-value" style={{ fontSize: 18 }}>
             {integrations.shopify.configured ? "configured" : "missing"}
