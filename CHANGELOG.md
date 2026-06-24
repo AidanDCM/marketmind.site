@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-24 — Slice 116: Secondary metrics risk links
+
+### Slice 116: Jump from elevated refund / low add-to-cart to Active Experiments
+
+- **`overviewReportSecondaryMetrics.ts`** — threshold helpers aligned with daily report risks.
+- **Overview secondary metrics** — refund rate (≥5%) and low add-to-cart (spend, zero orders) open Active Experiments.
+
+---
+
 ## 2026-06-24 — Process: Testing discipline and engineering log
 
 ### Futures Bot patterns applied to MarketMind (not a feature slice)
