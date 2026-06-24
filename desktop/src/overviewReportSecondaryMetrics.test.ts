@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   shouldLinkAddToCartToExperiments,
+  shouldLinkConversionToExperiments,
   shouldLinkRefundRateToExperiments,
 } from "./overviewReportSecondaryMetrics";
 
@@ -33,6 +34,18 @@ describe("overviewReportSecondaryMetrics", () => {
     ).toBe(false);
     expect(
       shouldLinkAddToCartToExperiments({ ...base, ad_spend: 0 }),
+    ).toBe(false);
+  });
+
+  it("links conversion when spend with zero orders", () => {
+    expect(
+      shouldLinkConversionToExperiments({ ...base, orders: 0, ad_spend: 50 }),
+    ).toBe(true);
+    expect(
+      shouldLinkConversionToExperiments({ ...base, orders: 1, ad_spend: 50 }),
+    ).toBe(false);
+    expect(
+      shouldLinkConversionToExperiments({ ...base, orders: 0, ad_spend: 0 }),
     ).toBe(false);
   });
 });

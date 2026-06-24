@@ -2,6 +2,7 @@ import type { DailyMetrics } from "../api/client";
 import {
   secondaryMetricsActiveListTitle,
   shouldLinkAddToCartToExperiments,
+  shouldLinkConversionToExperiments,
   shouldLinkRefundRateToExperiments,
 } from "../overviewReportSecondaryMetrics";
 
@@ -24,6 +25,7 @@ export function OverviewReportSecondaryMetrics({
 }: OverviewReportSecondaryMetricsProps) {
   const linkRefund = shouldLinkRefundRateToExperiments(metrics);
   const linkAtc = shouldLinkAddToCartToExperiments(metrics);
+  const linkConversion = shouldLinkConversionToExperiments(metrics);
 
   return (
     <div className="metric-grid">
@@ -38,7 +40,16 @@ export function OverviewReportSecondaryMetrics({
           {fmt$(metrics.contribution_profit)}
         </div>
       </div>
-      <div className="metric-card">
+      <div
+        className="metric-card"
+        style={linkConversion && onOpenActiveList ? { cursor: "pointer" } : undefined}
+        onClick={linkConversion ? onOpenActiveList : undefined}
+        title={
+          linkConversion && onOpenActiveList
+            ? secondaryMetricsActiveListTitle("conversion")
+            : undefined
+        }
+      >
         <div className="metric-label">Conversion</div>
         <div className="metric-value">{fmtPct(metrics.conversion_rate)}</div>
       </div>

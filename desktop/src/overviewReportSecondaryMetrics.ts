@@ -18,7 +18,14 @@ export function shouldLinkAddToCartToExperiments(metrics: DailyMetrics): boolean
   );
 }
 
-export function secondaryMetricsActiveListTitle(kind: "contribution" | "refund" | "atc"): string {
+/** Spend with zero orders — matches daily report zero-order spend risk context. */
+export function shouldLinkConversionToExperiments(metrics: DailyMetrics): boolean {
+  return metrics.ad_spend > 0 && metrics.orders === 0;
+}
+
+export function secondaryMetricsActiveListTitle(
+  kind: "contribution" | "refund" | "atc" | "conversion",
+): string {
   switch (kind) {
     case "contribution":
       return "Open Active Experiments";
@@ -26,5 +33,7 @@ export function secondaryMetricsActiveListTitle(kind: "contribution" | "refund" 
       return "Open Active Experiments — review refund rate";
     case "atc":
       return "Open Active Experiments — review add-to-cart";
+    case "conversion":
+      return "Open Active Experiments — review conversion";
   }
 }
