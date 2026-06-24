@@ -95,6 +95,10 @@ export function App() {
     navigate("live");
   }
 
+  function openScoreProduct() {
+    navigate("score");
+  }
+
   useEffect(() => {
     const check = () =>
       fetchHealth().then(() => setApiOk(true)).catch(() => setApiOk(false));
@@ -166,6 +170,7 @@ export function App() {
             onOpenLessons={openLessonsLibrary}
             onOpenImportHistory={openImportHistory}
             onOpenLiveData={openLiveData}
+            onOpenScoreProduct={openScoreProduct}
           />
         )}
         {page === "approvals" && (

@@ -12,6 +12,8 @@ interface DailyReportInsightListProps {
   experiments: ExperimentProductLookup[];
   onOpenActive?: (experimentId: string) => void;
   onOpenApprovals?: () => void;
+  onOpenScoreProduct?: () => void;
+  onOpenActiveList?: () => void;
 }
 
 export function DailyReportInsightList({
@@ -21,6 +23,8 @@ export function DailyReportInsightList({
   experiments,
   onOpenActive,
   onOpenApprovals,
+  onOpenScoreProduct,
+  onOpenActiveList,
 }: DailyReportInsightListProps) {
   const lookup = buildExperimentProductLookup([experiments]);
 
@@ -37,6 +41,8 @@ export function DailyReportInsightList({
           const canAct = action != null && (
             (action.kind === "experiment" && onOpenActive)
             || (action.kind === "approvals" && onOpenApprovals)
+            || (action.kind === "score" && onOpenScoreProduct)
+            || (action.kind === "activeList" && onOpenActiveList)
           );
           return (
             <div key={i} className="list-item">
@@ -49,10 +55,19 @@ export function DailyReportInsightList({
                     className="inline-link"
                     style={{ marginLeft: 6, fontSize: 12 }}
                     onClick={() => {
-                      if (action.kind === "approvals") {
-                        onOpenApprovals?.();
-                      } else {
-                        onOpenActive?.(action.experimentId);
+                      switch (action.kind) {
+                        case "approvals":
+                          onOpenApprovals?.();
+                          break;
+                        case "experiment":
+                          onOpenActive?.(action.experimentId);
+                          break;
+                        case "score":
+                          onOpenScoreProduct?.();
+                          break;
+                        case "activeList":
+                          onOpenActiveList?.();
+                          break;
                       }
                     }}
                   >

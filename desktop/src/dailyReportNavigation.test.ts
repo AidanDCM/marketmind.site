@@ -48,6 +48,24 @@ describe("dailyReportNavigation", () => {
     ).toEqual({ kind: "experiment", experimentId: "exp-1" });
   });
 
+  it("routes no-experiments recommendation to score product", () => {
+    expect(
+      resolveDailyReportLineAction(
+        "No experiments active today. Pick a product candidate to test.",
+        lookup,
+      ),
+    ).toEqual({ kind: "score" });
+  });
+
+  it("routes positive contribution recommendation to active experiments", () => {
+    expect(
+      resolveDailyReportLineAction(
+        "Positive contribution today ($120.00). Review experiment rules before increasing budget.",
+        lookup,
+      ),
+    ).toEqual({ kind: "activeList" });
+  });
+
   it("routes pending approval lessons to the queue", () => {
     const action = resolveDailyReportLessonAction(
       "2 approval(s) pending — unblocking these may unlock next steps.",
@@ -62,5 +80,11 @@ describe("dailyReportNavigation", () => {
     );
     expect(action).toEqual({ kind: "live" });
     expect(dailyReportLessonActionLabel(action!)).toBe("Check Live Data");
+  });
+
+  it("routes past lessons to the lessons library", () => {
+    const action = resolveDailyReportLessonAction("Past lesson: Pause ads when CAC spikes.");
+    expect(action).toEqual({ kind: "lessons" });
+    expect(dailyReportLessonActionLabel(action!)).toBe("View library");
   });
 });

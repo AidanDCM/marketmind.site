@@ -44,4 +44,16 @@ describe("DailyReportLessonsCard", () => {
     fireEvent.click(screen.getByRole("button", { name: "Check Live Data" }));
     expect(onOpenLiveData).toHaveBeenCalledOnce();
   });
+
+  it("opens lessons library from past lesson line", () => {
+    const onOpenLessons = vi.fn();
+    render(
+      <DailyReportLessonsCard
+        lessons={["Past lesson: Pause ads when CAC spikes."]}
+        onOpenLessons={onOpenLessons}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "View library" }));
+    expect(onOpenLessons).toHaveBeenCalledOnce();
+  });
 });

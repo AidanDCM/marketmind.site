@@ -63,6 +63,7 @@ export function Overview({
   onOpenLessons,
   onOpenImportHistory,
   onOpenLiveData,
+  onOpenScoreProduct,
 }: {
   onOpenTrend: (experimentId: string, trendDays: number) => void;
   onOpenActive: (experimentId: string) => void;
@@ -75,6 +76,7 @@ export function Overview({
   onOpenLessons?: () => void;
   onOpenImportHistory?: () => void;
   onOpenLiveData?: () => void;
+  onOpenScoreProduct?: () => void;
 }) {
   const [date, setDate] = useState(readOverviewDatePreference);
   const [report, setReport] = useState<DailyReport | null>(null);
@@ -418,6 +420,8 @@ export function Overview({
               experiments={reportExperimentLookup}
               onOpenActive={onOpenActive}
               onOpenApprovals={() => onOpenApprovals(pending[0]?.approval_id)}
+              onOpenScoreProduct={onOpenScoreProduct}
+              onOpenActiveList={onOpenActiveList}
             />
           </div>
 
@@ -426,6 +430,7 @@ export function Overview({
             onOpenLessons={onOpenLessons}
             onOpenApprovals={() => onOpenApprovals(pending[0]?.approval_id)}
             onOpenLiveData={onOpenLiveData}
+            onOpenActiveList={onOpenActiveList}
           />
         </>
       )}

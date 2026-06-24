@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-23 — Slice 105: Generic daily report line shortcuts
+
+### Slice 105: Link empty-portfolio and contribution recommendations
+
+- **`dailyReportNavigation.ts`** — no-experiments recommendation → Score Product; positive contribution → Active Experiments; past lessons → library.
+- **Recommendations and Lessons cards** — show navigation for generic generated lines.
+
+---
+
 ## 2026-06-23 — Slice 104: Preflight summary shortcuts
 
 ### Slice 104: Jump from preflight summary to fix blockers
