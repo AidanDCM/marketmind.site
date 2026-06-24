@@ -365,6 +365,7 @@ export function Overview({
             metrics={m}
             date={date}
             onOpenImportHistory={onOpenImportHistory}
+            onOpenLiveData={onOpenLiveData}
           />
 
           <div className="metric-grid">

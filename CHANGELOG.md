@@ -2,6 +2,14 @@
 
 ---
 
+## 2026-06-23 — Slice 112: Overview orders Live Data link
+
+### Slice 112: Jump from daily report orders to Live Data
+
+- **`OverviewReportPrimaryMetrics`** — daily report **Orders** metric opens Live Data.
+
+---
+
 ## 2026-06-23 — Slice 111: Overview ad spend import link
 
 ### Slice 111: Jump from daily report ad spend to Import History
