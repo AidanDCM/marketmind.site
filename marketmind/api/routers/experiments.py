@@ -67,14 +67,28 @@ def experiment_portfolio(request: Request) -> dict:
 
 
 @router.get("/trend-summary")
-def experiment_trend_summary(request: Request, days: int = 14) -> dict:
-    """CAC trend summary for active experiments over the last ``days`` (default 14)."""
+def experiment_trend_summary(
+    request: Request,
+    days: int = 14,
+    as_of: str | None = None,
+) -> dict:
+    """CAC trend summary for active experiments over the last ``days`` (default 14).
+
+    Optional ``as_of`` (ISO) ends the lookback window on that date (default today).
+    """
     if days < 1:
         raise HTTPException(status_code=422, detail="days must be at least 1")
+    if as_of is not None and not as_of.strip():
+        raise HTTPException(status_code=422, detail="as_of must not be empty when provided")
+    if as_of is not None:
+        try:
+            datetime.date.fromisoformat(as_of)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail="as_of must be an ISO date") from exc
     from ...experiment_trend_summary import build_experiment_trend_summary
 
     engine = request.app.state.engine
-    return build_experiment_trend_summary(engine, days=days)
+    return build_experiment_trend_summary(engine, days=days, as_of_date=as_of)
 
 
 @router.get("/active")

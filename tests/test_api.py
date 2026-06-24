@@ -626,7 +626,14 @@ def test_experiment_trend_summary_endpoint(client):
     assert resp.status_code == 200
     data = resp.json()
     assert data["days"] == 7
+    assert "as_of" in data
     assert data["experiments"] == []
+
+
+def test_experiment_trend_summary_accepts_as_of(client):
+    resp = client.get("/experiment/trend-summary?days=7&as_of=2026-06-15")
+    assert resp.status_code == 200
+    assert resp.json()["as_of"] == "2026-06-15"
 
 
 def test_experiment_trend_summary_rejects_invalid_days(client):

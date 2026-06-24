@@ -297,11 +297,14 @@ export interface ExperimentTrendSummaryItem {
 
 export interface ExperimentTrendSummary {
   days: number;
+  as_of: string;
   experiments: ExperimentTrendSummaryItem[];
 }
 
-export function fetchExperimentTrendSummary(days = 14): Promise<ExperimentTrendSummary> {
-  return req("GET", `/experiment/trend-summary?days=${days}`);
+export function fetchExperimentTrendSummary(days = 14, asOf?: string): Promise<ExperimentTrendSummary> {
+  const params = new URLSearchParams({ days: String(days) });
+  if (asOf) params.set("as_of", asOf);
+  return req("GET", `/experiment/trend-summary?${params.toString()}`);
 }
 
 export function patchExperimentStatus(
