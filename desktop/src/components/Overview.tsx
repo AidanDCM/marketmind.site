@@ -148,6 +148,7 @@ export function Overview() {
                 <th style={{ padding: "4px 8px 4px 0" }}>Experiment</th>
                 <th style={{ padding: "4px 8px" }}>Latest CAC</th>
                 <th style={{ padding: "4px 8px" }}>BEP</th>
+                <th style={{ padding: "4px 8px" }}>Snapshot</th>
                 <th style={{ padding: "4px 8px" }}>Trend</th>
                 <th style={{ padding: "4px 0 4px 8px" }}>Ruling</th>
               </tr>
@@ -170,6 +171,9 @@ export function Overview() {
                     {exp.latest_cac != null ? fmt$(exp.latest_cac) : "—"}
                   </td>
                   <td style={{ padding: "6px 8px" }}>{fmt$(exp.break_even_cac)}</td>
+                  <td style={{ padding: "6px 8px", color: "var(--text-muted)" }}>
+                    {exp.latest_snapshot_date ?? "—"}
+                  </td>
                   <td style={{ padding: "6px 8px", fontWeight: 600,
                     color: exp.cac_direction === "up" ? "var(--red, #ef4444)"
                       : exp.cac_direction === "down" ? "var(--green, #22c55e)"

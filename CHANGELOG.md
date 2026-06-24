@@ -2,6 +2,14 @@
 
 ---
 
+## 2026-06-23 — Slice 72: Latest snapshot date in trend table
+
+### Slice 72: Snapshot date column on Overview CAC trends
+
+- **Desktop Overview** — trend table shows each experiment's `latest_snapshot_date` within the lookback window.
+
+---
+
 ## 2026-06-23 — Slice 71: Attention-only trend toggle on Overview
 
 ### Slice 71: Filter CAC trends to flagged experiments
