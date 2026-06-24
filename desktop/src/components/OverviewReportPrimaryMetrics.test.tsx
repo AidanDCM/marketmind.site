@@ -54,4 +54,24 @@ describe("OverviewReportPrimaryMetrics", () => {
     fireEvent.click(screen.getAllByTitle("Open Live Data")[1]);
     expect(onOpenLiveData).toHaveBeenCalledOnce();
   });
+
+  it("opens active experiments from CAC metric", () => {
+    const onOpenActiveList = vi.fn();
+    render(
+      <OverviewReportPrimaryMetrics
+        metrics={metrics}
+        date="2026-06-23"
+        onOpenActiveList={onOpenActiveList}
+      />,
+    );
+    fireEvent.click(screen.getByTitle("Open Active Experiments"));
+    expect(onOpenActiveList).toHaveBeenCalledOnce();
+  });
+
+  it("does not link CAC when active list handler is missing", () => {
+    render(
+      <OverviewReportPrimaryMetrics metrics={metrics} date="2026-06-23" />,
+    );
+    expect(screen.queryByTitle("Open Active Experiments")).toBeNull();
+  });
 });

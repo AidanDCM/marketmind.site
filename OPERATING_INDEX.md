@@ -12,11 +12,14 @@ before writing a single line of code.
 ## 1. Required reading order
 
 1. [`README.md`](README.md) — what MarketMind is and why it exists
-2. [`AGENTS.md`](AGENTS.md) — rules for AI agents and developers (binding)
-3. [`OWNER_MANUAL.md`](OWNER_MANUAL.md) — how to install, run, test, deploy, and roll back
-4. [`docs/issues/`](docs/issues/) — known failures and their fixes (read before touching related code)
-5. [`CHANGELOG.md`](CHANGELOG.md) — what changed in each slice
-6. [`ARCHITECTURE.md`](ARCHITECTURE.md) — system layers, DB schema, API structure
+2. [`SLICE_WORKFLOW.md`](SLICE_WORKFLOW.md) — slice vs hardening phases, testing microscope
+3. [`AGENTS.md`](AGENTS.md) — rules for AI agents and developers (binding)
+4. [`OWNER_MANUAL.md`](OWNER_MANUAL.md) — how to install, run, test, deploy, and roll back
+5. [`docs/dev_manual/MARKETMIND_TESTING_AND_EVIDENCE.md`](docs/dev_manual/MARKETMIND_TESTING_AND_EVIDENCE.md) — test commands and evidence
+6. [`docs/engineering_log/README.md`](docs/engineering_log/README.md) — forensic change ledger
+7. [`docs/issues/`](docs/issues/) — known failures and their fixes (read before touching related code)
+8. [`CHANGELOG.md`](CHANGELOG.md) — slice summary
+9. [`ARCHITECTURE.md`](ARCHITECTURE.md) — system layers, DB schema, API structure
 
 ---
 
@@ -33,6 +36,11 @@ before writing a single line of code.
 | Codex handoff | [`CODEX_HANDOFF.md`](CODEX_HANDOFF.md) | Template for handing tasks to Codex |
 | Development plan | [`DEVELOPMENT_PLAN.md`](DEVELOPMENT_PLAN.md) | Slice roadmap |
 | Test plan | [`TEST_PLAN.md`](TEST_PLAN.md) | Test strategy |
+| Slice workflow | [`SLICE_WORKFLOW.md`](SLICE_WORKFLOW.md) | Proceed = slice or hardening |
+| Testing manual | [`docs/dev_manual/MARKETMIND_TESTING_AND_EVIDENCE.md`](docs/dev_manual/MARKETMIND_TESTING_AND_EVIDENCE.md) | Commands + evidence |
+| Engineering log | [`docs/engineering_log/`](docs/engineering_log/) | Forensic per-change ledger |
+| Audits | [`docs/audits/README.md`](docs/audits/README.md) | Audit triad standard |
+| Local CI evidence | [`reports/local_ci/TEST_LOG.md`](reports/local_ci/TEST_LOG.md) | Append-only test runs |
 | Deployment | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Deploy to VPS |
 | Decisions | [`docs/decisions/`](docs/decisions/) | ADRs and major decisions |
 | Issues | [`docs/issues/`](docs/issues/) | Known bugs and fixes |
@@ -102,8 +110,9 @@ New API endpoints added by the integration:
 
 - **Active owner:** Aidan
 - **Active maintainer:** Aidan / Codex agents
-- **Current phase:** Building — Slices 1–114 complete
-- **Last reviewed:** 2026-06-23
+- **Current phase:** Building — Slices 1–115 complete (Phase A); see `SLICE_WORKFLOW.md` for Phase B
+- **Last reviewed:** 2026-06-24
+- **Test inventory:** ~465 pytest + desktop Vitest; run `python scripts/local_ci.py` for evidence
 - **Known blockers:** None
 
 ---

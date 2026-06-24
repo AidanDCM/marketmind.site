@@ -2,6 +2,27 @@
 
 ---
 
+## 2026-06-24 — Process: Testing discipline and engineering log
+
+### Futures Bot patterns applied to MarketMind (not a feature slice)
+
+- **`SLICE_WORKFLOW.md`** — Phase A slices vs Phase B hardening; microscope testing; engineering log required.
+- **`docs/engineering_log/`** — per-entry forensic ledger (why/where/when/verification).
+- **`docs/dev_manual/MARKETMIND_TESTING_AND_EVIDENCE.md`** — command reference (~465 pytest + desktop Vitest).
+- **`scripts/local_ci.py`** — offline CI + append-only `reports/local_ci/TEST_LOG.md`.
+- **`.agents/skills/testing-marketmind-slice|system`** — agent instructions for slice vs hardening work.
+- **`AGENTS.md` / `OPERATING_INDEX.md`** — updated binding rules.
+
+---
+
+## 2026-06-23 — Slice 115: Overview CAC Active Experiments link
+
+### Slice 115: Jump from daily report CAC to Active Experiments
+
+- **`OverviewReportPrimaryMetrics`** — daily report **CAC** metric opens Active Experiments.
+
+---
+
 ## 2026-06-23 — Slice 114: Overview revenue Live Data link
 
 ### Slice 114: Jump from daily report revenue to Live Data

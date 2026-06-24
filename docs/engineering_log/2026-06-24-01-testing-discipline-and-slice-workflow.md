@@ -1,0 +1,21 @@
+# 2026-06-24 — Testing discipline and slice workflow (Futures Bot patterns applied)
+
+- **Author:** AI agent (Cursor) + Aidan request
+- **Commit(s)/PR:** (this PR)
+- **Where:** `SLICE_WORKFLOW.md`, `AGENTS.md`, `docs/engineering_log/`, `docs/dev_manual/MARKETMIND_TESTING_AND_EVIDENCE.md`, `docs/audits/README.md`, `.agents/skills/testing-marketmind-*`, `marketmind/local_ci.py`, `scripts/local_ci.py`, `reports/local_ci/TEST_LOG.md`
+- **When:** 2026-06-24 UTC
+- **What changed:**
+  - Imported Futures Trading Bot practices: per-entry engineering log, audit triad README, local CI evidence log, agent testing skills — **all trading-specific wording removed** and mapped to MarketMind (approval gate, commerce dry-run, Overview slices).
+  - Defined **Phase A** (one slice per `proceed`) vs **Phase B** (after roadmap: test / improve / rebuild per `proceed`).
+  - Binding rule: every slice and hardening pass gets a verbose `docs/engineering_log/` file with commands and exit codes.
+  - Added `python scripts/local_ci.py` mirroring backend CI steps; appends `reports/local_ci/TEST_LOG.md`.
+- **Why (evidence):** Aidan asked to match Futures Bot test depth (~669 pytest there vs ~465 here), atomic audit discipline, and complete historical record for future devs. Desktop Vitest existed but was not always run in agent shell (npm missing).
+- **What could still break:**
+  - `local_ci.py --full` deploy verify requires a running API (not started automatically).
+  - Desktop Vitest not in default `local_ci.py` (CI workflow runs it on GitHub; local requires Node).
+  - Phase B rotation is manual — no timer yet.
+- **Verification:**
+  - `python -m pytest -q tests/test_local_ci.py` → pass
+  - `python -m ruff check .` → pass
+  - `python -m pytest -q` → 466 passed (after test_local_ci added)
+- **Follow-up:** Run Phase B hardening passes; add full audit triad for experiment scorecard when needed.
