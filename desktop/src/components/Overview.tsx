@@ -41,6 +41,7 @@ export function Overview() {
   const [health, setHealth] = useState<OperatorHealthPanel | null>(null);
   const [readiness, setReadiness] = useState<OperatorReadiness | null>(null);
   const [trendSummary, setTrendSummary] = useState<ExperimentTrendSummary | null>(null);
+  const [attentionOnly, setAttentionOnly] = useState(false);
   const [loading, setLoading] = useState(false);
   const [cycleRunning, setCycleRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +55,7 @@ export function Overview() {
       fetchPendingApprovals(),
       fetchOperatorHealthPanel(date),
       fetchOperatorReadiness(date),
-      fetchExperimentTrendSummary(14, date),
+      fetchExperimentTrendSummary(14, date, attentionOnly),
     ])
       .then(([r, p, h, ready, trends]) => {
         if (!cancelled) {
@@ -68,7 +69,7 @@ export function Overview() {
       .catch((e: Error) => { if (!cancelled) setError(e.message); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [date]);
+  }, [date, attentionOnly]);
 
   const m = report?.metrics;
 
@@ -82,7 +83,7 @@ export function Overview() {
         fetchPendingApprovals(),
         fetchOperatorHealthPanel(date),
         fetchOperatorReadiness(date),
-        fetchExperimentTrendSummary(14, date),
+        fetchExperimentTrendSummary(14, date, attentionOnly),
       ]);
       setReport(r);
       setPending(p);
@@ -116,16 +117,31 @@ export function Overview() {
         />
       )}
 
-      {trendSummary && trendSummary.experiments.length > 0 && (
+      {trendSummary && (trendSummary.experiments.length > 0 || attentionOnly) && (
         <div className="card" style={{ marginBottom: 14 }}>
-          <div className="card-title">
-            Active experiment CAC trends ({trendSummary.days}d through {trendSummary.as_of})
-            {trendSummary.needs_attention_count > 0 && (
-              <span style={{ color: "var(--red, #ef4444)", fontWeight: 600, marginLeft: 8 }}>
-                · {trendSummary.needs_attention_count} need attention
-              </span>
-            )}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 10 }}>
+            <div className="card-title" style={{ margin: 0 }}>
+              Active experiment CAC trends ({trendSummary.days}d through {trendSummary.as_of})
+              {!attentionOnly && trendSummary.needs_attention_count > 0 && (
+                <span style={{ color: "var(--red, #ef4444)", fontWeight: 600, marginLeft: 8 }}>
+                  · {trendSummary.needs_attention_count} need attention
+                </span>
+              )}
+            </div>
+            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, whiteSpace: "nowrap" }}>
+              <input
+                type="checkbox"
+                checked={attentionOnly}
+                onChange={(e) => setAttentionOnly(e.target.checked)}
+              />
+              Attention only
+            </label>
           </div>
+          {trendSummary.experiments.length === 0 ? (
+            <div style={{ color: "var(--text-muted)", fontSize: 13 }}>
+              No active experiments need attention for {trendSummary.as_of}.
+            </div>
+          ) : (
           <table style={{ width: "100%", fontSize: 13, borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ textAlign: "left", color: "var(--text-muted)" }}>
@@ -165,6 +181,7 @@ export function Overview() {
               ))}
             </tbody>
           </table>
+          )}
         </div>
       )}
 

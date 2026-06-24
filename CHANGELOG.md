@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-23 — Slice 71: Attention-only trend toggle on Overview
+
+### Slice 71: Filter CAC trends to flagged experiments
+
+- **Desktop Overview** — “Attention only” checkbox wires `attention_only=true` on trend-summary fetch.
+- Empty state when the filter returns no flagged experiments.
+
+---
+
 ## 2026-06-23 — Slice 70: Trend attention highlighting
 
 ### Slice 70: Flag experiments needing attention in CAC trends
