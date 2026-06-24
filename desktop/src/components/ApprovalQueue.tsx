@@ -7,7 +7,12 @@ import {
   type ApprovalRecord,
 } from "../api/client";
 
-const FILTERS = ["pending", "all", "approved", "denied", "blocked", "auto_allowed"] as const;
+import {
+  APPROVAL_FILTERS,
+  readApprovalFilterPreference,
+  writeApprovalFilterPreference,
+  type ApprovalFilter,
+} from "./approvalQueuePreferences";
 
 function statusBadge(s: string) {
   const map: Record<string, string> = {
@@ -169,10 +174,20 @@ export function ApprovalQueue({
   focusApprovalId?: string | null;
   onQueueChanged?: () => void;
 } = {}) {
-  const [filter, setFilter] = useState<string>("pending");
+  const [filter, setFilter] = useState<ApprovalFilter>(
+    () => (focusApprovalId ? "pending" : readApprovalFilterPreference()),
+  );
   const [records, setRecords] = useState<ApprovalRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (focusApprovalId) setFilter("pending");
+  }, [focusApprovalId]);
+
+  useEffect(() => {
+    writeApprovalFilterPreference(filter);
+  }, [filter]);
 
   function load() {
     setLoading(true); setError(null);
@@ -199,7 +214,7 @@ export function ApprovalQueue({
       </div>
 
       <div className="filter-bar">
-        {FILTERS.map(f => (
+        {APPROVAL_FILTERS.map(f => (
           <button key={f} className={`filter-btn ${filter === f ? "active" : ""}`} onClick={() => setFilter(f)}>
             {f.replace("_", " ")}
           </button>

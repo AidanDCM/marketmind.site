@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { fetchHealth } from "./api/client";
 import { readTrendDaysPreference } from "./components/overviewPreferences";
 import { useExperimentAttentionCount } from "./useExperimentAttentionCount";
-import { usePendingApprovalCount } from "./usePendingApprovalCount";
+import { usePendingApprovalSummary } from "./usePendingApprovalSummary";
 import { Overview } from "./components/Overview";
 import { ApprovalQueue } from "./components/ApprovalQueue";
 import { ScoreProduct } from "./components/ScoreProduct";
@@ -48,7 +48,7 @@ export function App() {
   const [apiOk, setApiOk] = useState<boolean | null>(null);
   const [navRefresh, setNavRefresh] = useState(0);
   const attentionCount = useExperimentAttentionCount(apiOk, navRefresh);
-  const pendingCount = usePendingApprovalCount(apiOk, navRefresh);
+  const pending = usePendingApprovalSummary(apiOk, navRefresh);
 
   function navigate(next: Page, context?: PageContext) {
     setPageContext(context ?? null);
@@ -96,16 +96,16 @@ export function App() {
             <button key={n.id} className={`nav-item ${page === n.id ? "active" : ""}`} onClick={() => navigate(n.id)}>
               <Icon d={n.icon} />
               <span className="nav-label">{n.label}</span>
-              {n.id === "approvals" && pendingCount > 0 && (
+              {n.id === "approvals" && pending.count > 0 && (
                 <span
                   className="nav-badge nav-badge-warn"
-                  title="Pending approvals"
+                  title="Open first pending approval"
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigate("approvals");
+                    openApprovals(pending.firstApprovalId ?? undefined);
                   }}
                 >
-                  {pendingCount}
+                  {pending.count}
                 </span>
               )}
               {n.id === "active" && attentionCount > 0 && (
