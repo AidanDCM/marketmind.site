@@ -2,6 +2,14 @@
 
 ---
 
+## 2026-06-23 — Slice 110: Readiness integration summary link
+
+### Slice 110: Jump from readiness integration summary to Live Data
+
+- **Operator readiness banner** — Gmail/Stripe/Shopify summary shows **Check Live Data**.
+
+---
+
 ## 2026-06-23 — Slice 109: Snapshot gap experiment links
 
 ### Slice 109: Jump from missing snapshot rows to experiment details

@@ -38,6 +38,16 @@ export function OperatorReadinessBanner({
         Stripe {commerce.stripe?.configured ? "configured" : "missing"}
         {" · "}
         Shopify {commerce.shopify?.configured ? "configured" : "missing"}
+        {onOpenLiveData && (
+          <button
+            type="button"
+            className="inline-link"
+            style={{ marginLeft: 6, fontSize: 13 }}
+            onClick={onOpenLiveData}
+          >
+            Check Live Data
+          </button>
+        )}
       </div>
       {readiness.blockers.length > 0 && (
         <ul style={{ margin: "0 0 6px", paddingLeft: 18, fontSize: 13 }}>
