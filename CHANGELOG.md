@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-23 — Slice 74: Shared ruling badges on Overview trends
+
+### Slice 74: Color-coded ruling badges in trend table
+
+- **`RulingBadge.tsx`** — shared kill/scale/pause/continue badge (extracted from Active Experiments).
+- **Overview** — trend table uses `RulingBadge` instead of plain ruling text.
+
+---
+
 ## 2026-06-23 — Slice 73: Stale snapshot hints on Overview trends
 
 ### Slice 73: Persist attention filter and flag stale snapshots
