@@ -28,4 +28,17 @@ describe("OverviewReportPrimaryMetrics", () => {
     fireEvent.click(screen.getByTitle("Open Import History"));
     expect(onOpenImportHistory).toHaveBeenCalledOnce();
   });
+
+  it("opens live data from orders metric", () => {
+    const onOpenLiveData = vi.fn();
+    render(
+      <OverviewReportPrimaryMetrics
+        metrics={metrics}
+        date="2026-06-23"
+        onOpenLiveData={onOpenLiveData}
+      />,
+    );
+    fireEvent.click(screen.getByTitle("Open Live Data"));
+    expect(onOpenLiveData).toHaveBeenCalledOnce();
+  });
 });
