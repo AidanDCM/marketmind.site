@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-23 — Slice 87: Overview links to Snapshots with date prefill
+
+### Slice 87: Jump from Overview to Snapshot Recorder
+
+- **Overview** — Snapshots button beside date picker; stale trend rows and empty state link to recorder.
+- **Snapshot Recorder** — accepts navigation context for `snapshot_date` and optional `experiment_id`.
+
+---
+
 ## 2026-06-23 — Slice 86: Persist Active Experiments status filter
 
 ### Slice 86: Remember all / active / ended filter on Active Experiments

@@ -67,6 +67,10 @@ export function App() {
     navigate("approvals", focusApprovalId ? { focusApprovalId } : undefined);
   }
 
+  function openSnapshots(snapshotDate: string, experimentId?: string) {
+    navigate("snapshots", { snapshotDate, experimentId });
+  }
+
   function bumpNavRefresh() {
     setNavRefresh((n) => n + 1);
   }
@@ -139,6 +143,7 @@ export function App() {
             onOpenActive={openActiveFromOverview}
             onOpenApprovals={openApprovals}
             onOpenAttention={openAttentionExperiments}
+            onOpenSnapshots={openSnapshots}
           />
         )}
         {page === "approvals" && (
@@ -158,7 +163,13 @@ export function App() {
         {page === "lessons" && <LessonsLibrary />}
         {page === "live" && <LiveData />}
         {page === "history" && <ImportHistory />}
-        {page === "snapshots" && <SnapshotRecorder />}
+        {page === "snapshots" && (
+          <SnapshotRecorder
+            key={`${pageContext?.snapshotDate ?? "snap-default"}-${pageContext?.experimentId ?? ""}`}
+            initialSnapshotDate={pageContext?.snapshotDate}
+            initialExperimentId={pageContext?.experimentId}
+          />
+        )}
         {page === "trend" && (
           <SnapshotTrend
             key={pageContext?.experimentId ?? "trend-default"}

@@ -20,4 +20,5 @@ export type PageContext = {
   trendDays?: number;
   attentionOnly?: boolean;
   focusApprovalId?: string;
+  snapshotDate?: string;
 };
