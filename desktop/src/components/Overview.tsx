@@ -412,6 +412,7 @@ export function Overview({
               items={report!.risks}
               experiments={reportExperimentLookup}
               onOpenActive={onOpenActive}
+              onOpenActiveList={onOpenActiveList}
             />
             <DailyReportInsightList
               title="Recommendations"

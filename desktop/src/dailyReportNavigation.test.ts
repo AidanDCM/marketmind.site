@@ -5,6 +5,8 @@ import {
   resolveExperimentIdForReportLine,
   resolveDailyReportLineAction,
   isScaleApprovalRecommendation,
+  isGenericPortfolioRisk,
+  ZERO_ORDER_SPEND_RISK,
   resolveDailyReportLessonAction,
   dailyReportLessonActionLabel,
 } from "./dailyReportNavigation";
@@ -66,6 +68,22 @@ describe("dailyReportNavigation", () => {
     ).toEqual({ kind: "activeList" });
   });
 
+  it("routes generic portfolio risks to active experiments", () => {
+    expect(isGenericPortfolioRisk(ZERO_ORDER_SPEND_RISK)).toBe(true);
+    expect(
+      resolveDailyReportLineAction(
+        "Refund rate 12.0% exceeds kill threshold 10% — review product quality.",
+        lookup,
+      ),
+    ).toEqual({ kind: "activeList" });
+    expect(
+      resolveDailyReportLineAction(
+        "Add-to-cart rate 1.0% below floor 2% — creative or price needs revision.",
+        lookup,
+      ),
+    ).toEqual({ kind: "activeList" });
+  });
+
   it("routes pending approval lessons to the queue", () => {
     const action = resolveDailyReportLessonAction(
       "2 approval(s) pending — unblocking these may unlock next steps.",
@@ -86,5 +104,12 @@ describe("dailyReportNavigation", () => {
     const action = resolveDailyReportLessonAction("Past lesson: Pause ads when CAC spikes.");
     expect(action).toEqual({ kind: "lessons" });
     expect(dailyReportLessonActionLabel(action!)).toBe("View library");
+  });
+
+  it("routes low ROAS lessons to active experiments", () => {
+    const action = resolveDailyReportLessonAction(
+      "ROAS is 0.75 (below 1.0) — spending more than earning from ads.",
+    );
+    expect(action).toEqual({ kind: "activeList" });
   });
 });

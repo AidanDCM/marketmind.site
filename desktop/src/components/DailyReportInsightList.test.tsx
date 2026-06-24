@@ -23,11 +23,26 @@ describe("DailyReportInsightList", () => {
       <DailyReportInsightList
         title="Risks"
         bulletClass="risk"
-        items={["Spend with zero orders today — check targeting and offer."]}
+        items={["Some unknown portfolio risk message"]}
         experiments={[]}
       />,
     );
-    expect(screen.queryByRole("button", { name: "View experiment" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "View experiments" })).toBeNull();
+  });
+
+  it("opens active experiments for generic portfolio risks", () => {
+    const onOpenActiveList = vi.fn();
+    render(
+      <DailyReportInsightList
+        title="Risks"
+        bulletClass="risk"
+        items={["Spend with zero orders today — check targeting and offer."]}
+        experiments={[]}
+        onOpenActiveList={onOpenActiveList}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "View experiments" }));
+    expect(onOpenActiveList).toHaveBeenCalledOnce();
   });
 
   it("opens approval queue for scale recommendations", () => {
