@@ -8,6 +8,7 @@ interface DailyReportLessonsCardProps {
   onOpenLessons?: () => void;
   onOpenApprovals?: () => void;
   onOpenLiveData?: () => void;
+  onOpenActiveList?: () => void;
 }
 
 export function DailyReportLessonsCard({
@@ -15,6 +16,7 @@ export function DailyReportLessonsCard({
   onOpenLessons,
   onOpenApprovals,
   onOpenLiveData,
+  onOpenActiveList,
 }: DailyReportLessonsCardProps) {
   if (lessons.length === 0) {
     return null;
@@ -35,6 +37,8 @@ export function DailyReportLessonsCard({
         const canAct = action != null && (
           (action.kind === "approvals" && onOpenApprovals)
           || (action.kind === "live" && onOpenLiveData)
+          || (action.kind === "lessons" && onOpenLessons)
+          || (action.kind === "activeList" && onOpenActiveList)
         );
         return (
           <div key={i} className="list-item">
@@ -47,10 +51,19 @@ export function DailyReportLessonsCard({
                   className="inline-link"
                   style={{ marginLeft: 6, fontSize: 12 }}
                   onClick={() => {
-                    if (action.kind === "approvals") {
-                      onOpenApprovals?.();
-                    } else {
-                      onOpenLiveData?.();
+                    switch (action.kind) {
+                      case "approvals":
+                        onOpenApprovals?.();
+                        break;
+                      case "live":
+                        onOpenLiveData?.();
+                        break;
+                      case "lessons":
+                        onOpenLessons?.();
+                        break;
+                      case "activeList":
+                        onOpenActiveList?.();
+                        break;
                     }
                   }}
                 >

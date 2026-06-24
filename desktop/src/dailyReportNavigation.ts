@@ -36,10 +36,15 @@ export function resolveExperimentIdForReportLine(
 }
 
 export const SCALE_APPROVAL_PHRASE = "submit scale request for approval";
+export const NO_EXPERIMENTS_RECOMMENDATION =
+  "No experiments active today. Pick a product candidate to test.";
+export const POSITIVE_CONTRIBUTION_PREFIX = "Positive contribution today";
 
 export type DailyReportLineAction =
   | { kind: "experiment"; experimentId: string }
-  | { kind: "approvals" };
+  | { kind: "approvals" }
+  | { kind: "score" }
+  | { kind: "activeList" };
 
 export function isScaleApprovalRecommendation(text: string): boolean {
   return text.toLowerCase().includes(SCALE_APPROVAL_PHRASE);
@@ -50,27 +55,46 @@ export function resolveDailyReportLineAction(
   lookup: Map<string, string>,
 ): DailyReportLineAction | null {
   const experimentId = resolveExperimentIdForReportLine(text, lookup);
-  if (!experimentId) {
-    return null;
+  if (experimentId) {
+    if (isScaleApprovalRecommendation(text)) {
+      return { kind: "approvals" };
+    }
+    return { kind: "experiment", experimentId };
   }
-  if (isScaleApprovalRecommendation(text)) {
-    return { kind: "approvals" };
+  if (text === NO_EXPERIMENTS_RECOMMENDATION) {
+    return { kind: "score" };
   }
-  return { kind: "experiment", experimentId };
+  if (text.startsWith(POSITIVE_CONTRIBUTION_PREFIX)) {
+    return { kind: "activeList" };
+  }
+  return null;
 }
 
 export function dailyReportLineActionLabel(action: DailyReportLineAction): string {
-  return action.kind === "approvals" ? "Open queue" : "View experiment";
+  switch (action.kind) {
+    case "approvals":
+      return "Open queue";
+    case "experiment":
+      return "View experiment";
+    case "score":
+      return "Score product";
+    case "activeList":
+      return "View experiments";
+  }
 }
 
 export type DailyReportLessonAction =
   | { kind: "approvals" }
-  | { kind: "live" };
+  | { kind: "live" }
+  | { kind: "lessons" }
+  | { kind: "activeList" };
 
 const PENDING_APPROVALS_LESSON =
   /^(\d+) approval\(s\) pending — unblocking these may unlock next steps\.$/;
 const NO_ORDERS_LESSON_PREFIX =
   "No orders: verify that the payment link / checkout is live and working.";
+const PAST_LESSON_PREFIX = "Past lesson: ";
+const ROAS_SCALE_LESSON_PHRASE = "confirm with experiment rules before scaling.";
 
 export function resolveDailyReportLessonAction(text: string): DailyReportLessonAction | null {
   if (PENDING_APPROVALS_LESSON.test(text)) {
@@ -79,9 +103,24 @@ export function resolveDailyReportLessonAction(text: string): DailyReportLessonA
   if (text === NO_ORDERS_LESSON_PREFIX) {
     return { kind: "live" };
   }
+  if (text.startsWith(PAST_LESSON_PREFIX)) {
+    return { kind: "lessons" };
+  }
+  if (text.includes(ROAS_SCALE_LESSON_PHRASE)) {
+    return { kind: "activeList" };
+  }
   return null;
 }
 
 export function dailyReportLessonActionLabel(action: DailyReportLessonAction): string {
-  return action.kind === "approvals" ? "Open queue" : "Check Live Data";
+  switch (action.kind) {
+    case "approvals":
+      return "Open queue";
+    case "live":
+      return "Check Live Data";
+    case "lessons":
+      return "View library";
+    case "activeList":
+      return "View experiments";
+  }
 }

@@ -46,4 +46,19 @@ describe("DailyReportInsightList", () => {
     fireEvent.click(screen.getByRole("button", { name: "Open queue" }));
     expect(onOpenApprovals).toHaveBeenCalledOnce();
   });
+
+  it("opens score product for no-experiments recommendation", () => {
+    const onOpenScoreProduct = vi.fn();
+    render(
+      <DailyReportInsightList
+        title="Recommendations"
+        bulletClass="rec"
+        items={["No experiments active today. Pick a product candidate to test."]}
+        experiments={[]}
+        onOpenScoreProduct={onOpenScoreProduct}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Score product" }));
+    expect(onOpenScoreProduct).toHaveBeenCalledOnce();
+  });
 });
