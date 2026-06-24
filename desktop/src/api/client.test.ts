@@ -156,8 +156,8 @@ describe("api client", () => {
   it("fetches experiment trend summary", async () => {
     const fn = mockFetch({ days: 14, as_of: "2026-06-20", needs_attention_count: 0, experiments: [] });
     const { fetchExperimentTrendSummary } = await import("./client");
-    await fetchExperimentTrendSummary(14, "2026-06-20");
-    expect(fn.mock.calls[0][0]).toBe("http://127.0.0.1:8000/experiment/trend-summary?days=14&as_of=2026-06-20");
+    await fetchExperimentTrendSummary(30, "2026-06-20");
+    expect(fn.mock.calls[0][0]).toBe("http://127.0.0.1:8000/experiment/trend-summary?days=30&as_of=2026-06-20");
   });
 
   it("fetches attention-only trend summary", async () => {

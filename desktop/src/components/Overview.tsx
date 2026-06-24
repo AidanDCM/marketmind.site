@@ -15,6 +15,15 @@ import {
 import { OperatorHealthPanelView } from "./OperatorHealthPanel";
 import { OperatorReadinessBanner } from "./OperatorReadinessBanner";
 import { RulingBadge } from "./RulingBadge";
+import {
+  ATTENTION_ONLY_KEY,
+  TREND_DAYS_KEY,
+  TREND_DAY_OPTIONS,
+  readAttentionOnlyPreference,
+  readTrendDaysPreference,
+  isSnapshotStale,
+  type TrendDayOption,
+} from "./overviewPreferences";
 
 function todayStr(): string {
   return new Date().toISOString().slice(0, 10);
@@ -35,20 +44,6 @@ function trendArrow(direction: ExperimentTrendSummary["experiments"][number]["ca
   return "·";
 }
 
-const ATTENTION_ONLY_KEY = "marketmind_attention_only";
-
-function readAttentionOnlyPreference(): boolean {
-  try {
-    return localStorage.getItem(ATTENTION_ONLY_KEY) === "true";
-  } catch {
-    return false;
-  }
-}
-
-function isSnapshotStale(snapshotDate: string | null, asOf: string): boolean {
-  return snapshotDate != null && snapshotDate < asOf;
-}
-
 export function Overview() {
   const [date, setDate] = useState(todayStr());
   const [report, setReport] = useState<DailyReport | null>(null);
@@ -57,6 +52,7 @@ export function Overview() {
   const [readiness, setReadiness] = useState<OperatorReadiness | null>(null);
   const [trendSummary, setTrendSummary] = useState<ExperimentTrendSummary | null>(null);
   const [attentionOnly, setAttentionOnly] = useState(readAttentionOnlyPreference);
+  const [trendDays, setTrendDays] = useState<TrendDayOption>(readTrendDaysPreference);
   const [loading, setLoading] = useState(false);
   const [cycleRunning, setCycleRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,7 +66,7 @@ export function Overview() {
       fetchPendingApprovals(),
       fetchOperatorHealthPanel(date),
       fetchOperatorReadiness(date),
-      fetchExperimentTrendSummary(14, date, attentionOnly),
+      fetchExperimentTrendSummary(trendDays, date, attentionOnly),
     ])
       .then(([r, p, h, ready, trends]) => {
         if (!cancelled) {
@@ -84,7 +80,7 @@ export function Overview() {
       .catch((e: Error) => { if (!cancelled) setError(e.message); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [date, attentionOnly]);
+  }, [date, attentionOnly, trendDays]);
 
   useEffect(() => {
     try {
@@ -93,6 +89,14 @@ export function Overview() {
       // ignore storage errors in non-browser contexts
     }
   }, [attentionOnly]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(TREND_DAYS_KEY, String(trendDays));
+    } catch {
+      // ignore storage errors in non-browser contexts
+    }
+  }, [trendDays]);
 
   const m = report?.metrics;
 
@@ -106,7 +110,7 @@ export function Overview() {
         fetchPendingApprovals(),
         fetchOperatorHealthPanel(date),
         fetchOperatorReadiness(date),
-        fetchExperimentTrendSummary(14, date, attentionOnly),
+        fetchExperimentTrendSummary(trendDays, date, attentionOnly),
       ]);
       setReport(r);
       setPending(p);
@@ -151,14 +155,28 @@ export function Overview() {
                 </span>
               )}
             </div>
-            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, whiteSpace: "nowrap" }}>
-              <input
-                type="checkbox"
-                checked={attentionOnly}
-                onChange={(e) => setAttentionOnly(e.target.checked)}
-              />
-              Attention only
-            </label>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 13, whiteSpace: "nowrap" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                Lookback
+                <select
+                  value={trendDays}
+                  onChange={(e) => setTrendDays(Number(e.target.value) as TrendDayOption)}
+                  style={{ fontSize: 13 }}
+                >
+                  {TREND_DAY_OPTIONS.map((days) => (
+                    <option key={days} value={days}>{days}d</option>
+                  ))}
+                </select>
+              </label>
+              <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <input
+                  type="checkbox"
+                  checked={attentionOnly}
+                  onChange={(e) => setAttentionOnly(e.target.checked)}
+                />
+                Attention only
+              </label>
+            </div>
           </div>
           {trendSummary.experiments.length === 0 ? (
             <div style={{ color: "var(--text-muted)", fontSize: 13 }}>
