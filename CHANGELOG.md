@@ -2,6 +2,14 @@
 
 ---
 
+## 2026-06-23 — Slice 111: Overview ad spend import link
+
+### Slice 111: Jump from daily report ad spend to Import History
+
+- **`OverviewReportPrimaryMetrics`** — daily report **Ad Spend** metric opens Import History.
+
+---
+
 ## 2026-06-23 — Slice 110: Readiness integration summary link
 
 ### Slice 110: Jump from readiness integration summary to Live Data
