@@ -164,7 +164,14 @@ export function Overview({
         </div>
       </div>
 
-      {readiness && <OperatorReadinessBanner readiness={readiness} />}
+      {readiness && (
+        <OperatorReadinessBanner
+          readiness={readiness}
+          onOpenApprovals={() => onOpenApprovals(pending[0]?.approval_id)}
+          onOpenActive={onOpenActive}
+          onOpenSnapshots={onOpenSnapshots}
+        />
+      )}
 
       {health && (
         <OperatorHealthPanelView
