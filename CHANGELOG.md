@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-23 — Slice 94: Pending approvals shortcuts in health panel
+
+### Slice 94: Jump to approval queue from health metrics
+
+- **Operator health panel** — new clickable **Pending approvals** metric when count > 0.
+- **Last daily cycle** — “Open queue” link when the cycle queued approvals.
+
+---
+
 ## 2026-06-23 — Slice 93: Link health panel warnings and blockers
 
 ### Slice 93: Operator health panel message shortcuts
