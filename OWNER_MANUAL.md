@@ -54,6 +54,7 @@ Research niche
 | Add a note to an experiment | Active Experiments → expand card → Notes section → type + Add | Note appears below | API must be running |
 | Check operator preflight | `GET /operator/preflight` or check Overview | `safe_to_operate: true` | See preflight response for blockers |
 | Check local readiness (env + DB) | `python scripts/check_operator_readiness.py` | Exit 0; "Operator readiness passed" | Re-run with `--json`; use `--strict` to fail on warnings |
+| Check deployed API readiness | `python scripts/check_operator_readiness.py --api` | Exit 0 against `MARKETMIND_API_BASE` | Set `MARKETMIND_API_TOKEN` if auth enabled; optional `--date` |
 | Run tests | `python -m pytest -q` | All passing | Check ruff errors first; then read the failing test |
 | Deploy API (Docker) | `.\scripts\deploy_marketmind.ps1` from repo root | Health returns `ok`; preflight reachable | See `docs/DEPLOYMENT.md`; check `docker compose logs api` |
 | Roll back API | `.\scripts\rollback_marketmind.ps1` then checkout prior SHA + redeploy | Previous version running | Volumes kept by default — DB survives stop |

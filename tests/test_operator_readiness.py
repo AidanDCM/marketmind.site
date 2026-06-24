@@ -2,7 +2,11 @@
 
 from marketmind.db.engine import make_engine
 from marketmind.db.models import Base
-from marketmind.operator_readiness import evaluate_operator_readiness, masked_gmail_summary
+from marketmind.operator_readiness import (
+    evaluate_operator_readiness,
+    fetch_operator_readiness_from_api,
+    masked_gmail_summary,
+)
 
 
 def test_masked_gmail_summary_never_includes_secrets(monkeypatch):
@@ -46,3 +50,39 @@ def test_evaluate_operator_readiness_snapshot_date(monkeypatch, tmp_path):
     Base.metadata.create_all(engine)
     result = evaluate_operator_readiness(engine, snapshot_date="2026-06-18")
     assert result.report["snapshot_gaps"]["snapshot_date"] == "2026-06-18"
+
+
+def test_fetch_operator_readiness_from_api():
+    payload = {
+        "ready": True,
+        "blockers": [],
+        "warnings": ["Operator event log not found"],
+        "safe_to_operate": True,
+        "gmail": {"mode": "draft_file_only", "live_ready": False, "dry_run": True},
+        "commerce": {
+            "stripe": {"configured": False, "live_ready": False},
+            "shopify": {"configured": False, "live_ready": False},
+        },
+        "preflight": {"safe_to_operate": True},
+        "snapshot_gaps": {
+            "snapshot_date": "2026-06-23",
+            "active_count": 0,
+            "missing_count": 0,
+            "missing": [],
+            "all_recorded": False,
+        },
+    }
+
+    def fetch(url: str, token: str | None) -> dict:
+        del token
+        assert url.endswith("/operator/readiness?date=2026-06-20&strict=true")
+        return payload
+
+    result = fetch_operator_readiness_from_api(
+        "http://127.0.0.1:8000",
+        snapshot_date="2026-06-20",
+        strict=True,
+        fetch=fetch,
+    )
+    assert result.ready is True
+    assert result.warnings == ("Operator event log not found",)
