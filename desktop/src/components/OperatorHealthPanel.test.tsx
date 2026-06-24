@@ -81,4 +81,22 @@ describe("OperatorHealthPanelView", () => {
     fireEvent.click(screen.getByRole("button", { name: "Record snapshots" }));
     expect(onOpenSnapshots).toHaveBeenCalledWith("2026-06-23", "exp-missing");
   });
+
+  it("opens active experiments from experiments metric", () => {
+    const onOpenActiveList = vi.fn();
+    render(
+      <OperatorHealthPanelView health={baseHealth} onOpenActiveList={onOpenActiveList} />,
+    );
+    fireEvent.click(screen.getByTitle("Open Active Experiments"));
+    expect(onOpenActiveList).toHaveBeenCalledOnce();
+  });
+
+  it("opens lessons library from lessons metric", () => {
+    const onOpenLessons = vi.fn();
+    render(
+      <OperatorHealthPanelView health={baseHealth} onOpenLessons={onOpenLessons} />,
+    );
+    fireEvent.click(screen.getByTitle("Open Lessons library"));
+    expect(onOpenLessons).toHaveBeenCalledOnce();
+  });
 });

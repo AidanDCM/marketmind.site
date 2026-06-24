@@ -39,6 +39,8 @@ interface OperatorHealthPanelProps {
   onOpenAttention?: () => void;
   onOpenApprovals?: () => void;
   onOpenSnapshots?: (snapshotDate: string, experimentId?: string) => void;
+  onOpenActiveList?: () => void;
+  onOpenLessons?: () => void;
 }
 
 export function OperatorHealthPanelView({
@@ -50,6 +52,8 @@ export function OperatorHealthPanelView({
   onOpenAttention,
   onOpenApprovals,
   onOpenSnapshots,
+  onOpenActiveList,
+  onOpenLessons,
 }: OperatorHealthPanelProps) {
   const { preflight, integrations, portfolio, ad_spend: adSpendBlock } = health;
   const adSpend = adSpendBlock.has_data && adSpendBlock.summary ? adSpendBlock.summary : null;
@@ -72,7 +76,12 @@ export function OperatorHealthPanelView({
       )}
 
       <div className="metric-grid" style={{ marginBottom: 14 }}>
-        <div className="metric-card">
+        <div
+          className="metric-card"
+          style={onOpenActiveList ? { cursor: "pointer" } : undefined}
+          onClick={onOpenActiveList}
+          title={onOpenActiveList ? "Open Active Experiments" : undefined}
+        >
           <div className="metric-label">Experiments</div>
           <div className="metric-value">{portfolio.total_experiments}</div>
           <div className="metric-sub">{portfolio.active} active · {portfolio.ended} ended</div>
@@ -99,7 +108,12 @@ export function OperatorHealthPanelView({
             {preflight.pending_approvals}
           </div>
         </div>
-        <div className="metric-card">
+        <div
+          className="metric-card"
+          style={onOpenLessons ? { cursor: "pointer" } : undefined}
+          onClick={onOpenLessons}
+          title={onOpenLessons ? "Open Lessons library" : undefined}
+        >
           <div className="metric-label">Lessons recorded</div>
           <div className="metric-value">{portfolio.lessons_recorded}</div>
         </div>

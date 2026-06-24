@@ -56,6 +56,8 @@ export function Overview({
   onOpenSnapshots,
   dataRevision = 0,
   onCycleComplete,
+  onOpenActiveList,
+  onOpenLessons,
 }: {
   onOpenTrend: (experimentId: string, trendDays: number) => void;
   onOpenActive: (experimentId: string) => void;
@@ -64,6 +66,8 @@ export function Overview({
   onOpenSnapshots: (snapshotDate: string, experimentId?: string) => void;
   dataRevision?: number;
   onCycleComplete?: () => void;
+  onOpenActiveList?: () => void;
+  onOpenLessons?: () => void;
 }) {
   const [date, setDate] = useState(readOverviewDatePreference);
   const [report, setReport] = useState<DailyReport | null>(null);
@@ -192,6 +196,8 @@ export function Overview({
           onOpenAttention={onOpenAttention}
           onOpenApprovals={() => onOpenApprovals(pending[0]?.approval_id)}
           onOpenSnapshots={onOpenSnapshots}
+          onOpenActiveList={onOpenActiveList}
+          onOpenLessons={onOpenLessons}
         />
       )}
 

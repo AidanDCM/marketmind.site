@@ -79,6 +79,14 @@ export function App() {
     navigate("active", { attentionOnly: true });
   }
 
+  function openActiveExperimentsList() {
+    navigate("active");
+  }
+
+  function openLessonsLibrary() {
+    navigate("lessons");
+  }
+
   useEffect(() => {
     const check = () =>
       fetchHealth().then(() => setApiOk(true)).catch(() => setApiOk(false));
@@ -146,6 +154,8 @@ export function App() {
             onOpenSnapshots={openSnapshots}
             dataRevision={navRefresh}
             onCycleComplete={bumpNavRefresh}
+            onOpenActiveList={openActiveExperimentsList}
+            onOpenLessons={openLessonsLibrary}
           />
         )}
         {page === "approvals" && (
