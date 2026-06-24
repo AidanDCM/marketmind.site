@@ -18,6 +18,10 @@ import { experimentNeedsAttention, experimentCardNeedsHighlight } from "../exper
 import {
   readActiveAttentionOnlyPreference,
   writeActiveAttentionOnlyPreference,
+  readActiveStatusFilterPreference,
+  writeActiveStatusFilterPreference,
+  ACTIVE_STATUS_FILTERS,
+  type ActiveStatusFilter,
 } from "./activeExperimentsPreferences";
 
 const StatusBadge({ status }: { status: string }) {
@@ -352,7 +356,7 @@ function ExperimentCard({
   );
 }
 
-const STATUS_FILTERS = ["all", "active", "ended"] as const;
+const STATUS_FILTERS = ACTIVE_STATUS_FILTERS;
 
 export function ActiveExperiments({
   focusExperimentId = null,
@@ -368,12 +372,16 @@ export function ActiveExperiments({
   const [experiments, setExperiments] = useState<ActiveExperiment[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<"all" | "active" | "ended">(
-    focusExperimentId ? "all" : "active",
+  const [filter, setFilter] = useState<ActiveStatusFilter>(
+    () => (focusExperimentId ? "all" : readActiveStatusFilterPreference()),
   );
   const [attentionOnly, setAttentionOnly] = useState(
     () => initialAttentionOnly || readActiveAttentionOnlyPreference(),
   );
+
+  useEffect(() => {
+    if (focusExperimentId) setFilter("all");
+  }, [focusExperimentId]);
 
   useEffect(() => {
     if (initialAttentionOnly) setAttentionOnly(true);
@@ -382,6 +390,10 @@ export function ActiveExperiments({
   useEffect(() => {
     writeActiveAttentionOnlyPreference(attentionOnly);
   }, [attentionOnly]);
+
+  useEffect(() => {
+    writeActiveStatusFilterPreference(filter);
+  }, [filter]);
 
   function load() {
     setLoading(true);

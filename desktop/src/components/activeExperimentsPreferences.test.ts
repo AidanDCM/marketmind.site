@@ -3,6 +3,8 @@ import {
   ACTIVE_ATTENTION_ONLY_KEY,
   readActiveAttentionOnlyPreference,
   writeActiveAttentionOnlyPreference,
+  readActiveStatusFilterPreference,
+  writeActiveStatusFilterPreference,
 } from "./activeExperimentsPreferences";
 
 describe("activeExperimentsPreferences", () => {
@@ -18,5 +20,14 @@ describe("activeExperimentsPreferences", () => {
     writeActiveAttentionOnlyPreference(true);
     expect(localStorage.getItem(ACTIVE_ATTENTION_ONLY_KEY)).toBe("true");
     expect(readActiveAttentionOnlyPreference()).toBe(true);
+  });
+
+  it("defaults status filter to active", () => {
+    expect(readActiveStatusFilterPreference()).toBe("active");
+  });
+
+  it("persists status filter preference", () => {
+    writeActiveStatusFilterPreference("ended");
+    expect(readActiveStatusFilterPreference()).toBe("ended");
   });
 });
