@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
-"""Unified local operator readiness check (Gmail + commerce + preflight)."""
+"""Unified operator readiness check (local DB or running API)."""
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 
 from marketmind.db.engine import make_engine
 from marketmind.db.models import Base
-from marketmind.operator_readiness import evaluate_operator_readiness
+from marketmind.operator_readiness import (
+    evaluate_operator_readiness,
+    fetch_operator_readiness_from_api,
+)
 
 
 def _print_human(result) -> None:
@@ -51,7 +55,16 @@ def _print_human(result) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Check MarketMind operator readiness (local env + DB; no API calls)."
+        description="Check MarketMind operator readiness (local env + DB, or running API)."
+    )
+    parser.add_argument(
+        "--api",
+        action="store_true",
+        help="Query GET /operator/readiness on MARKETMIND_API_BASE instead of local DB.",
+    )
+    parser.add_argument(
+        "--date",
+        help="ISO snapshot date for snapshot-gap checks (optional).",
     )
     parser.add_argument(
         "--json",
@@ -65,9 +78,23 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    engine = make_engine()
-    Base.metadata.create_all(engine)
-    result = evaluate_operator_readiness(engine, strict=args.strict)
+    if args.api:
+        base = os.environ.get("MARKETMIND_API_BASE", "http://127.0.0.1:8000")
+        token = os.environ.get("MARKETMIND_API_TOKEN") or None
+        result = fetch_operator_readiness_from_api(
+            base,
+            token,
+            snapshot_date=args.date,
+            strict=args.strict,
+        )
+    else:
+        engine = make_engine()
+        Base.metadata.create_all(engine)
+        result = evaluate_operator_readiness(
+            engine,
+            strict=args.strict,
+            snapshot_date=args.date,
+        )
 
     if args.json:
         print(json.dumps(result.to_dict(), indent=2))

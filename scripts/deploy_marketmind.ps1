@@ -63,4 +63,8 @@ Write-Host "==> Running deploy verification"
 python "$Root\scripts\verify_marketmind_deploy.py"
 if ($LASTEXITCODE -ne 0) { throw "Deploy verification failed" }
 
+Write-Host "==> Operator readiness (API)"
+python "$Root\scripts\check_operator_readiness.py" --api
+if ($LASTEXITCODE -ne 0) { throw "Operator readiness check failed" }
+
 Write-Host "==> Deploy complete. Data volume: marketmind-data | Logs volume: marketmind-logs"

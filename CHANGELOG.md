@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-23 — Slice 76: API mode for readiness CLI
+
+### Slice 76: Check readiness against a running API
+
+- **`fetch_operator_readiness_from_api`** — urllib GET helper for `GET /operator/readiness`.
+- **`scripts/check_operator_readiness.py`** — `--api` uses `MARKETMIND_API_BASE` / `MARKETMIND_API_TOKEN`; `--date` for snapshot gaps.
+
+---
+
 ## 2026-06-23 — Slice 75: Configurable trend lookback on Overview
 
 ### Slice 75: 7/14/30-day CAC trend window
