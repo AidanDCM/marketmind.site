@@ -51,12 +51,14 @@ export function Overview({
   onOpenApprovals,
   onOpenAttention,
   onOpenSnapshots,
+  dataRevision = 0,
 }: {
   onOpenTrend: (experimentId: string, trendDays: number) => void;
   onOpenActive: (experimentId: string) => void;
   onOpenApprovals: (focusApprovalId?: string) => void;
   onOpenAttention: () => void;
   onOpenSnapshots: (snapshotDate: string, experimentId?: string) => void;
+  dataRevision?: number;
 }) {
   const [date, setDate] = useState(todayStr());
   const [report, setReport] = useState<DailyReport | null>(null);
@@ -93,7 +95,7 @@ export function Overview({
       .catch((e: Error) => { if (!cancelled) setError(e.message); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [date, attentionOnly, trendDays]);
+  }, [date, attentionOnly, trendDays, dataRevision]);
 
   useEffect(() => {
     try {
@@ -160,6 +162,8 @@ export function Overview({
           onRunCycle={handleRunCycle}
           cycleRunning={cycleRunning}
           onRecordSnapshot={onOpenSnapshots}
+          onOpenExperiment={onOpenActive}
+          onOpenAttention={onOpenAttention}
         />
       )}
 

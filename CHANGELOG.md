@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-23 — Slice 89: Overview data refresh and preflight experiment links
+
+### Slice 89: Refresh Overview after operator actions; link preflight attention rows
+
+- **Overview** — refetches health/trends when `dataRevision` bumps (e.g. after recording a snapshot).
+- **Operator health panel** — preflight attention rows and “Need attention” metric open Active Experiments.
+
+---
+
 ## 2026-06-23 — Slice 88: Snapshot gap shortcuts and nav refresh
 
 ### Slice 88: Record missing snapshots from health panel; refresh badges after submit
