@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getSnapshotTrend, type SnapshotRecord } from "../api/client";
 
 const DAY_OPTIONS = [7, 14, 30, 60, 90];
@@ -138,24 +138,43 @@ function MetricsTable({ rows }: { rows: SnapshotRecord[] }) {
   );
 }
 
-export function SnapshotTrend() {
-  const [experimentId, setExperimentId] = useState("");
-  const [days, setDays] = useState(30);
+export function SnapshotTrend({
+  initialExperimentId = null,
+  initialDays = null,
+}: {
+  initialExperimentId?: string | null;
+  initialDays?: number | null;
+} = {}) {
+  const [experimentId, setExperimentId] = useState(initialExperimentId ?? "");
+  const [days, setDays] = useState(initialDays ?? 30);
   const [rows, setRows] = useState<SnapshotRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [queried, setQueried] = useState(false);
 
-  function load() {
-    if (!experimentId.trim()) return;
+  const loadWithParams = useCallback((id: string, lookback: number) => {
+    if (!id) return;
     setLoading(true);
     setError(null);
     setQueried(true);
-    getSnapshotTrend(experimentId.trim(), days)
+    getSnapshotTrend(id, lookback)
       .then(setRows)
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
+  }, []);
+
+  function load(id = experimentId.trim(), lookback = days) {
+    loadWithParams(id, lookback);
   }
+
+  useEffect(() => {
+    const id = initialExperimentId?.trim();
+    if (!id) return;
+    const lookback = initialDays ?? 30;
+    setExperimentId(id);
+    setDays(lookback);
+    loadWithParams(id, lookback);
+  }, [initialExperimentId, initialDays, loadWithParams]);
 
   function handleKey(e: React.KeyboardEvent) {
     if (e.key === "Enter") load();
@@ -195,7 +214,7 @@ export function SnapshotTrend() {
             {DAY_OPTIONS.map(d => <option key={d} value={d}>{d} days</option>)}
           </select>
         </label>
-        <button className="btn" onClick={load} disabled={loading || !experimentId.trim()}>
+        <button className="btn" onClick={() => load()} disabled={loading || !experimentId.trim()}>
           {loading ? "Loading…" : "Load"}
         </button>
       </div>

@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-23 — Slice 77: Overview trend row navigation
+
+### Slice 77: Jump from Overview to Trend chart or experiment details
+
+- **`navigation.ts`** — shared `Page` and `PageContext` types for cross-page handoff.
+- **Overview** — Chart / Details buttons on each CAC trend row.
+- **Trend & Active Experiments** — accept navigation context (pre-filled experiment, auto-load / expand).
+
+---
+
 ## 2026-06-23 — Slice 76: API mode for readiness CLI
 
 ### Slice 76: Check readiness against a running API

@@ -44,7 +44,13 @@ function trendArrow(direction: ExperimentTrendSummary["experiments"][number]["ca
   return "·";
 }
 
-export function Overview() {
+export function Overview({
+  onOpenTrend,
+  onOpenActive,
+}: {
+  onOpenTrend: (experimentId: string, trendDays: number) => void;
+  onOpenActive: (experimentId: string) => void;
+}) {
   const [date, setDate] = useState(todayStr());
   const [report, setReport] = useState<DailyReport | null>(null);
   const [pending, setPending] = useState<ApprovalRecord[]>([]);
@@ -191,7 +197,8 @@ export function Overview() {
                 <th style={{ padding: "4px 8px" }}>BEP</th>
                 <th style={{ padding: "4px 8px" }}>Snapshot</th>
                 <th style={{ padding: "4px 8px" }}>Trend</th>
-                <th style={{ padding: "4px 0 4px 8px" }}>Ruling</th>
+                <th style={{ padding: "4px 8px" }}>Ruling</th>
+                <th style={{ padding: "4px 0 4px 8px" }}>Open</th>
               </tr>
             </thead>
             <tbody>
@@ -232,6 +239,24 @@ export function Overview() {
                   </td>
                   <td style={{ padding: "6px 0 6px 8px" }}>
                     <RulingBadge ruling={exp.ruling} />
+                  </td>
+                  <td style={{ padding: "6px 0 6px 8px", whiteSpace: "nowrap" }}>
+                    <button
+                      type="button"
+                      className="btn-ghost"
+                      style={{ fontSize: 12, padding: "2px 8px", marginRight: 4 }}
+                      onClick={() => onOpenTrend(exp.experiment_id, trendDays)}
+                    >
+                      Chart
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-ghost"
+                      style={{ fontSize: 12, padding: "2px 8px" }}
+                      onClick={() => onOpenActive(exp.experiment_id)}
+                    >
+                      Details
+                    </button>
                   </td>
                 </tr>
               ))}
