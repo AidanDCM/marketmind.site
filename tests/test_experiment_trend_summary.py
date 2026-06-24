@@ -60,12 +60,26 @@ def test_trend_summary_cac_direction_up(engine):
     _add_snap(engine, "exp_trend_up", "2026-06-10", orders=5, ad_spend=50.0)
     _add_snap(engine, "exp_trend_up", "2026-06-12", orders=5, ad_spend=100.0)
 
-    summary = build_experiment_trend_summary(engine, days=90)
+    summary = build_experiment_trend_summary(engine, days=90, as_of_date="2026-06-12")
     row = summary["experiments"][0]
+    assert summary["as_of"] == "2026-06-12"
     assert row["experiment_id"] == "exp_trend_up"
     assert row["cac_direction"] == "up"
     assert row["latest_cac"] == pytest.approx(20.0)
     assert row["prior_cac"] == pytest.approx(10.0)
+    assert row["latest_snapshot_date"] == "2026-06-12"
+
+
+def test_trend_summary_as_of_excludes_later_snapshots(engine):
+    _add_exp(engine, "exp_asof")
+    _add_snap(engine, "exp_asof", "2026-06-10", orders=5, ad_spend=50.0)
+    _add_snap(engine, "exp_asof", "2026-06-12", orders=5, ad_spend=100.0)
+    _add_snap(engine, "exp_asof", "2026-06-20", orders=5, ad_spend=200.0)
+
+    summary = build_experiment_trend_summary(engine, days=90, as_of_date="2026-06-12")
+    row = summary["experiments"][0]
+    assert row["latest_snapshot_date"] == "2026-06-12"
+    assert row["latest_cac"] == pytest.approx(20.0)
 
 
 def test_trend_summary_ignores_ended_experiments(engine):

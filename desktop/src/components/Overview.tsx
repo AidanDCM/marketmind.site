@@ -49,7 +49,7 @@ export function Overview() {
       fetchDailyReport(date),
       fetchPendingApprovals(),
       fetchOperatorHealthPanel(date),
-      fetchExperimentTrendSummary(14),
+      fetchExperimentTrendSummary(14, date),
     ])
       .then(([r, p, h, trends]) => {
         if (!cancelled) {
@@ -71,9 +71,16 @@ export function Overview() {
     setError(null);
     try {
       await runOperatorDailyCycle(date);
-      const [p, h] = await Promise.all([fetchPendingApprovals(), fetchOperatorHealthPanel(date)]);
+      const [r, p, h, trends] = await Promise.all([
+        fetchDailyReport(date),
+        fetchPendingApprovals(),
+        fetchOperatorHealthPanel(date),
+        fetchExperimentTrendSummary(14, date),
+      ]);
+      setReport(r);
       setPending(p);
       setHealth(h);
+      setTrendSummary(trends);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -101,7 +108,7 @@ export function Overview() {
 
       {trendSummary && trendSummary.experiments.length > 0 && (
         <div className="card" style={{ marginBottom: 14 }}>
-          <div className="card-title">Active experiment CAC trends ({trendSummary.days}d)</div>
+          <div className="card-title">Active experiment CAC trends ({trendSummary.days}d through {trendSummary.as_of})</div>
           <table style={{ width: "100%", fontSize: 13, borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ textAlign: "left", color: "var(--text-muted)" }}>

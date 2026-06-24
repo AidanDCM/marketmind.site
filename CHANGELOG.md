@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-23 — Slice 68: Trend summary as-of date
+
+### Slice 68: Overview date scopes CAC trends
+
+- **`GET /experiment/trend-summary?as_of=`** — end lookback on a specific date (default today).
+- **Desktop Overview** — passes selected date to trend summary; refreshes report and trends after run-cycle.
+
+---
+
 ## 2026-06-23 — Slice 67: Operator readiness API
 
 ### Slice 67: `GET /operator/readiness`

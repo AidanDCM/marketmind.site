@@ -42,9 +42,15 @@ def _cac_direction(latest: float | None, prior: float | None) -> str:
     return "up" if delta > 0 else "down"
 
 
-def build_experiment_trend_summary(engine: Engine, days: int = 14) -> dict:
+def build_experiment_trend_summary(
+    engine: Engine,
+    days: int = 14,
+    as_of_date: str | None = None,
+) -> dict:
     """Summarize CAC direction for each active experiment over a lookback window."""
-    cutoff = (datetime.date.today() - datetime.timedelta(days=days)).isoformat()
+    as_of = as_of_date or datetime.date.today().isoformat()
+    as_of_day = datetime.date.fromisoformat(as_of)
+    cutoff = (as_of_day - datetime.timedelta(days=days)).isoformat()
     experiments: list[dict] = []
 
     with Session(engine) as session:
@@ -58,6 +64,7 @@ def build_experiment_trend_summary(engine: Engine, days: int = 14) -> dict:
                 select(ExperimentSnapshotRow)
                 .where(ExperimentSnapshotRow.experiment_id == exp.experiment_id)
                 .where(ExperimentSnapshotRow.snapshot_date >= cutoff)
+                .where(ExperimentSnapshotRow.snapshot_date <= as_of)
                 .order_by(ExperimentSnapshotRow.snapshot_date)
             ).all()
 
@@ -90,4 +97,4 @@ def build_experiment_trend_summary(engine: Engine, days: int = 14) -> dict:
             "above_break_even": above_break_even,
         })
 
-    return {"days": days, "experiments": experiments}
+    return {"days": days, "as_of": as_of, "experiments": experiments}
