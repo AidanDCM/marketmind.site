@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-23 — Slice 106: Generic daily report risk links
+
+### Slice 106: Jump from portfolio-wide risks to Active Experiments
+
+- **`dailyReportNavigation.ts`** — zero-order spend, refund-rate, and low-ATC risks link to Active Experiments; low ROAS lessons too.
+- **Risks card** — shows **View experiments** on generic generated risk lines.
+
+---
+
 ## 2026-06-23 — Slice 105: Generic daily report line shortcuts
 
 ### Slice 105: Link empty-portfolio and contribution recommendations
