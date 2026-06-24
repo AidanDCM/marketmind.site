@@ -232,6 +232,29 @@ def test_health_panel_rejects_empty_date(client):
     assert resp.status_code == 422
 
 
+def test_operator_readiness_endpoint(client):
+    resp = client.get("/operator/readiness")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "ready" in data
+    assert "gmail" in data
+    assert "commerce" in data
+    assert data["ready"] is True
+
+
+def test_operator_readiness_endpoint_accepts_date(client):
+    resp = client.get("/operator/readiness?date=2026-06-20")
+    assert resp.status_code == 200
+    assert resp.json()["snapshot_gaps"]["snapshot_date"] == "2026-06-20"
+
+
+def test_operator_readiness_strict_mode(client, monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    resp = client.get("/operator/readiness?strict=true")
+    assert resp.status_code == 200
+    assert resp.json()["ready"] is False
+
+
 def test_snapshot_gaps_endpoint(client):
     resp = client.get("/operator/snapshot-gaps?date=2026-06-23")
     assert resp.status_code == 200

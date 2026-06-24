@@ -14,6 +14,10 @@ def _mock_fetch(responses: dict[str, dict]):
     return fetch
 
 
+def _ready_payload(*, ready: bool = True, blockers: list | None = None) -> dict:
+    return {"ready": ready, "blockers": blockers or []}
+
+
 def test_verify_deploy_passes_when_health_and_panel_ok():
     result = verify_marketmind_deploy(
         "http://127.0.0.1:8000",
@@ -24,10 +28,12 @@ def test_verify_deploy_passes_when_health_and_panel_ok():
                 "warnings": ["Operator event log not found"],
                 "preflight": {"blockers": []},
             },
+            "/operator/readiness": _ready_payload(),
         }),
     )
     assert result.ok is True
     assert result.safe_to_operate is True
+    assert result.ready is True
     assert result.warnings == ("Operator event log not found",)
 
 
@@ -50,7 +56,28 @@ def test_verify_deploy_fails_on_preflight_blockers():
                 "warnings": [],
                 "preflight": {"blockers": ["2 pending approval(s) have not been reviewed"]},
             },
+            "/operator/readiness": _ready_payload(
+                ready=False,
+                blockers=["2 pending approval(s) have not been reviewed"],
+            ),
         }),
     )
     assert result.ok is False
     assert any("preflight blocker" in item for item in result.failures)
+
+
+def test_verify_deploy_fails_when_readiness_not_ready():
+    result = verify_marketmind_deploy(
+        "http://127.0.0.1:8000",
+        fetch=_mock_fetch({
+            "/health": {"status": "ok"},
+            "/operator/health-panel": {
+                "safe_to_operate": True,
+                "warnings": [],
+                "preflight": {"blockers": []},
+            },
+            "/operator/readiness": _ready_payload(ready=False, blockers=["blocked"]),
+        }),
+    )
+    assert result.ok is False
+    assert any("operator readiness not ready" in item for item in result.failures)

@@ -38,3 +38,11 @@ def test_evaluate_operator_readiness_strict_fails_on_warnings(monkeypatch, tmp_p
     assert loose.ready is True
     assert strict.ready is False
     assert any("Operator event log" in w for w in strict.warnings)
+
+
+def test_evaluate_operator_readiness_snapshot_date(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    engine = make_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    result = evaluate_operator_readiness(engine, snapshot_date="2026-06-18")
+    assert result.report["snapshot_gaps"]["snapshot_date"] == "2026-06-18"
