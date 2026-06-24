@@ -117,3 +117,12 @@ def test_trend_snapshot_date_in_response(client):
     resp = client.get("/snapshots/trend/exp_date_001?days=90")
     rows = resp.json()
     assert rows[0]["snapshot_date"] == "2026-06-15"
+
+
+def test_trend_rejects_invalid_days(client):
+    resp = client.get("/snapshots/trend/exp_date_001?days=0")
+    assert resp.status_code == 422
+
+    resp = client.get("/snapshots/trend/exp_date_001?days=91")
+    assert resp.status_code == 422
+    assert "at most 90" in resp.json()["detail"]

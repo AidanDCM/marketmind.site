@@ -10,21 +10,15 @@ from sqlalchemy.orm import Session
 
 from .db.models import ExperimentRow, ExperimentSnapshotRow
 from .experiment_rules import evaluate_experiment
+from .lookback import MAX_LOOKBACK_DAYS, MIN_LOOKBACK_DAYS, normalize_lookback_days
 from .schemas import ExperimentSnapshot
+
+MAX_TREND_SUMMARY_DAYS = MAX_LOOKBACK_DAYS
+MIN_TREND_SUMMARY_DAYS = MIN_LOOKBACK_DAYS
+normalize_trend_summary_days = normalize_lookback_days
 
 _CAC_FLAT_EPSILON = 0.01
 _ATTENTION_RULINGS = {"kill", "pause_ads", "scale_requires_approval"}
-MIN_TREND_SUMMARY_DAYS = 1
-MAX_TREND_SUMMARY_DAYS = 90
-
-
-def normalize_trend_summary_days(days: int) -> int:
-    """Clamp-validated lookback window for trend summary queries."""
-    if days < MIN_TREND_SUMMARY_DAYS:
-        raise ValueError(f"days must be at least {MIN_TREND_SUMMARY_DAYS}")
-    if days > MAX_TREND_SUMMARY_DAYS:
-        raise ValueError(f"days must be at most {MAX_TREND_SUMMARY_DAYS}")
-    return days
 
 
 def _needs_attention(ruling: str | None, above_break_even: bool | None) -> bool:

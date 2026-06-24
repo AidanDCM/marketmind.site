@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from ...db.models import ExperimentRow, ExperimentSnapshotRow
 from ...experiment_ids import validate_experiment_id
+from ...lookback import normalize_lookback_days
 from ...runner import hydrate_snapshots, record_snapshot
 from ...schemas import ExperimentSnapshot
 
@@ -126,6 +127,10 @@ def get_experiment_trend(
     ``days`` caps how far back to look (default 30). Returns an empty list if
     the experiment has no snapshots or does not exist.
     """
+    try:
+        days = normalize_lookback_days(days)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     cutoff = (datetime.date.today() - datetime.timedelta(days=days)).isoformat()
     engine = _engine(request)
     with Session(engine) as session:
