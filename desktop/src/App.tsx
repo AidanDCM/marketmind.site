@@ -119,6 +119,7 @@ export function App() {
           <ActiveExperiments
             key={pageContext?.experimentId ?? "active-default"}
             focusExperimentId={pageContext?.experimentId}
+            onOpenTrend={(experimentId) => openTrendFromOverview(experimentId, 30)}
           />
         )}
       </main>

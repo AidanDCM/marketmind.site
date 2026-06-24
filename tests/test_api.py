@@ -642,6 +642,12 @@ def test_experiment_trend_summary_rejects_invalid_days(client):
     assert resp.status_code == 422
 
 
+def test_experiment_trend_summary_rejects_days_above_max(client):
+    resp = client.get("/experiment/trend-summary?days=91")
+    assert resp.status_code == 422
+    assert "at most 90" in resp.json()["detail"]
+
+
 def test_import_ad_csv(client):
     csv_text = (
         "campaign_name,date,impressions,clicks,spend,purchases,revenue\n"

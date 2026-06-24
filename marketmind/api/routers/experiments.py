@@ -78,8 +78,15 @@ def experiment_trend_summary(
     Optional ``as_of`` (ISO) ends the lookback window on that date (default today).
     ``attention_only=true`` returns only experiments flagged for operator attention.
     """
-    if days < 1:
-        raise HTTPException(status_code=422, detail="days must be at least 1")
+    from ...experiment_trend_summary import (
+        build_experiment_trend_summary,
+        normalize_trend_summary_days,
+    )
+
+    try:
+        days = normalize_trend_summary_days(days)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     if as_of is not None and not as_of.strip():
         raise HTTPException(status_code=422, detail="as_of must not be empty when provided")
     if as_of is not None:
@@ -87,7 +94,6 @@ def experiment_trend_summary(
             datetime.date.fromisoformat(as_of)
         except ValueError as exc:
             raise HTTPException(status_code=422, detail="as_of must be an ISO date") from exc
-    from ...experiment_trend_summary import build_experiment_trend_summary
 
     engine = request.app.state.engine
     return build_experiment_trend_summary(

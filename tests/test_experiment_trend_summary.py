@@ -5,7 +5,11 @@ from sqlalchemy.orm import Session
 
 from marketmind.db.engine import make_engine
 from marketmind.db.models import Base, ExperimentRow, ExperimentSnapshotRow
-from marketmind.experiment_trend_summary import build_experiment_trend_summary
+from marketmind.experiment_trend_summary import (
+    MAX_TREND_SUMMARY_DAYS,
+    build_experiment_trend_summary,
+    normalize_trend_summary_days,
+)
 
 
 @pytest.fixture
@@ -13,6 +17,15 @@ def engine():
     eng = make_engine("sqlite:///:memory:")
     Base.metadata.create_all(eng)
     return eng
+
+
+def test_normalize_trend_summary_days_bounds():
+    assert normalize_trend_summary_days(14) == 14
+    assert normalize_trend_summary_days(MAX_TREND_SUMMARY_DAYS) == MAX_TREND_SUMMARY_DAYS
+    with pytest.raises(ValueError, match="at least"):
+        normalize_trend_summary_days(0)
+    with pytest.raises(ValueError, match="at most"):
+        normalize_trend_summary_days(MAX_TREND_SUMMARY_DAYS + 1)
 
 
 def _add_exp(engine, experiment_id: str, *, status: str = "active"):
