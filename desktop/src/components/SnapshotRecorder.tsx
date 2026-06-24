@@ -68,9 +68,11 @@ function SnapshotTable({ snapshots }: { snapshots: SnapshotRecord[] }) {
 export function SnapshotRecorder({
   initialSnapshotDate = null,
   initialExperimentId = null,
+  onSnapshotRecorded,
 }: {
   initialSnapshotDate?: string | null;
   initialExperimentId?: string | null;
+  onSnapshotRecorded?: () => void;
 } = {}) {
   const seedDate = initialSnapshotDate ?? TODAY;
   const [form, setForm] = useState<SnapshotRequest>(() => ({
@@ -111,6 +113,7 @@ export function SnapshotRecorder({
       await submitSnapshot(form);
       setSuccess(`Snapshot recorded for ${form.experiment_id} on ${form.snapshot_date || TODAY}.`);
       loadSnapshots(form.snapshot_date || TODAY);
+      onSnapshotRecorded?.();
     } catch (err) {
       setFormError((err as Error).message);
     } finally {

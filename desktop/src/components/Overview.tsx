@@ -159,6 +159,7 @@ export function Overview({
           health={health}
           onRunCycle={handleRunCycle}
           cycleRunning={cycleRunning}
+          onRecordSnapshot={onOpenSnapshots}
         />
       )}
 

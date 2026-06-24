@@ -168,6 +168,7 @@ export function App() {
             key={`${pageContext?.snapshotDate ?? "snap-default"}-${pageContext?.experimentId ?? ""}`}
             initialSnapshotDate={pageContext?.snapshotDate}
             initialExperimentId={pageContext?.experimentId}
+            onSnapshotRecorded={bumpNavRefresh}
           />
         )}
         {page === "trend" && (

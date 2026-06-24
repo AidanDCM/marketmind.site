@@ -33,9 +33,15 @@ interface OperatorHealthPanelProps {
   health: OperatorHealthPanel;
   onRunCycle?: () => void;
   cycleRunning?: boolean;
+  onRecordSnapshot?: (snapshotDate: string, experimentId: string) => void;
 }
 
-export function OperatorHealthPanelView({ health, onRunCycle, cycleRunning }: OperatorHealthPanelProps) {
+export function OperatorHealthPanelView({
+  health,
+  onRunCycle,
+  cycleRunning,
+  onRecordSnapshot,
+}: OperatorHealthPanelProps) {
   const { preflight, integrations, portfolio, ad_spend: adSpendBlock } = health;
   const adSpend = adSpendBlock.has_data && adSpendBlock.summary ? adSpendBlock.summary : null;
 
@@ -134,8 +140,19 @@ export function OperatorHealthPanelView({ health, onRunCycle, cycleRunning }: Op
           {health.snapshot_gaps.missing.length > 0 && (
             <ul style={{ margin: "6px 0 0", paddingLeft: 18, fontSize: 13 }}>
               {health.snapshot_gaps.missing.map(m => (
-                <li key={m.experiment_id}>
-                  <code>{m.experiment_id}</code> — {m.product_name}
+                <li key={m.experiment_id} style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <span>
+                    <code>{m.experiment_id}</code> — {m.product_name}
+                  </span>
+                  {onRecordSnapshot && (
+                    <button
+                      type="button"
+                      className="inline-link inline-link-danger"
+                      onClick={() => onRecordSnapshot(health.snapshot_gaps.snapshot_date, m.experiment_id)}
+                    >
+                      Record
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
