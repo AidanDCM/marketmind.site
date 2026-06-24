@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-23 — Slice 66: Experiment trend summary on Overview
+
+### Slice 66: Active experiment CAC trends
+
+- **`marketmind/experiment_trend_summary.py`** — CAC direction per active experiment over a lookback window.
+- **`GET /experiment/trend-summary`** — optional `days` query param (default 14).
+- **Desktop Overview** — table of active experiments with latest CAC, trend arrow, and ruling.
+
+---
+
 ## 2026-06-23 — Slice 65: CI deploy verification job
 
 ### Slice 65: Run verify script against live API in CI

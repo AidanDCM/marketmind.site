@@ -66,6 +66,17 @@ def experiment_portfolio(request: Request) -> dict:
     return build_experiment_portfolio(engine)
 
 
+@router.get("/trend-summary")
+def experiment_trend_summary(request: Request, days: int = 14) -> dict:
+    """CAC trend summary for active experiments over the last ``days`` (default 14)."""
+    if days < 1:
+        raise HTTPException(status_code=422, detail="days must be at least 1")
+    from ...experiment_trend_summary import build_experiment_trend_summary
+
+    engine = request.app.state.engine
+    return build_experiment_trend_summary(engine, days=days)
+
+
 @router.get("/active")
 def list_active_experiments(request: Request) -> list:
     """Return all experiments with their latest snapshot date and ruling.

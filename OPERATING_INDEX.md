@@ -91,7 +91,7 @@ New API endpoints added by the integration:
 - `GET /operator/mistakes` / `POST /operator/mistakes` — experiment lesson tracker
 - `GET /experiment/{id}/checklist` — scale-readiness checklist for one experiment
 - `GET /experiment/{id}/mistakes` — recorded + suggested lessons for one experiment
-- `GET /experiment/portfolio` — experiment counts and attention summary
+- `GET /experiment/trend-summary` — active experiment CAC trend summary (optional `days`)
 - `POST /imports/ads/csv` / `GET /imports/ads/summary` — ad CSV import and spend rollup
 - `GET /pipeline/outreach-draft/{approval_id}` — supplier email draft payload
 
@@ -101,7 +101,7 @@ New API endpoints added by the integration:
 
 - **Active owner:** Aidan
 - **Active maintainer:** Aidan / Codex agents
-- **Current phase:** Building — Slices 1–65 complete
+- **Current phase:** Building — Slices 1–66 complete
 - **Last reviewed:** 2026-06-23
 - **Known blockers:** None
 
