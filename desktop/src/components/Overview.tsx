@@ -16,6 +16,8 @@ import { pendingApprovalBannerText } from "../approvalDisplay";
 import { runOverviewDailyCycle } from "../overviewDailyCycle";
 import { OperatorHealthPanelView } from "./OperatorHealthPanel";
 import { DailyReportLessonsCard } from "./DailyReportLessonsCard";
+import { DailyReportInsightList } from "./DailyReportInsightList";
+import type { ExperimentProductLookup } from "../dailyReportNavigation";
 import { OperatorReadinessBanner } from "./OperatorReadinessBanner";
 import { RulingBadge } from "./RulingBadge";
 import {
@@ -136,6 +138,11 @@ export function Overview({
   }, [date]);
 
   const m = report?.metrics;
+
+  const reportExperimentLookup: ExperimentProductLookup[] = [
+    ...(trendSummary?.experiments ?? []),
+    ...(health?.preflight.experiments_needing_attention ?? []),
+  ];
 
   async function handleRunCycle() {
     setCycleRunning(true);
@@ -397,22 +404,20 @@ export function Overview({
           </div>
 
           <div className="two-col">
-            <div className="card">
-              <div className="card-title">Risks</div>
-              {report!.risks.length === 0
-                ? <div style={{ color: "var(--text-muted)", fontSize: 13 }}>No risks flagged</div>
-                : report!.risks.map((r, i) => (
-                  <div key={i} className="list-item"><div className="bullet risk" /><div className="list-text">{r}</div></div>
-                ))}
-            </div>
-            <div className="card">
-              <div className="card-title">Recommendations</div>
-              {report!.recommendations.length === 0
-                ? <div style={{ color: "var(--text-muted)", fontSize: 13 }}>No recommendations</div>
-                : report!.recommendations.map((r, i) => (
-                  <div key={i} className="list-item"><div className="bullet rec" /><div className="list-text">{r}</div></div>
-                ))}
-            </div>
+            <DailyReportInsightList
+              title="Risks"
+              bulletClass="risk"
+              items={report!.risks}
+              experiments={reportExperimentLookup}
+              onOpenActive={onOpenActive}
+            />
+            <DailyReportInsightList
+              title="Recommendations"
+              bulletClass="rec"
+              items={report!.recommendations}
+              experiments={reportExperimentLookup}
+              onOpenActive={onOpenActive}
+            />
           </div>
 
           <DailyReportLessonsCard lessons={report!.lessons} onOpenLessons={onOpenLessons} />
