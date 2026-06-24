@@ -87,6 +87,10 @@ export function App() {
     navigate("lessons");
   }
 
+  function openImportHistory() {
+    navigate("history");
+  }
+
   useEffect(() => {
     const check = () =>
       fetchHealth().then(() => setApiOk(true)).catch(() => setApiOk(false));
@@ -156,6 +160,7 @@ export function App() {
             onCycleComplete={bumpNavRefresh}
             onOpenActiveList={openActiveExperimentsList}
             onOpenLessons={openLessonsLibrary}
+            onOpenImportHistory={openImportHistory}
           />
         )}
         {page === "approvals" && (
