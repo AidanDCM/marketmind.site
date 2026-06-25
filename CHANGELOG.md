@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 21: Docs drift hardening (rotation 3)
+
+### Hardening: docs_contract rotation 3 table + test_docs_drift_contract
+
+- **`docs_contract.py`** — rotation 3 contract triples, drift test files, inventory doc paths.
+- **`test_docs_drift_contract.py`** — 20 tests: rotation 3 module/test parity, operator doc guards.
+- **`MARKETMIND_TESTING_AND_EVIDENCE.md`** — passes 15–21 contract table; AGENTS/SLICE_WORKFLOW drift refs.
+
+---
+
 ## 2026-06-24 — Phase B pass 20: Deploy/CI hardening (rotation 3)
 
 ### Hardening: deploy_ci_contract step/env constants + verify failure formatter

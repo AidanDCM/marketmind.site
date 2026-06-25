@@ -36,8 +36,10 @@ each turn tests deeply, improves gaps, or rebuilds broken parts — see
 
 ## Testing discipline (non-negotiable)
 
-- **708+** backend pytest cases and **28+** desktop Vitest files — every behavior
+- **728+** backend pytest cases and **28+** desktop Vitest files — every behavior
   change adds a regression test naming the failure it prevents.
+- Doc/code parity is enforced by `marketmind/docs_contract.py` and
+  `tests/test_docs_drift*.py` (suite counts, env names, rotation contract tables).
 - Run `python -m ruff check .` and `python -m pytest -q` before every merge.
 - When touching UI: `cd desktop && npm test && npm run build`.
 - Record evidence in engineering log and optionally `python scripts/local_ci.py`
