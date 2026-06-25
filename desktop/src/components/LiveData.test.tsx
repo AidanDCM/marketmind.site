@@ -17,6 +17,7 @@ import {
   listImportHistory,
   fetchOrderLifecycle,
   fetchAdSpendSummary,
+  importAdCsv,
 } from "../api/client";
 
 describe("LiveData commerce wiring", () => {
@@ -42,6 +43,29 @@ describe("LiveData commerce wiring", () => {
 
     await waitFor(() => {
       expect(pullAndSaveStripeOrders).toHaveBeenCalled();
+    });
+  });
+
+  it("imports ad CSV when Import CSV is clicked", async () => {
+    vi.mocked(importAdCsv).mockResolvedValue({
+      batch_id: 2,
+      source: "ad_report_csv",
+      total_rows: 1,
+      ok_count: 1,
+      review_count: 0,
+      ok_rows: [],
+    });
+    render(<LiveData />);
+
+    fireEvent.change(screen.getByRole("textbox"), {
+      target: { value: "campaign_name,spend\nWidget,25.00" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Import CSV" }));
+
+    await waitFor(() => {
+      expect(importAdCsv).toHaveBeenCalledWith(
+        "campaign_name,spend\nWidget,25.00",
+      );
     });
   });
 });
