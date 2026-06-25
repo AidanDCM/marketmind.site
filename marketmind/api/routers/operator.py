@@ -122,6 +122,8 @@ def operator_run_cycle(request: Request, date: str | None = None) -> dict:
 @router.get("/snapshot-gaps")
 def operator_snapshot_gaps(request: Request, date: str | None = None) -> dict:
     """List active experiments missing a snapshot for the given date (default today)."""
+    if date is not None and not date.strip():
+        raise HTTPException(status_code=422, detail="date must not be empty when provided")
     engine = request.app.state.engine
     return list_snapshot_gaps(engine, snapshot_date=date)
 

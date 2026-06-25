@@ -298,4 +298,19 @@ describe("OperatorHealthPanelView", () => {
     fireEvent.click(screen.getByRole("button", { name: "Run cycle now" }));
     expect(onRunCycle).toHaveBeenCalledOnce();
   });
+
+  it("shows Snapshots for date header when gaps are missing", () => {
+    const health: OperatorHealthPanel = {
+      ...baseHealth,
+      snapshot_gaps: {
+        snapshot_date: "2026-06-23",
+        active_count: 2,
+        missing_count: 1,
+        missing: [{ experiment_id: "exp-missing", product_name: "Widget" }],
+        all_recorded: false,
+      },
+    };
+    render(<OperatorHealthPanelView health={health} />);
+    expect(screen.getByText(/Snapshots for 2026-06-23/)).toBeInTheDocument();
+  });
 });

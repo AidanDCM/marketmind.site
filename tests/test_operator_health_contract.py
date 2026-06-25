@@ -1,7 +1,9 @@
-"""Phase B pass 30 (rotation 5): operator health contract parity and deeper coverage."""
+"""Phase B pass 37 (rotation 6): operator health contract parity and deeper coverage."""
 
 from __future__ import annotations
 
+import json
+import os
 import re
 import subprocess
 import sys
@@ -25,25 +27,35 @@ from marketmind.operator_health_contract import (
     EXPERIMENT_RULING_BLOCKER_PATTERN,
     GMAIL_LIVE_NOT_READY_WARNING,
     GMAIL_SECRET_MISSING_WARNING,
+    HEALTH_PANEL_IMPORT_ADS_BUTTON,
     HEALTH_PANEL_LAST_CYCLE_TITLE,
     HEALTH_PANEL_RECORD_SNAPSHOTS_BUTTON,
     HEALTH_PANEL_RUN_CYCLE_BUTTON,
     HEALTH_PANEL_SNAPSHOTS_FOR_PREFIX,
+    HEALTH_PANEL_VIEW_SNAPSHOTS_BUTTON,
     MISSING_SNAPSHOT_WARNING_PATTERN,
     OPERATOR_CHECKLIST_CONFIG_KEYS,
     OPERATOR_HEALTH_API_PATHS,
     OPERATOR_HEALTH_DESKTOP_API_PATHS,
     OPERATOR_HEALTH_EXTENDED_API_PATHS,
     OPERATOR_HEALTH_PANEL_DATE_QUERY,
+    OPERATOR_INTEGRATIONS_SUBKEYS,
+    OPERATOR_LAST_CYCLE_API_PATH,
+    OPERATOR_LAST_CYCLE_CYCLE_KEY,
     OPERATOR_LAST_CYCLE_HAS_DATA_KEY,
     OPERATOR_LOG_MISSING_WARNING,
+    OPERATOR_PREFLIGHT_PENDING_APPROVALS_KEY,
+    OPERATOR_PREFLIGHT_SAFE_TO_OPERATE_KEY,
     OPERATOR_READINESS_CLI,
     OPERATOR_READINESS_CLI_API_FLAG,
     OPERATOR_READINESS_DATE_QUERY,
     OPERATOR_READINESS_EMPTY_DATE_DETAIL,
     OPERATOR_READINESS_STRICT_QUERY,
     OPERATOR_ROUTER_PATH,
+    OPERATOR_RUN_CYCLE_API_PATH,
+    OPERATOR_SNAPSHOT_GAPS_ALL_RECORDED_KEY,
     OPERATOR_SNAPSHOT_GAPS_API_PATH,
+    OPERATOR_SNAPSHOT_GAPS_DATE_QUERY,
     PENDING_APPROVALS_BLOCKER_PATTERN,
     READINESS_BANNER_ACTION_LABELS,
     SHOPIFY_LIVE_WARNING_PREFIX,
@@ -396,3 +408,103 @@ def test_operator_readiness_cli_documents_api_flag():
 def test_health_panel_empty_date_query_returns_422(health_client):
     resp = health_client.get(f"/operator/health-panel?{OPERATOR_HEALTH_PANEL_DATE_QUERY}=")
     assert resp.status_code == 422
+
+
+def test_snapshot_gaps_empty_date_query_returns_422(health_client):
+    resp = health_client.get(
+        f"{OPERATOR_SNAPSHOT_GAPS_API_PATH}?{OPERATOR_SNAPSHOT_GAPS_DATE_QUERY}="
+    )
+    assert resp.status_code == 422
+    assert OPERATOR_READINESS_EMPTY_DATE_DETAIL in resp.json()["detail"]
+
+
+def test_run_cycle_empty_date_query_returns_422(health_client):
+    resp = health_client.post(f"{OPERATOR_RUN_CYCLE_API_PATH}?{OPERATOR_SNAPSHOT_GAPS_DATE_QUERY}=")
+    assert resp.status_code == 422
+    assert OPERATOR_READINESS_EMPTY_DATE_DETAIL in resp.json()["detail"]
+
+
+def test_operator_router_documents_snapshot_gaps_and_run_cycle_empty_date_guards():
+    source = (REPO_ROOT / OPERATOR_ROUTER_PATH).read_text(encoding="utf-8")
+    snapshot_section = source.split("@router.get(\"/snapshot-gaps\")", 1)[1]
+    assert OPERATOR_READINESS_EMPTY_DATE_DETAIL in snapshot_section.split("@router.", 1)[0]
+    run_cycle_section = source.split("@router.post(\"/run-cycle\")", 1)[1]
+    assert OPERATOR_READINESS_EMPTY_DATE_DETAIL in run_cycle_section.split("@router.", 1)[0]
+
+
+def test_desktop_client_documents_run_cycle_and_last_cycle_paths():
+    text = (REPO_ROOT / DESKTOP_API_CLIENT_PATH).read_text(encoding="utf-8")
+    assert OPERATOR_RUN_CYCLE_API_PATH in text
+    assert OPERATOR_LAST_CYCLE_API_PATH in text
+    assert "runOperatorDailyCycle" in text
+    assert "fetchOperatorLastCycle" in text
+    assert OPERATOR_LAST_CYCLE_HAS_DATA_KEY in text
+
+
+def test_integrations_endpoint_returns_contract_subkeys(health_client):
+    data = health_client.get("/operator/integrations").json()
+    for key in OPERATOR_INTEGRATIONS_SUBKEYS:
+        assert key in data
+
+
+def test_preflight_api_reports_pending_count_and_blocker(health_client, health_engine):
+    _pending_approval(health_engine)
+    data = health_client.get("/operator/preflight").json()
+    assert data[OPERATOR_PREFLIGHT_PENDING_APPROVALS_KEY] == 1
+    assert data[OPERATOR_PREFLIGHT_SAFE_TO_OPERATE_KEY] is False
+    assert format_pending_approvals_blocker(1) in data["blockers"]
+
+
+def test_readiness_api_not_ready_with_pending_approvals(health_client, health_engine):
+    _pending_approval(health_engine)
+    data = health_client.get("/operator/readiness").json()
+    assert data["ready"] is False
+    assert data[OPERATOR_PREFLIGHT_SAFE_TO_OPERATE_KEY] is False
+    assert format_pending_approvals_blocker(1) in data["blockers"]
+
+
+def test_snapshot_gaps_empty_db_returns_zero_missing(health_client):
+    data = health_client.get(OPERATOR_SNAPSHOT_GAPS_API_PATH).json()
+    assert data["missing_count"] == 0
+    assert data["missing"] == []
+    assert data[OPERATOR_SNAPSHOT_GAPS_ALL_RECORDED_KEY] is False
+
+
+def test_last_cycle_response_uses_contract_cycle_key(health_client, monkeypatch):
+    monkeypatch.setattr(
+        "marketmind.api.routers.operator.get_last_daily_cycle",
+        lambda: None,
+    )
+    data = health_client.get(OPERATOR_LAST_CYCLE_API_PATH).json()
+    assert OPERATOR_LAST_CYCLE_CYCLE_KEY in data
+    assert data[OPERATOR_LAST_CYCLE_CYCLE_KEY] is None
+
+
+def test_operator_health_panel_documents_import_ads_and_view_snapshots_labels():
+    text = (REPO_ROOT / DESKTOP_OPERATOR_HEALTH_PANEL_PATH).read_text(
+        encoding="utf-8"
+    )
+    assert HEALTH_PANEL_IMPORT_ADS_BUTTON in text
+    assert HEALTH_PANEL_VIEW_SNAPSHOTS_BUTTON in text
+    assert HEALTH_PANEL_SNAPSHOTS_FOR_PREFIX in text
+
+
+def test_readiness_cli_exits_nonzero_with_pending_blocker(tmp_path):
+    db_file = tmp_path / "cli_operator_health.db"
+    url = f"sqlite:///{db_file.as_posix()}"
+    engine = make_engine(url)
+    Base.metadata.create_all(engine)
+    _pending_approval(engine)
+    cli = REPO_ROOT / OPERATOR_READINESS_CLI
+    env = {**os.environ, "DATABASE_URL": url}
+    proc = subprocess.run(
+        [sys.executable, str(cli), "--json"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+        env=env,
+    )
+    assert proc.returncode == 1, proc.stdout + proc.stderr
+    payload = json.loads(proc.stdout)
+    assert format_pending_approvals_blocker(1) in payload["blockers"]
