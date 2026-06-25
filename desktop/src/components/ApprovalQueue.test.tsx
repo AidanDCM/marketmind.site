@@ -72,4 +72,18 @@ describe("ApprovalQueue gate UI", () => {
       expect(executeApproved).toHaveBeenCalledWith("apr-approved", true);
     });
   });
+
+  it("shows no execute control for denied records", async () => {
+    const deniedRec: ApprovalRecord = {
+      ...pendingRec,
+      approval_id: "apr-denied",
+      status: "denied",
+      summary: "Denied scale request",
+    };
+    await renderQueue([deniedRec]);
+    const card = screen.getByText("Denied scale request").closest(".approval-card")!;
+    fireEvent.click(within(card as HTMLElement).getByText("Denied scale request"));
+    expect(within(card as HTMLElement).queryByRole("button", { name: "Execute (dry-run)" })).toBeNull();
+    expect(within(card as HTMLElement).queryByRole("button", { name: "Approve" })).toBeNull();
+  });
 });

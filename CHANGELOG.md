@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 8: Approval gate hardening (rotation 2)
+
+### Hardening: full BLOCKED_ACTIONS matrix + API batch/idempotency
+
+- **`test_approval_gate_hardening.py`** — parametrized refusal for every `BLOCKED_ACTIONS`
+  entry; execute-all captures blocked rows; API denied/idempotent/batch/live-refusal paths.
+- **`ApprovalQueue.test.tsx`** — denied records show no Execute or Approve controls.
+
+---
+
 ## 2026-06-24 — Phase B pass 7: Docs drift hardening
 
 ### Hardening: operator docs match code and suite inventory

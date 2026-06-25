@@ -217,3 +217,15 @@ Append-only evidence. Do not edit past entries.
   - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pytest -q --tb=short` — ok (27.8s)
 - Failure output: none
 - Follow-up: none
+## 2026-06-25T02:47:23Z
+- Branch: harden/phase-b-approval-gate-r2
+- Commit: 6c923d3bc53dd1dbc2633aae1ec51c6d87a0a7d3
+- Environment: marketmind-local-ci, Python 3.14.5
+- Result: PASS
+- Commands:
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pip install --upgrade pip` — ok (6.4s)
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pip install -e .[dev]` — ok (27.3s)
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m ruff check .` — ok (0.4s)
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pytest -q --tb=short` — ok (24.6s)
+- Failure output: none
+- Follow-up: none
