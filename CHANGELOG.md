@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 17: Overview navigation hardening (rotation 3)
+
+### Hardening: overview_navigation_contract + parent-level metric/recommendation links
+
+- **`overview_navigation_contract.py`** — Overview API paths, localStorage keys, lookback options.
+- **`test_overview_navigation_contract.py`** — 12 tests: desktop client parity, API smoke, lifecycle phrases.
+- **`Overview.test.tsx`** — +7 integration tests: live data, scale queue, score product, lessons, contribution profit.
+
+---
+
 ## 2026-06-24 — Phase B pass 16: Operator health hardening (rotation 3)
 
 ### Hardening: operator_health_contract formatters + regex/desktop parity

@@ -413,4 +413,106 @@ describe("Overview navigation wiring", () => {
     fireEvent.click(screen.getByRole("button", { name: "View all experiments" }));
     expect(onOpenActiveList).toHaveBeenCalledOnce();
   });
+
+  it("opens live data from orders metric through Overview", async () => {
+    mockOverviewData({});
+    const onOpenLiveData = vi.fn();
+    await renderOverview({ onOpenLiveData });
+    fireEvent.click(screen.getAllByTitle("Open Live Data")[0]);
+    expect(onOpenLiveData).toHaveBeenCalledOnce();
+  });
+
+  it("opens live data from revenue metric through Overview", async () => {
+    mockOverviewData({});
+    const onOpenLiveData = vi.fn();
+    await renderOverview({ onOpenLiveData });
+    fireEvent.click(screen.getAllByTitle("Open Live Data")[1]);
+    expect(onOpenLiveData).toHaveBeenCalledOnce();
+  });
+
+  it("opens active list from CAC metric through Overview", async () => {
+    mockOverviewData({});
+    const onOpenActiveList = vi.fn();
+    await renderOverview({ onOpenActiveList });
+    fireEvent.click(screen.getByTitle("Open Active Experiments"));
+    expect(onOpenActiveList).toHaveBeenCalledOnce();
+  });
+
+  it("opens approval queue from scale recommendation through Overview", async () => {
+    mockOverviewData({
+      report: {
+        date: "2026-06-23",
+        metrics: baseMetrics,
+        pending_approvals: [],
+        risks: [],
+        recommendations: [
+          "Widget: hitting scale criteria (CAC $24.00, 8 orders) — submit scale request for approval.",
+        ],
+        lessons: [],
+      },
+    });
+    const onOpenApprovals = vi.fn();
+    await renderOverview({ onOpenApprovals });
+    fireEvent.click(screen.getByRole("button", { name: "Open queue" }));
+    expect(onOpenApprovals).toHaveBeenCalledOnce();
+  });
+
+  it("opens score product from no-experiments recommendation through Overview", async () => {
+    mockOverviewData({
+      report: {
+        date: "2026-06-23",
+        metrics: baseMetrics,
+        pending_approvals: [],
+        risks: [],
+        recommendations: [
+          "No experiments active today. Pick a product candidate to test.",
+        ],
+        lessons: [],
+      },
+    });
+    const onOpenScoreProduct = vi.fn();
+    await renderOverview({ onOpenScoreProduct });
+    fireEvent.click(screen.getByRole("button", { name: "Score product" }));
+    expect(onOpenScoreProduct).toHaveBeenCalledOnce();
+  });
+
+  it("opens live data from readiness banner through Overview", async () => {
+    mockOverviewData({});
+    vi.mocked(fetchOperatorReadiness).mockResolvedValue({
+      ...baseReadiness,
+      warnings: ["MARKETMIND_ENABLE_LIVE_WRITES=true but Gmail is not live-ready"],
+    });
+    const onOpenLiveData = vi.fn();
+    await renderOverview({ onOpenLiveData });
+    fireEvent.click(screen.getByRole("button", { name: "Check Live Data" }));
+    expect(onOpenLiveData).toHaveBeenCalledOnce();
+  });
+
+  it("opens live data from lessons card through Overview", async () => {
+    mockOverviewData({
+      report: {
+        date: "2026-06-23",
+        metrics: baseMetrics,
+        pending_approvals: [],
+        risks: [],
+        recommendations: [],
+        lessons: [
+          "No orders: verify that the payment link / checkout is live and working.",
+        ],
+      },
+    });
+    const onOpenLiveData = vi.fn();
+    await renderOverview({ onOpenLiveData });
+    fireEvent.click(screen.getByRole("button", { name: "Check Live Data" }));
+    expect(onOpenLiveData).toHaveBeenCalledOnce();
+  });
+
+  it("opens active list from contribution profit through Overview", async () => {
+    mockOverviewData({});
+    const onOpenActiveList = vi.fn();
+    await renderOverview({ onOpenActiveList });
+    const links = screen.getAllByTitle("Open Active Experiments");
+    fireEvent.click(links[links.length - 1]);
+    expect(onOpenActiveList).toHaveBeenCalled();
+  });
 });
