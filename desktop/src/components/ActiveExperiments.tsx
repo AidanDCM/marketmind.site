@@ -24,7 +24,7 @@ import {
   type ActiveStatusFilter,
 } from "./activeExperimentsPreferences";
 
-const StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status }: { status: string }) {
   const active = status === "active";
   return (
     <span style={{

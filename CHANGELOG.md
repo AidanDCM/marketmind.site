@@ -9,6 +9,8 @@
 - **`Overview.test.tsx`** — mocked API integration tests for header Snapshots, pending
   approval banner, trend attention link, Chart/Details/Record row actions, and no-report
   empty state wiring (gaps not covered by child component tests alone).
+- **CI fix** — `lookbackOptions.ts` docstring syntax and `ActiveExperiments.tsx`
+  `StatusBadge` declaration (blocked frontend typecheck on main).
 
 ---
 

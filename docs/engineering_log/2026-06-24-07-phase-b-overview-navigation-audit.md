@@ -40,3 +40,10 @@ cd desktop && npm test                    -> not run locally (npm absent in agen
 - `Overview` daily-cycle **Run cycle** button not covered at integration level (covered
   indirectly via `overviewDailyCycle` unit tests if present — not expanded this pass).
 - Phase B rotation next: approval gate or operator health deep pass.
+
+## CI fix (same PR)
+
+Pre-existing TypeScript errors on `main` blocked the frontend job before Vitest ran:
+
+- `lookbackOptions.ts` — Python-style docstring → `//` comment
+- `ActiveExperiments.tsx` — `const StatusBadge(...)` missing `function` keyword
