@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 24: Overview navigation hardening (rotation 4)
+
+### Hardening: trend query params + lookback validation + health-panel attention link
+
+- **`overview_navigation_contract.py`** — trend API path/query params, UI labels, daily-cycle path.
+- **`test_overview_navigation_contract.py`** — +14 tests: 422 edges, lookback days matrix, attention_only.
+- **`Overview.test.tsx`** — +1 test: health panel Show attention through parent.
+
+---
+
 ## 2026-06-24 — Phase B pass 23: Operator health hardening (rotation 4)
 
 ### Hardening: extended API paths + readiness date query + Gmail secret warning
