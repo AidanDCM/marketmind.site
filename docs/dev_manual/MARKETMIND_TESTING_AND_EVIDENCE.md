@@ -29,10 +29,10 @@ Run focused tests first when changing a narrow area.
 
 | Layer | Location | Count (approx) |
 |---|---|---|
-| Backend | `tests/test_*.py` | **708** pytest cases |
+| Backend | `tests/test_*.py` | **728** pytest cases |
 | Desktop | `desktop/src/**/*.test.ts(x)` | **28** Vitest files |
 | CI | `.github/workflows/ci.yml` | ruff + pytest + deploy smoke + desktop build/test |
-| Docs drift | `tests/test_docs_drift.py`, `test_docs_drift_hardening.py` | env names, suite counts, deploy verify doc parity |
+| Docs drift | `tests/test_docs_drift.py`, `test_docs_drift_hardening.py`, `test_docs_drift_contract.py` | env names, suite counts, rotation 3 contract parity |
 
 Minimum counts are also defined in `marketmind/docs_contract.py`.
 
@@ -135,8 +135,21 @@ When slice building is complete, each `proceed` runs a **hardening theme** (see
 (e.g. `deploy_ci_contract.py`, `test_docs_drift_hardening.py`). See engineering logs
 `2026-06-24-*-r2.md`.
 
-**Rotation 3** (pass 15+) deepens contracts with full action-set matrices and UI parity
-(e.g. `approval_gate_contract.py`, `operator_health_contract.py` formatters + regex parity).
+**Rotation 3** (passes 15–21) deepens contracts with dedicated `test_*_contract.py`
+modules per theme and UI/API parity guards:
+
+| Pass | Theme | Contract module | Contract tests |
+|---|---|---|---|
+| 15 | Approval gate | `approval_gate_contract.py` | `test_approval_gate_contract.py` |
+| 16 | Operator health | `operator_health_contract.py` | `test_operator_health_contract.py` |
+| 17 | Overview navigation | `overview_navigation_contract.py` | `test_overview_navigation_contract.py` |
+| 18 | Experiment lifecycle | `experiment_lifecycle_contract.py` | `test_experiment_lifecycle_contract.py` |
+| 19 | Commerce adapters | `commerce_adapters_contract.py` | `test_commerce_adapters_contract.py` |
+| 20 | Deploy/CI | `deploy_ci_contract.py` | `test_deploy_ci_contract.py` |
+| 21 | Docs drift | `docs_contract.py` | `test_docs_drift_contract.py` |
+
+See engineering logs `2026-06-24-*-r3.md`. Drift guards:
+`test_docs_drift.py`, `test_docs_drift_hardening.py`, `test_docs_drift_contract.py`.
 
 Record each pass in `docs/engineering_log/` even if only tests/docs changed.
 
