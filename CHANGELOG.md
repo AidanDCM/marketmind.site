@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 1: Overview navigation Vitest audit
+
+### Hardening: parent-level Overview navigation tests
+
+- **`Overview.test.tsx`** — mocked API integration tests for header Snapshots, pending
+  approval banner, trend attention link, Chart/Details/Record row actions, and no-report
+  empty state wiring (gaps not covered by child component tests alone).
+
+---
+
 ## 2026-06-24 — Slice 119: No-report empty Score Product link
 
 ### Slice 119: Jump from empty daily report to Score Product
