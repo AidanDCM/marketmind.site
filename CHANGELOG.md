@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 31: Overview navigation hardening (rotation 5)
+
+### Hardening: trend as_of ISO 422, days max edge, daily-report date query, health-panel snapshots
+
+- **`overview_navigation_contract.py`** — router paths, trend validation details, response keys, UI labels.
+- **`test_overview_navigation_contract.py`** — +10 tests: invalid as_of/days 422, client date query, preference helpers, response keys.
+- **`Overview.test.tsx`** — +1 test: health panel View snapshots through Overview parent.
+
+---
+
 ## 2026-06-24 — Phase B pass 30: Operator health hardening (rotation 5)
 
 ### Hardening: snapshot-gaps API edges + readiness date 422 + health-panel UI parity

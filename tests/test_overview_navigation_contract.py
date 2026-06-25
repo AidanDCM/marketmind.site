@@ -1,4 +1,4 @@
-"""Phase B pass 17 (rotation 3): Overview navigation contract parity."""
+"""Phase B pass 31 (rotation 5): Overview navigation contract parity and deeper coverage."""
 
 from __future__ import annotations
 
@@ -12,24 +12,34 @@ from marketmind.db.engine import make_engine
 from marketmind.db.models import Base
 from marketmind.docs_contract import REPO_ROOT
 from marketmind.overview_navigation_contract import (
+    DAILY_REPORT_API_PATH,
+    DAILY_REPORT_DATE_QUERY,
     DEFAULT_LOOKBACK_DAYS,
     DESKTOP_API_CLIENT_PATH,
     DESKTOP_LOOKBACK_OPTIONS_PATH,
     DESKTOP_OVERVIEW_COMPONENT_PATH,
     DESKTOP_OVERVIEW_DAILY_CYCLE_PATH,
     DESKTOP_OVERVIEW_PREFERENCES_PATH,
+    DESKTOP_OVERVIEW_TREND_EMPTY_STATE_PATH,
+    EXPERIMENTS_ROUTER_PATH,
     LOOKBACK_DAY_OPTIONS,
     NO_EXPERIMENTS_RECOMMENDATION,
+    OVERVIEW_ATTENTION_EMPTY_BUTTON,
     OVERVIEW_FETCH_API_PATHS,
     OVERVIEW_LOCAL_STORAGE_KEYS,
+    OVERVIEW_PAGE_TITLE,
     OVERVIEW_RUN_CYCLE_PATH,
     OVERVIEW_SNAPSHOTS_HEADER_BUTTON,
     OVERVIEW_TREND_QUERY_PARAMS,
     OVERVIEW_TREND_SUMMARY_API_PATH,
     SCALE_APPROVAL_PHRASE,
     SNAPSHOT_STALE_RECORD_BUTTON,
+    TREND_AS_OF_EMPTY_DETAIL,
+    TREND_AS_OF_ISO_DETAIL,
     TREND_ATTENTION_ONLY_LABEL,
+    TREND_DAYS_MAX_FRAGMENT,
     TREND_LOOKBACK_LABEL,
+    TREND_SUMMARY_RESPONSE_KEYS,
 )
 
 
@@ -134,13 +144,79 @@ def test_overview_daily_cycle_module_refetches_contract_fetch_bundle():
 
 def test_trend_summary_query_params_documented_in_client_and_router():
     client = (REPO_ROOT / DESKTOP_API_CLIENT_PATH).read_text(encoding="utf-8")
-    router = (REPO_ROOT / "marketmind/api/routers/experiments.py").read_text(
-        encoding="utf-8"
-    )
+    router = (REPO_ROOT / EXPERIMENTS_ROUTER_PATH).read_text(encoding="utf-8")
     assert OVERVIEW_TREND_SUMMARY_API_PATH in client
     for param in OVERVIEW_TREND_QUERY_PARAMS:
         assert param in client
         assert param in router
+    assert TREND_AS_OF_EMPTY_DETAIL in router
+    assert TREND_AS_OF_ISO_DETAIL in router
+
+
+def test_trend_summary_invalid_as_of_iso_returns_422(overview_client):
+    resp = overview_client.get(f"{OVERVIEW_TREND_SUMMARY_API_PATH}?as_of=not-a-date")
+    assert resp.status_code == 422
+    assert TREND_AS_OF_ISO_DETAIL in resp.json()["detail"]
+
+
+def test_trend_summary_days_above_max_returns_422_with_contract_fragment(overview_client):
+    resp = overview_client.get(f"{OVERVIEW_TREND_SUMMARY_API_PATH}?days=91")
+    assert resp.status_code == 422
+    assert TREND_DAYS_MAX_FRAGMENT in resp.json()["detail"]
+
+
+def test_daily_report_date_query_documented_in_client():
+    text = (REPO_ROOT / DESKTOP_API_CLIENT_PATH).read_text(encoding="utf-8")
+    assert DAILY_REPORT_API_PATH in text
+    assert "fetchDailyReport" in text
+    assert f"?{DAILY_REPORT_DATE_QUERY}=" in text
+
+
+def test_lookback_options_exports_is_lookback_day_option_helper():
+    text = (REPO_ROOT / DESKTOP_LOOKBACK_OPTIONS_PATH).read_text(encoding="utf-8")
+    assert "isLookbackDayOption" in text
+    assert "LOOKBACK_DAY_OPTIONS" in text
+
+
+def test_overview_preferences_exports_read_preference_helpers():
+    text = (REPO_ROOT / DESKTOP_OVERVIEW_PREFERENCES_PATH).read_text(encoding="utf-8")
+    assert "readAttentionOnlyPreference" in text
+    assert "readOverviewDatePreference" in text
+    assert "readTrendDaysPreference" in text
+
+
+def test_overview_component_documents_run_overview_daily_cycle():
+    text = (REPO_ROOT / DESKTOP_OVERVIEW_COMPONENT_PATH).read_text(encoding="utf-8")
+    assert "runOverviewDailyCycle" in text
+    assert "handleRunCycle" in text
+
+
+def test_overview_component_documents_page_header_and_date_input():
+    text = (REPO_ROOT / DESKTOP_OVERVIEW_COMPONENT_PATH).read_text(encoding="utf-8")
+    assert OVERVIEW_PAGE_TITLE in text
+    assert 'type="date"' in text
+
+
+def test_overview_trend_empty_state_documents_attention_empty_button():
+    text = (REPO_ROOT / DESKTOP_OVERVIEW_TREND_EMPTY_STATE_PATH).read_text(
+        encoding="utf-8"
+    )
+    assert OVERVIEW_ATTENTION_EMPTY_BUTTON in text
+
+
+def test_trend_summary_response_includes_contract_keys(overview_client):
+    data = overview_client.get(
+        f"{OVERVIEW_TREND_SUMMARY_API_PATH}?days={DEFAULT_LOOKBACK_DAYS}&as_of=2026-06-23"
+    ).json()
+    for key in TREND_SUMMARY_RESPONSE_KEYS:
+        assert key in data
+
+
+def test_overview_daily_cycle_module_passes_attention_only_through_fetch():
+    text = (REPO_ROOT / DESKTOP_OVERVIEW_DAILY_CYCLE_PATH).read_text(encoding="utf-8")
+    assert "attentionOnly" in text
+    assert "fetchOverviewData" in text
+    assert "options.attentionOnly" in text
 
 
 def test_trend_summary_invalid_days_returns_422(overview_client):
@@ -151,6 +227,7 @@ def test_trend_summary_invalid_days_returns_422(overview_client):
 def test_trend_summary_empty_as_of_returns_422(overview_client):
     resp = overview_client.get(f"{OVERVIEW_TREND_SUMMARY_API_PATH}?as_of=")
     assert resp.status_code == 422
+    assert TREND_AS_OF_EMPTY_DETAIL in resp.json()["detail"]
 
 
 def test_run_cycle_empty_date_returns_422(overview_client):
