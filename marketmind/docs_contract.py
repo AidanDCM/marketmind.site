@@ -10,7 +10,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 # Minimum suite sizes — tests fail if collection/file count drops below these.
-MIN_PYTEST_CASES = 567
+MIN_PYTEST_CASES = 578
 MIN_VITEST_FILES = 28
 
 # Env var names used in code / .env.example (not stale doc aliases).

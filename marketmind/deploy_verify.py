@@ -8,6 +8,8 @@ import urllib.request
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
+from .deploy_ci_contract import INTEGRATIONS_SECRET_LEAK_MARKERS
+
 
 def _default_get(url: str, token: str | None) -> dict:
     headers = {"Accept": "application/json"}
@@ -27,6 +29,14 @@ class DeployVerifyResult:
     safe_to_operate: bool | None = None
     ready: bool | None = None
     lines: tuple[str, ...] = field(default_factory=tuple)
+
+
+def _integrations_response_is_secret_free(payload: dict) -> str | None:
+    text = json.dumps(payload)
+    for marker in INTEGRATIONS_SECRET_LEAK_MARKERS:
+        if marker in text:
+            return f"integrations response contains forbidden substring {marker!r}"
+    return None
 
 
 def verify_marketmind_deploy(
@@ -99,6 +109,28 @@ def verify_marketmind_deploy(
         failures.append("operator readiness not ready")
         for blocker in readiness.get("blockers", []):
             failures.append(f"readiness blocker: {blocker}")
+
+    try:
+        integrations = get(f"{base}/operator/integrations", token)
+    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
+        return DeployVerifyResult(
+            ok=False,
+            failures=(f"operator/integrations: {exc}",),
+            lines=tuple(lines) + (f"FAIL operator/integrations: {exc}",),
+            health_version=health_version,
+            safe_to_operate=safe if isinstance(safe, bool) else None,
+            ready=operator_ready if isinstance(operator_ready, bool) else None,
+        )
+
+    stripe_cfg = integrations.get("stripe", {}).get("configured")
+    shopify_cfg = integrations.get("shopify", {}).get("configured")
+    lines.append(
+        f"OK  GET /operator/integrations -> "
+        f"stripe.configured={stripe_cfg} shopify.configured={shopify_cfg}"
+    )
+    leak_reason = _integrations_response_is_secret_free(integrations)
+    if leak_reason:
+        failures.append(leak_reason)
 
     ok = not failures
     if ok:

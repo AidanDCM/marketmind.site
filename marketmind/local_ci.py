@@ -9,6 +9,8 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 
+from .deploy_ci_contract import CI_DEPLOY_VERIFY_SCRIPTS
+
 CI_STEPS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("pip_upgrade", ("python", "-m", "pip", "install", "--upgrade", "pip")),
     ("install_dependencies", ("python", "-m", "pip", "install", "-e", ".[dev]")),
@@ -17,10 +19,6 @@ CI_STEPS: tuple[tuple[str, tuple[str, ...]], ...] = (
 )
 
 # Parity contract with `.github/workflows/ci.yml` deploy-verify job (after API is up).
-CI_DEPLOY_VERIFY_SCRIPTS: tuple[str, ...] = (
-    "scripts/verify_marketmind_deploy.py",
-    "scripts/check_operator_readiness.py",
-)
 
 FULL_CI_EXTRA: tuple[tuple[str, tuple[str, ...]], ...] = (
     (
