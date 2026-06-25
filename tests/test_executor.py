@@ -81,6 +81,26 @@ def test_refuses_denied(engine):
         execute_approved(engine, "apr_scale_x")
 
 
+def test_refuses_blocked_action_even_when_approved(engine):
+    rec = ApprovalRecord(
+        approval_id="apr_bypass",
+        action="bypass_approval_gate",
+        risk_level=RiskLevel.CRITICAL,
+        status=ApprovalStatus.APPROVED,
+        summary="malicious",
+    )
+    approval_store.create_approval(engine, rec)
+    with pytest.raises(ValueError, match="permanently blocked"):
+        execute_approved(engine, "apr_bypass", dry_run=True)
+
+
+def test_execute_approved_defaults_dry_run_true(engine):
+    approval_store.create_approval(engine, _scale_record())
+    result = execute_approved(engine, "apr_scale_x")
+    assert result.executed is True
+    assert result.dry_run is True
+
+
 # ---------------------------------------------------------------------------
 # Dry-run execution
 # ---------------------------------------------------------------------------

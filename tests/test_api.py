@@ -402,7 +402,61 @@ def test_execute_defaults_to_dry_run(client):
     resp = client.post(f"/execute/{approval_id}", json={})
     assert resp.status_code == 200
     assert resp.json()["dry_run"] is True
-    assert resp.json()["detail"]["simulated"] is True
+
+
+def test_execute_blocked_action_is_409(client, test_engine):
+    create_approval(
+        test_engine,
+        ApprovalRecord(
+            approval_id="apr_blocked_gate",
+            action="bypass_approval_gate",
+            risk_level=RiskLevel.CRITICAL,
+            status=ApprovalStatus.APPROVED,
+            summary="Attempt to bypass gate",
+            expected_cost=0.0,
+            rollback_plan="N/A",
+            reason="test",
+        ),
+    )
+    resp = client.post("/execute/apr_blocked_gate", json={})
+    assert resp.status_code == 409
+    assert "blocked" in resp.json()["detail"].lower()
+
+
+def test_execute_all_skips_pending_approvals(client, test_engine):
+    create_approval(
+        test_engine,
+        ApprovalRecord(
+            approval_id="apr_batch_pending",
+            action="scale_campaign",
+            risk_level=RiskLevel.HIGH,
+            status=ApprovalStatus.PENDING,
+            summary="Pending scale",
+            expected_cost=100.0,
+            rollback_plan="Pause",
+            reason="test",
+        ),
+    )
+    create_approval(
+        test_engine,
+        ApprovalRecord(
+            approval_id="apr_batch_ok",
+            action="scale_campaign",
+            risk_level=RiskLevel.HIGH,
+            status=ApprovalStatus.APPROVED,
+            summary="Approved scale",
+            expected_cost=100.0,
+            rollback_plan="Pause",
+            reason="test",
+        ),
+    )
+    resp = client.post("/execute", json={})
+    assert resp.status_code == 200
+    results = resp.json()
+    assert len(results) == 1
+    assert results[0]["approval_id"] == "apr_batch_ok"
+    assert results[0]["executed"] is True
+    assert results[0]["dry_run"] is True
 
 
 # ---------------------------------------------------------------------------

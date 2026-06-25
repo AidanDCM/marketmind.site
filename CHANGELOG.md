@@ -2,6 +2,18 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 2: Approval gate hardening
+
+### Hardening: pending never executes; dry_run defaults enforced
+
+- **Commerce policy / executor / API** — regression tests for blocked actions, alias
+  normalization, pending status variants, execute-all batch skipping pending rows.
+- **`ApprovalQueue.test.tsx`** — pending shows Approve/Deny only; approved Execute always
+  passes `dry_run=true`.
+- **`client.test.ts`** — `executeApproved()` omits live flag by default.
+
+---
+
 ## 2026-06-24 — Phase B pass 1: Overview navigation Vitest audit
 
 ### Hardening: parent-level Overview navigation tests
