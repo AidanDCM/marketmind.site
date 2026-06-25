@@ -2,6 +2,18 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 5: Commerce adapters hardening
+
+### Hardening: Stripe/Shopify/Gmail fakes; no secrets in logs or API
+
+- **`test_commerce_adapters_hardening.py`** — readiness snapshots, simulate responses, and
+  client DEBUG logs never echo credentials; Gmail pending approval rejected.
+- **Executor** — live Shopify mock path and Gmail simulate path regression: tokens never
+  appear in `ExecutionResult.to_dict()`.
+- **API** — `GET /operator/integrations` with credentials in env returns booleans only.
+
+---
+
 ## 2026-06-24 — Phase B pass 4: Experiment lifecycle hardening
 
 ### Hardening: daily report math, trend direction, rules priority

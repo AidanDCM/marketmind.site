@@ -206,6 +206,28 @@ def test_integrations_endpoint(client):
     assert "live_writes" in data
 
 
+def test_integrations_endpoint_never_exposes_credentials(client, monkeypatch):
+    stripe_key = "sk_test_API_LEAK_CHECK_999"
+    shopify_token = "shpat_API_LEAK_CHECK_999"
+    monkeypatch.setenv("STRIPE_API_KEY", stripe_key)
+    monkeypatch.setenv("SHOPIFY_STORE_DOMAIN", "demo.myshopify.com")
+    monkeypatch.setenv("SHOPIFY_ACCESS_TOKEN", shopify_token)
+    monkeypatch.setenv("MARKETMIND_GMAIL_ENABLED", "true")
+    monkeypatch.setenv("GMAIL_CLIENT_ID", "cid")
+    monkeypatch.setenv("GMAIL_CLIENT_SECRET", "gmail_secret_API_LEAK")
+    monkeypatch.setenv("GMAIL_REFRESH_TOKEN", "refresh_API_LEAK")
+    resp = client.get("/operator/integrations")
+    assert resp.status_code == 200
+    body = resp.text
+    assert stripe_key not in body
+    assert shopify_token not in body
+    assert "gmail_secret_API_LEAK" not in body
+    assert "refresh_API_LEAK" not in body
+    data = resp.json()
+    assert data["stripe"]["configured"] is True
+    assert data["shopify"]["configured"] is True
+
+
 def test_health_panel_endpoint(client):
     resp = client.get("/operator/health-panel")
     assert resp.status_code == 200
