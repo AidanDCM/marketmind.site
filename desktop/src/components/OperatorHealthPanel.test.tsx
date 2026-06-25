@@ -212,6 +212,26 @@ describe("OperatorHealthPanelView", () => {
     expect(onOpenApprovals).toHaveBeenCalledOnce();
   });
 
+  it("links experiment ruling blockers in preflight list to experiment details", () => {
+    const onOpenActive = vi.fn();
+    const health: OperatorHealthPanel = {
+      ...baseHealth,
+      preflight: {
+        ...baseHealth.preflight,
+        safe_to_operate: false,
+        blockers: ["Experiment 'exp-kill' ruling is 'kill' — action required"],
+        experiments_needing_attention: [
+          { experiment_id: "exp-kill", product_name: "Widget", ruling: "kill", risks: [] },
+        ],
+      },
+    };
+    render(
+      <OperatorHealthPanelView health={health} onOpenActive={onOpenActive} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "View experiment" }));
+    expect(onOpenActive).toHaveBeenCalledWith("exp-kill");
+  });
+
   it("links integration warnings to Live Data", () => {
     const onOpenLiveData = vi.fn();
     const health: OperatorHealthPanel = {

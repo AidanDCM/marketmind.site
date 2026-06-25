@@ -18,8 +18,8 @@ from marketmind.operator_health_contract import (
     GMAIL_LIVE_NOT_READY_WARNING,
     GMAIL_SECRET_MISSING_WARNING,
     OPERATOR_LOG_MISSING_WARNING,
-    SHOPIFY_LIVE_NOT_READY_WARNING,
-    STRIPE_LIVE_NOT_READY_WARNING,
+    SHOPIFY_LIVE_WARNING_PREFIX,
+    STRIPE_LIVE_WARNING_PREFIX,
 )
 from marketmind.operator_readiness import (
     evaluate_operator_readiness,
@@ -68,8 +68,8 @@ def test_warning_constants_match_desktop_readiness_banner_actions():
 
     assert _extract("GMAIL_LIVE_WARNING") == GMAIL_LIVE_NOT_READY_WARNING
     assert _extract("GMAIL_SECRET_WARNING") == GMAIL_SECRET_MISSING_WARNING
-    assert _extract("STRIPE_LIVE_WARNING_PREFIX") == STRIPE_LIVE_NOT_READY_WARNING.split(" (")[0]
-    assert _extract("SHOPIFY_LIVE_WARNING_PREFIX") == SHOPIFY_LIVE_NOT_READY_WARNING.split(" (")[0]
+    assert _extract("STRIPE_LIVE_WARNING_PREFIX") == STRIPE_LIVE_WARNING_PREFIX
+    assert _extract("SHOPIFY_LIVE_WARNING_PREFIX") == SHOPIFY_LIVE_WARNING_PREFIX
 
 
 def test_build_operator_health_gmail_live_writes_warning(monkeypatch, tmp_path, health_engine):

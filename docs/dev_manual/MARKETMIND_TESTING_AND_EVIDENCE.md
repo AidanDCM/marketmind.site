@@ -29,7 +29,7 @@ Run focused tests first when changing a narrow area.
 
 | Layer | Location | Count (approx) |
 |---|---|---|
-| Backend | `tests/test_*.py` | **630** pytest cases |
+| Backend | `tests/test_*.py` | **644** pytest cases |
 | Desktop | `desktop/src/**/*.test.ts(x)` | **28** Vitest files |
 | CI | `.github/workflows/ci.yml` | ruff + pytest + deploy smoke + desktop build/test |
 | Docs drift | `tests/test_docs_drift.py`, `test_docs_drift_hardening.py` | env names, suite counts, deploy verify doc parity |
@@ -136,7 +136,7 @@ When slice building is complete, each `proceed` runs a **hardening theme** (see
 `2026-06-24-*-r2.md`.
 
 **Rotation 3** (pass 15+) deepens contracts with full action-set matrices and UI parity
-(e.g. `approval_gate_contract.py`, `test_approval_gate_contract.py`).
+(e.g. `approval_gate_contract.py`, `operator_health_contract.py` formatters + regex parity).
 
 Record each pass in `docs/engineering_log/` even if only tests/docs changed.
 
