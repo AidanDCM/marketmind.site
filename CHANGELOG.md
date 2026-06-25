@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 22: Approval gate hardening (rotation 4)
+
+### Hardening: approval API paths + HIGH_RISK approved matrix + queue filter UI
+
+- **`approval_gate_contract.py`** — approval/execute API paths, filter options, UI status gates.
+- **`test_approval_gate_contract.py`** — +29 tests: approved HIGH_RISK matrix, approve/deny API, execute log.
+- **`ApprovalQueue.test.tsx`** — +2 tests: filter bar parity, `already_executed` message.
+
+---
+
 ## 2026-06-24 — Phase B pass 21: Docs drift hardening (rotation 3)
 
 ### Hardening: docs_contract rotation 3 table + test_docs_drift_contract

@@ -77,13 +77,59 @@ REFUSAL_NOT_APPROVED_FRAGMENT = "not 'approved'"
 REFUSAL_PERMANENTLY_BLOCKED_FRAGMENT = "permanently blocked"
 REFUSAL_ALREADY_EXECUTED = "already_executed"
 
+APPROVAL_API_PATHS: tuple[str, ...] = (
+    "/approvals",
+    "/approvals/pending",
+    "/approvals/{approval_id}",
+    "/approvals/{approval_id}/approve",
+    "/approvals/{approval_id}/deny",
+)
+
+EXECUTE_API_PATHS: tuple[str, ...] = (
+    "/execute/{approval_id}",
+    "/execute",
+    "/execute/log",
+)
+
+DESKTOP_API_CLIENT_PATH = "desktop/src/api/client.ts"
+
+DESKTOP_APPROVAL_FILTER_PATH = "desktop/src/components/approvalQueuePreferences.ts"
+
+# Desktop ApprovalQueue card gating (must match ``ApprovalQueue.tsx``).
+GATE_UI_APPROVABLE_STATUS = "pending"
+GATE_UI_EXECUTABLE_STATUS = "approved"
+
+APPROVAL_FILTER_OPTIONS: tuple[str, ...] = (
+    "pending",
+    "all",
+    "approved",
+    "denied",
+    "blocked",
+    "auto_allowed",
+)
+
+POLICY_STATUSES: tuple[str, ...] = (
+    POLICY_STATUS_BLOCKED,
+    POLICY_STATUS_NEEDS_REVIEW,
+    POLICY_STATUS_AUTO_ALLOWED,
+    POLICY_STATUS_APPROVED,
+)
+
 __all__ = [
+    "APPROVAL_API_PATHS",
+    "APPROVAL_FILTER_OPTIONS",
     "APPROVED_STATUS_ALIASES",
     "AUTO_ALLOWED_ACTIONS",
     "BLOCKED_ACTIONS",
     "DEFAULT_EXECUTE_DRY_RUN",
+    "DESKTOP_API_CLIENT_PATH",
+    "DESKTOP_APPROVAL_FILTER_PATH",
+    "EXECUTE_API_PATHS",
     "EXECUTOR_HANDLER_ACTIONS",
+    "GATE_UI_APPROVABLE_STATUS",
+    "GATE_UI_EXECUTABLE_STATUS",
     "HIGH_RISK_ACTIONS",
+    "POLICY_STATUSES",
     "POLICY_STATUS_APPROVED",
     "POLICY_STATUS_AUTO_ALLOWED",
     "POLICY_STATUS_BLOCKED",
