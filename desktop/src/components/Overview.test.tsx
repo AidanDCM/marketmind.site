@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { Overview } from "./Overview";
 import type {
   ApprovalRecord,
@@ -434,7 +434,7 @@ describe("Overview navigation wiring", () => {
     mockOverviewData({});
     const onOpenActiveList = vi.fn();
     await renderOverview({ onOpenActiveList });
-    fireEvent.click(screen.getByTitle("Open Active Experiments"));
+    fireEvent.click(screen.getAllByTitle("Open Active Experiments")[0]);
     expect(onOpenActiveList).toHaveBeenCalledOnce();
   });
 
@@ -484,7 +484,11 @@ describe("Overview navigation wiring", () => {
     });
     const onOpenLiveData = vi.fn();
     await renderOverview({ onOpenLiveData });
-    fireEvent.click(screen.getByRole("button", { name: "Check Live Data" }));
+    const banner = screen.getByText(/Operator readiness:/).closest(".alert")!;
+    const buttons = within(banner as HTMLElement).getAllByRole("button", {
+      name: "Check Live Data",
+    });
+    fireEvent.click(buttons[buttons.length - 1]);
     expect(onOpenLiveData).toHaveBeenCalledOnce();
   });
 
@@ -503,7 +507,8 @@ describe("Overview navigation wiring", () => {
     });
     const onOpenLiveData = vi.fn();
     await renderOverview({ onOpenLiveData });
-    fireEvent.click(screen.getByRole("button", { name: "Check Live Data" }));
+    const buttons = screen.getAllByRole("button", { name: "Check Live Data" });
+    fireEvent.click(buttons[buttons.length - 1]);
     expect(onOpenLiveData).toHaveBeenCalledOnce();
   });
 
