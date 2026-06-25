@@ -2,6 +2,18 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 7: Docs drift hardening
+
+### Hardening: operator docs match code and suite inventory
+
+- **`marketmind/docs_contract.py`** — canonical env var names and minimum test counts.
+- **`tests/test_docs_drift.py`** — regression tests for OWNER_MANUAL env table, suite
+  inventory, deploy verifier parity, and `local_ci --full` documentation.
+- **Docs updated** — `OWNER_MANUAL.md`, `AGENTS.md`, `SLICE_WORKFLOW.md`,
+  `MARKETMIND_TESTING_AND_EVIDENCE.md`, `docs/DEPLOYMENT.md`, `OPERATING_INDEX.md`.
+
+---
+
 ## 2026-06-24 — Phase B pass 6: Deploy/CI hardening
 
 ### Hardening: local_ci parity with GitHub Actions deploy-verify job
