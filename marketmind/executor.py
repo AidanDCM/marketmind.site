@@ -31,8 +31,13 @@ from sqlalchemy.engine import Engine
 
 from .adapters.shopify_client import ShopifyClient, simulate_create_product_draft
 from .adapters.stripe_client import StripeClient, simulate_create_payment_link
-from .commerce_approval_policy import (
+from .approval_gate_contract import (
     BLOCKED_ACTIONS,
+    REFUSAL_ALREADY_EXECUTED,
+    REFUSAL_NOT_APPROVED_FRAGMENT,
+    REFUSAL_PERMANENTLY_BLOCKED_FRAGMENT,
+)
+from .commerce_approval_policy import (
     CommerceApprovalRequest,
     evaluate_commerce_approval,
 )
@@ -255,11 +260,13 @@ def execute_approved(
     if record.status != ApprovalStatus.APPROVED:
         raise ValueError(
             f"Refusing to execute {approval_id!r}: status is "
-            f"{record.status.value!r}, not 'approved'."
+            f"{record.status.value!r}, {REFUSAL_NOT_APPROVED_FRAGMENT}."
         )
 
     if record.action in BLOCKED_ACTIONS:
-        raise ValueError(f"Action {record.action!r} is permanently blocked by policy.")
+        raise ValueError(
+            f"Action {record.action!r} is {REFUSAL_PERMANENTLY_BLOCKED_FRAGMENT} by policy."
+        )
 
     policy = evaluate_commerce_approval(
         CommerceApprovalRequest(
@@ -279,7 +286,7 @@ def execute_approved(
             action=record.action,
             executed=False,
             dry_run=dry_run,
-            reason="already_executed",
+            reason=REFUSAL_ALREADY_EXECUTED,
         )
 
     handler = _HANDLERS.get(record.action)

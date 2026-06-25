@@ -86,4 +86,20 @@ describe("ApprovalQueue gate UI", () => {
     expect(within(card as HTMLElement).queryByRole("button", { name: "Execute (dry-run)" })).toBeNull();
     expect(within(card as HTMLElement).queryByRole("button", { name: "Approve" })).toBeNull();
   });
+
+  it("shows no approve or execute controls for blocked records", async () => {
+    const blockedRec: ApprovalRecord = {
+      ...pendingRec,
+      approval_id: "apr-blocked",
+      status: "blocked",
+      summary: "Blocked bypass attempt",
+      action: "bypass_approval_gate",
+    };
+    await renderQueue([blockedRec]);
+    const card = screen.getByText("Blocked bypass attempt").closest(".approval-card")!;
+    fireEvent.click(within(card as HTMLElement).getByText("Blocked bypass attempt"));
+    expect(within(card as HTMLElement).queryByRole("button", { name: "Approve" })).toBeNull();
+    expect(within(card as HTMLElement).queryByRole("button", { name: "Deny" })).toBeNull();
+    expect(within(card as HTMLElement).queryByRole("button", { name: "Execute (dry-run)" })).toBeNull();
+  });
 });

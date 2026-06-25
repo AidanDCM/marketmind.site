@@ -2,11 +2,7 @@
 
 Adapted from Parts-and-Pieces `parts/python/approval_policy`.
 
-Defines which actions in MarketMind require explicit human approval before
-the execution layer will carry them out, and which are auto-allowed (research,
-scoring, reporting) or blocked outright (hiding losses, bypassing platform policy).
-
-This module is the single source of truth for the HIGH_RISK_ACTIONS list.
+Action sets live in ``approval_gate_contract``; this module evaluates them.
 The execution router (`/execute/{approval_id}`) checks this before running.
 """
 
@@ -14,51 +10,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from .approval_gate_contract import (
+    APPROVED_STATUS_ALIASES,
+    AUTO_ALLOWED_ACTIONS,
+    BLOCKED_ACTIONS,
+    HIGH_RISK_ACTIONS,
+)
 from .commerce_adapters_contract import COMMERCE_ACTION_ALIASES as _ACTION_ALIASES
 
-# Actions that require an ApprovalRow with status=APPROVED before execution.
-# Any attempt to execute these in dry_run=False without approval is rejected.
-HIGH_RISK_ACTIONS: frozenset[str] = frozenset({
-    # Ad spend
-    "launch_ad_campaign",
-    "scale_ad_spend",
-    "pause_ad_campaign",
-    "resume_ad_campaign",
-    "change_ad_budget",
-    # Experiment lifecycle
-    "kill_experiment",
-    "override_experiment_ruling",
-    # Store / product
-    "publish_product_page",
-    "unpublish_product_page",
-    "change_product_price",
-    "change_product_inventory",
-    # Supplier / procurement
-    "contact_supplier",
-    "place_sample_order",
-    "negotiate_terms",
-    # Payments
-    "send_payment_link",
-    "issue_refund",
-    "change_payment_settings",
-    # Account
-    "change_shopify_settings",
-    "change_stripe_settings",
-    "revoke_api_key",
-})
-
-# Actions that are never allowed, even with approval.
-# The execution layer returns a hard block for these.
-BLOCKED_ACTIONS: frozenset[str] = frozenset({
-    "hide_loss_in_report",
-    "delete_snapshot",
-    "delete_approval_record",
-    "bypass_approval_gate",
-    "fabricate_metric",
-    "violate_platform_policy",
-    "delete_operator_log",
-})
-
+# Re-exported for backward-compatible imports from this module.
 # Map approval-queue action names to commerce-policy action names via contract.
 
 
@@ -67,22 +27,7 @@ def normalize_commerce_action(action: str) -> str:
     return _ACTION_ALIASES.get(key, key)
 
 
-# Actions that are auto-allowed without an ApprovalRow.
-AUTO_ALLOWED_ACTIONS: frozenset[str] = frozenset({
-    "score_product",
-    "score_niche",
-    "calculate_unit_economics",
-    "generate_offer_spec",
-    "generate_codex_task",
-    "record_snapshot",
-    "fetch_daily_report",
-    "fetch_stripe_orders_readonly",
-    "fetch_shopify_orders_readonly",
-    "fetch_shopify_products_readonly",
-    "run_operator_preflight",
-})
-
-
+# AUTO_ALLOWED_ACTIONS imported from approval_gate_contract.
 @dataclass
 class CommerceApprovalRequest:
     action_type: str
@@ -136,7 +81,7 @@ def evaluate_commerce_approval(request: CommerceApprovalRequest) -> CommerceAppr
         reasons.extend(f"Check incomplete: {item}" for item in request.required_checks)
 
     if action in HIGH_RISK_ACTIONS:
-        if request.approval_status.lower() not in {"approved", "complete"}:
+        if request.approval_status.lower() not in APPROVED_STATUS_ALIASES:
             reasons.append(
                 f"High-risk action '{action}' requires an approved ApprovalRow "
                 "before execution (current status: "
