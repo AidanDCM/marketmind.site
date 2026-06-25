@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 23: Operator health hardening (rotation 4)
+
+### Hardening: extended API paths + readiness date query + Gmail secret warning
+
+- **`operator_health_contract.py`** — desktop/extended API paths, query params, banner action labels.
+- **`test_operator_health_contract.py`** — +13 tests: integrations panel, date-scoped readiness, Gmail secret.
+- **`OperatorHealthPanel.test.tsx`** — pending blocker list links to approval queue.
+
+---
+
 ## 2026-06-24 — Phase B pass 22: Approval gate hardening (rotation 4)
 
 ### Hardening: approval API paths + HIGH_RISK approved matrix + queue filter UI

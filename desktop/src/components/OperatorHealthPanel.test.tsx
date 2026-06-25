@@ -232,6 +232,19 @@ describe("OperatorHealthPanelView", () => {
     expect(onOpenExperiment).toHaveBeenCalledWith("exp-kill");
   });
 
+  it("links pending approval blockers in preflight list to approval queue", () => {
+    const onOpenApprovals = vi.fn();
+    render(
+      <OperatorHealthPanelView health={baseHealth} onOpenApprovals={onOpenApprovals} />,
+    );
+    const preflightAlert = screen.getByText(/ATTENTION REQUIRED/).closest(".alert")!;
+    const blockerLink = within(preflightAlert as HTMLElement).getByRole("button", {
+      name: "Open queue",
+    });
+    fireEvent.click(blockerLink);
+    expect(onOpenApprovals).toHaveBeenCalledOnce();
+  });
+
   it("links integration warnings to Live Data", () => {
     const onOpenLiveData = vi.fn();
     const health: OperatorHealthPanel = {
