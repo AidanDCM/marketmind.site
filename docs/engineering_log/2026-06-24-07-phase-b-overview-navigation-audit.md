@@ -47,3 +47,4 @@ Pre-existing TypeScript errors on `main` blocked the frontend job before Vitest 
 
 - `lookbackOptions.ts` — Python-style docstring → `//` comment
 - `ActiveExperiments.tsx` — `const StatusBadge(...)` missing `function` keyword
+- `overviewReportSecondaryMetrics.ts` — wrong import path (`../api/client` → `./api/client`)
