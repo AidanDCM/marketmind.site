@@ -224,4 +224,24 @@ describe("OperatorHealthPanelView", () => {
     fireEvent.click(screen.getByRole("button", { name: "Check Live Data" }));
     expect(onOpenLiveData).toHaveBeenCalledOnce();
   });
+
+  it("links snapshot gap warnings to snapshot recorder", () => {
+    const onOpenSnapshots = vi.fn();
+    const health: OperatorHealthPanel = {
+      ...baseHealth,
+      warnings: ["1 active experiment(s) missing snapshot for 2026-06-23: exp_gap"],
+      snapshot_gaps: {
+        snapshot_date: "2026-06-23",
+        active_count: 1,
+        missing_count: 1,
+        missing: [{ experiment_id: "exp_gap", product_name: "Widget" }],
+        all_recorded: false,
+      },
+    };
+    render(
+      <OperatorHealthPanelView health={health} onOpenSnapshots={onOpenSnapshots} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Record snapshot" }));
+    expect(onOpenSnapshots).toHaveBeenCalledWith("2026-06-23", "exp_gap");
+  });
 });

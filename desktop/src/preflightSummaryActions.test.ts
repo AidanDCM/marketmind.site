@@ -26,4 +26,24 @@ describe("preflightSummaryActions", () => {
     expect(preflightSummaryActionLabel("approvals")).toBe("Open queue");
     expect(preflightSummaryActionLabel("attention")).toBe("Show attention");
   });
+
+  it("returns only queue when pending approvals block operate", () => {
+    expect(
+      preflightSummaryActions({
+        safeToOperate: false,
+        pendingApprovals: 1,
+        experimentsNeedingAttention: 0,
+      }),
+    ).toEqual(["approvals"]);
+  });
+
+  it("returns only attention when experiments need action", () => {
+    expect(
+      preflightSummaryActions({
+        safeToOperate: false,
+        pendingApprovals: 0,
+        experimentsNeedingAttention: 2,
+      }),
+    ).toEqual(["attention"]);
+  });
 });
