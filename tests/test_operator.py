@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from marketmind.api.app import app
 from marketmind.db.engine import make_engine
-from marketmind.db.models import ApprovalRow, Base
+from marketmind.db.models import ApprovalRow, Base, ExperimentRow
 
 
 @pytest.fixture
@@ -230,6 +230,24 @@ def test_health_panel_endpoint_accepts_snapshot_date(client):
 def test_health_panel_rejects_empty_date(client):
     resp = client.get("/operator/health-panel?date=")
     assert resp.status_code == 422
+
+
+def test_health_panel_warns_missing_snapshot(client, test_engine):
+    with Session(test_engine) as session:
+        session.add(
+            ExperimentRow(
+                experiment_id="exp_api_gap",
+                product_name="Widget",
+                break_even_cac=25.0,
+                status="active",
+            )
+        )
+        session.commit()
+    resp = client.get("/operator/health-panel?date=2026-06-23")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["snapshot_gaps"]["missing_count"] == 1
+    assert any("exp_api_gap" in w for w in data["warnings"])
 
 
 def test_operator_readiness_endpoint(client):

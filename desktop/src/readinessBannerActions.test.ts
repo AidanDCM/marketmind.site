@@ -3,7 +3,9 @@ import {
   parseReadinessBannerAction,
   readinessBannerActionLabel,
   GMAIL_LIVE_WARNING,
+  GMAIL_SECRET_WARNING,
   STRIPE_LIVE_WARNING_PREFIX,
+  SHOPIFY_LIVE_WARNING_PREFIX,
 } from "./readinessBannerActions";
 
 describe("readinessBannerActions", () => {
@@ -51,5 +53,28 @@ describe("readinessBannerActions", () => {
     );
     expect(action).toEqual({ kind: "live" });
     expect(readinessBannerActionLabel(action!)).toBe("Check Live Data");
+  });
+
+  it("maps Gmail secret warning to Live Data", () => {
+    const action = parseReadinessBannerAction(GMAIL_SECRET_WARNING);
+    expect(action).toEqual({ kind: "live" });
+  });
+
+  it("maps Shopify live-write warnings to Live Data", () => {
+    const action = parseReadinessBannerAction(
+      `${SHOPIFY_LIVE_WARNING_PREFIX} (set store credentials and MARKETMIND_SHOPIFY_READ_ONLY=false)`,
+    );
+    expect(action).toEqual({ kind: "live" });
+  });
+
+  it("parses truncated snapshot gap lists from health panel", () => {
+    const action = parseReadinessBannerAction(
+      "6 active experiment(s) missing snapshot for 2026-06-23: exp_0, exp_1, exp_2, exp_3, exp_4…",
+    );
+    expect(action).toEqual({
+      kind: "snapshots",
+      snapshotDate: "2026-06-23",
+      experimentId: "exp_0",
+    });
   });
 });

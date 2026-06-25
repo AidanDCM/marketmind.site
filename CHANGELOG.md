@@ -2,6 +2,19 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 3: Operator health hardening
+
+### Hardening: health warnings match desktop parsers
+
+- **`build_operator_health`** — regression tests for snapshot-gap warnings (incl. truncated
+  ID lists), Gmail secret, and Shopify live-write warnings.
+- **API** — `/operator/health-panel` returns missing-snapshot warning when active experiments
+  lack a snapshot for the requested date.
+- **Desktop parsers** — Gmail secret, Shopify prefix, truncated snapshot gaps; preflight partial
+  actions; health panel warning row wiring.
+
+---
+
 ## 2026-06-24 — Phase B pass 2: Approval gate hardening
 
 ### Hardening: pending never executes; dry_run defaults enforced

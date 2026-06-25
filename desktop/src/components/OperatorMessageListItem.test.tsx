@@ -46,4 +46,18 @@ describe("OperatorMessageListItem", () => {
     fireEvent.click(screen.getByRole("button", { name: "Check Live Data" }));
     expect(onOpenLiveData).toHaveBeenCalledOnce();
   });
+
+  it("links experiment ruling blockers to experiment details", () => {
+    const onOpenActive = vi.fn();
+    render(
+      <ul>
+        <OperatorMessageListItem
+          text="Experiment 'exp-kill' ruling is 'kill' — action required"
+          onOpenActive={onOpenActive}
+        />
+      </ul>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "View experiment" }));
+    expect(onOpenActive).toHaveBeenCalledWith("exp-kill");
+  });
 });
