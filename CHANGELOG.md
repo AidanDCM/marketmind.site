@@ -2,6 +2,17 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 12: Commerce adapters hardening (rotation 2)
+
+### Hardening: secret mask contract + commerce API/CLI parity
+
+- **`commerce_adapters_contract.py`** — mask vectors, action aliases, canonical env names.
+- **`test_commerce_adapters_hardening.py`** — +10 tests: aliases, admin token, readiness/health,
+  execute/log API, `check_commerce_config.py` subprocess.
+- **`commerce_integrations.py` / `commerce_approval_policy.py`** — wired to contract.
+
+---
+
 ## 2026-06-24 — Phase B pass 11: Experiment lifecycle hardening (rotation 2)
 
 ### Hardening: report string contract + lifecycle API/UI parity
