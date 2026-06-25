@@ -2,6 +2,14 @@
 
 ---
 
+## 2026-06-24 — Slice 119: No-report empty Score Product link
+
+### Slice 119: Jump from empty daily report to Score Product
+
+- **`OverviewReportEmptyState`** — no report data shows **Score a product** alongside record snapshot.
+
+---
+
 ## 2026-06-24 — Slice 118: Trend attention empty link
 
 ### Slice 118: Jump from empty attention-only trends to Active Experiments
