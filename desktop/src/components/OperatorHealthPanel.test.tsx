@@ -238,9 +238,8 @@ describe("OperatorHealthPanelView", () => {
       <OperatorHealthPanelView health={baseHealth} onOpenApprovals={onOpenApprovals} />,
     );
     const preflightAlert = screen.getByText(/ATTENTION REQUIRED/).closest(".alert")!;
-    const blockerLink = within(preflightAlert as HTMLElement).getByRole("button", {
-      name: "Open queue",
-    });
+    const blockerList = within(preflightAlert as HTMLElement).getByRole("list");
+    const blockerLink = within(blockerList).getByRole("button", { name: "Open queue" });
     fireEvent.click(blockerLink);
     expect(onOpenApprovals).toHaveBeenCalledOnce();
   });
