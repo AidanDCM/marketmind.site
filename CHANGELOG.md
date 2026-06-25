@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 29: Approval gate hardening (rotation 5)
+
+### Hardening: approval CRUD API paths + transition 409 edges + queue approve wiring
+
+- **`approval_gate_contract.py`** — router paths, UI button labels, filter storage key, transition fragments.
+- **`test_approval_gate_contract.py`** — +14 tests: list/get/pending, 409 transitions, execute-all, UI parity.
+- **`ApprovalQueue.test.tsx`** — +1 test: Approve calls `approveRecord`.
+
+---
+
 ## 2026-06-24 — Phase B pass 28: Docs drift hardening (rotation 4)
 
 ### Hardening: rotation 4 contract table + vitest inventory guards + engineering-log parity

@@ -85,15 +85,36 @@ APPROVAL_API_PATHS: tuple[str, ...] = (
     "/approvals/{approval_id}/deny",
 )
 
+APPROVAL_LIST_STATUS_QUERY = "status"
+
 EXECUTE_API_PATHS: tuple[str, ...] = (
     "/execute/{approval_id}",
     "/execute",
     "/execute/log",
 )
 
+APPROVAL_ROUTER_PATH = "marketmind/api/routers/approvals.py"
+EXECUTION_ROUTER_PATH = "marketmind/api/routers/execution.py"
+
 DESKTOP_API_CLIENT_PATH = "desktop/src/api/client.ts"
 
 DESKTOP_APPROVAL_FILTER_PATH = "desktop/src/components/approvalQueuePreferences.ts"
+DESKTOP_APPROVAL_QUEUE_COMPONENT_PATH = "desktop/src/components/ApprovalQueue.tsx"
+DESKTOP_APPROVAL_QUEUE_TEST_PATH = "desktop/src/components/ApprovalQueue.test.tsx"
+
+APPROVAL_FILTER_STORAGE_KEY = "marketmind_approval_filter"
+
+GATE_UI_APPROVE_BUTTON = "Approve"
+GATE_UI_DENY_BUTTON = "Deny"
+GATE_UI_EXECUTE_BUTTON = "Execute (dry-run)"
+GATE_UI_FILTER_AUTO_ALLOWED_LABEL = "auto allowed"
+GATE_UI_FILTER_LABEL_TRANSFORM = 'replace("_", " ")'
+
+APPROVAL_TRANSITION_CONFLICT_FRAGMENT = "Only PENDING approvals can be transitioned"
+APPROVAL_NOT_FOUND_FRAGMENT = "not found"
+
+DENIED_STATUS = "denied"
+BLOCKED_STATUS = "blocked"
 
 # Desktop ApprovalQueue card gating (must match ``ApprovalQueue.tsx``).
 GATE_UI_APPROVABLE_STATUS = "pending"
@@ -118,16 +139,31 @@ POLICY_STATUSES: tuple[str, ...] = (
 __all__ = [
     "APPROVAL_API_PATHS",
     "APPROVAL_FILTER_OPTIONS",
+    "APPROVAL_FILTER_STORAGE_KEY",
+    "APPROVAL_LIST_STATUS_QUERY",
+    "APPROVAL_NOT_FOUND_FRAGMENT",
+    "APPROVAL_ROUTER_PATH",
+    "APPROVAL_TRANSITION_CONFLICT_FRAGMENT",
     "APPROVED_STATUS_ALIASES",
     "AUTO_ALLOWED_ACTIONS",
     "BLOCKED_ACTIONS",
+    "BLOCKED_STATUS",
     "DEFAULT_EXECUTE_DRY_RUN",
+    "DENIED_STATUS",
     "DESKTOP_API_CLIENT_PATH",
     "DESKTOP_APPROVAL_FILTER_PATH",
+    "DESKTOP_APPROVAL_QUEUE_COMPONENT_PATH",
+    "DESKTOP_APPROVAL_QUEUE_TEST_PATH",
     "EXECUTE_API_PATHS",
+    "EXECUTION_ROUTER_PATH",
     "EXECUTOR_HANDLER_ACTIONS",
     "GATE_UI_APPROVABLE_STATUS",
+    "GATE_UI_APPROVE_BUTTON",
+    "GATE_UI_DENY_BUTTON",
     "GATE_UI_EXECUTABLE_STATUS",
+    "GATE_UI_EXECUTE_BUTTON",
+    "GATE_UI_FILTER_AUTO_ALLOWED_LABEL",
+    "GATE_UI_FILTER_LABEL_TRANSFORM",
     "HIGH_RISK_ACTIONS",
     "POLICY_STATUSES",
     "POLICY_STATUS_APPROVED",
