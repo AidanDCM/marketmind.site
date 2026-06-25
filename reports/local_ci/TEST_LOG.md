@@ -661,3 +661,39 @@ Append-only evidence. Do not edit past entries.
   - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pytest -q --tb=short` — ok (53.7s)
 - Failure output: none
 - Follow-up: none
+## 2026-06-25T10:44:20Z
+- Branch: harden/phase-b-deploy-ci-r5
+- Commit: e2f1858092e551d3ba90fe4243e1d4c69ff38363
+- Environment: marketmind-local-ci, Python 3.14.5
+- Result: FAIL
+- Commands:
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pip install --upgrade pip` — ok (9.0s)
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pip install -e .[dev]` — ok (30.0s)
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m ruff check .` — FAILED (exit 1) (0.6s)
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pytest -q --tb=short` — ok (42.9s)
+- Failure output: see ruff above
+- Follow-up: none
+## 2026-06-25T10:46:18Z
+- Branch: harden/phase-b-deploy-ci-r5
+- Commit: e2f1858092e551d3ba90fe4243e1d4c69ff38363
+- Environment: marketmind-local-ci, Python 3.14.5
+- Result: FAIL
+- Commands:
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pip install --upgrade pip` — ok (4.7s)
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pip install -e .[dev]` — ok (26.7s)
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m ruff check .` — FAILED (exit 1) (0.5s)
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pytest -q --tb=short` — ok (46.4s)
+- Failure output: see ruff above
+- Follow-up: none
+## 2026-06-25T10:48:37Z
+- Branch: harden/phase-b-deploy-ci-r5
+- Commit: e2f1858092e551d3ba90fe4243e1d4c69ff38363
+- Environment: marketmind-local-ci, Python 3.14.5
+- Result: PASS
+- Commands:
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pip install --upgrade pip` — ok (7.8s)
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pip install -e .[dev]` — ok (32.3s)
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m ruff check .` — ok (0.8s)
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pytest -q --tb=short` — ok (51.4s)
+- Failure output: none
+- Follow-up: none

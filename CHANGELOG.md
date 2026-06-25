@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 34: Deploy/CI hardening (rotation 5)
+
+### Hardening: readiness/integrations fetch failures, health keys, workflow job parity
+
+- **`deploy_ci_contract.py`** — health response keys, uvicorn target, job names, verify module path.
+- **`test_deploy_ci_contract.py`** — +7 tests: fetch error prefixes, health keys, workflow script parity.
+
+---
+
 ## 2026-06-24 — Phase B pass 33: Commerce adapters hardening (rotation 5)
 
 ### Hardening: import batch 404, readiness commerce keys, Shopify products pull, ad CSV wiring
