@@ -23,10 +23,13 @@ from sqlalchemy.orm import Session
 
 from .db.models import ApprovalRow, ExperimentRow, ExperimentSnapshotRow
 from .experiment_rules import evaluate_experiment
+from .operator_health_contract import (
+    ATTENTION_RULINGS,
+    OPERATOR_LOG_REL_PATH,
+    format_experiment_ruling_blocker,
+    format_pending_approvals_blocker,
+)
 from .schemas import ApprovalStatus, ExperimentSnapshot
-
-_ATTENTION_RULINGS = {"kill", "pause_ads"}
-_OPERATOR_LOG = Path("logs/operator_events.jsonl")
 
 
 @dataclass(frozen=True)
@@ -94,7 +97,7 @@ def run_preflight(engine) -> PreflightStatus:
                 budget_cap=latest.budget_cap,
             )
             ruling = evaluate_experiment(snap)
-            if ruling.ruling.value in _ATTENTION_RULINGS:
+            if ruling.ruling.value in ATTENTION_RULINGS:
                 experiments_needing_attention.append({
                     "experiment_id": exp.experiment_id,
                     "product_name": exp.product_name,
@@ -102,17 +105,17 @@ def run_preflight(engine) -> PreflightStatus:
                     "risks": list(ruling.risks),
                 })
 
-    operator_log_exists = _OPERATOR_LOG.exists()
+    operator_log_exists = Path(OPERATOR_LOG_REL_PATH).exists()
 
     blockers: list[str] = []
     if pending_count > 0:
-        blockers.append(
-            f"{pending_count} pending approval(s) have not been reviewed"
-        )
+        blockers.append(format_pending_approvals_blocker(pending_count))
     for exp_info in experiments_needing_attention:
         blockers.append(
-            f"Experiment '{exp_info['experiment_id']}' ruling is "
-            f"'{exp_info['ruling']}' — action required"
+            format_experiment_ruling_blocker(
+                exp_info["experiment_id"],
+                exp_info["ruling"],
+            )
         )
 
     safe = len(blockers) == 0

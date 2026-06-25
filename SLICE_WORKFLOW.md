@@ -43,7 +43,7 @@ python -m pytest -q
 python -m pytest -q tests/test_<area>.py   # focused module
 ```
 
-630+ tests today (`tests/` mirrors `marketmind/`). Every behavior change adds a
+644+ tests today (`tests/` mirrors `marketmind/`). Every behavior change adds a
 regression test that names **what failure it prevents**.
 
 ### Desktop (required when touching `desktop/`)

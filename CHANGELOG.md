@@ -2,6 +2,17 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 16: Operator health hardening (rotation 3)
+
+### Hardening: operator_health_contract formatters + regex/desktop parity
+
+- **`operator_health_contract.py`** — blocker/snapshot formatters, regex patterns, API paths, warning prefixes.
+- **`operator_preflight.py` / `operator_health.py`** — wired to contract formatters.
+- **`test_operator_health_contract.py`** — 14 tests: desktop regex parity, API paths, kill ruling blockers, CLI `--strict`.
+- **`OperatorHealthPanel.test.tsx`** — experiment ruling blocker links to View experiment.
+
+---
+
 ## 2026-06-24 — Phase B pass 15: Approval gate hardening (rotation 3)
 
 ### Hardening: approval_gate_contract SSOT + full action-set matrix
