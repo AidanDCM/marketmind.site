@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 28: Docs drift hardening (rotation 4)
+
+### Hardening: rotation 4 contract table + vitest inventory guards + engineering-log parity
+
+- **`docs_contract.py`** — `PHASE_B_ROTATION_4_CONTRACTS`, pass 22–28 constants; `MIN_PYTEST_CASES` → 860.
+- **`test_docs_drift_contract.py`** — +23 tests: rotation 4 file parity, operating index pass 28, vitest guards.
+- **`MARKETMIND_TESTING_AND_EVIDENCE.md`** — passes 22–28 contract table.
+
+---
+
 ## 2026-06-24 — Phase B pass 27: Deploy/CI hardening (rotation 4)
 
 ### Hardening: workflow boot constants + verify failure matrix + local_ci log helpers
