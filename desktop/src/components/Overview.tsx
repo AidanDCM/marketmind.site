@@ -21,6 +21,7 @@ import type { ExperimentProductLookup } from "../dailyReportNavigation";
 import { OperatorReadinessBanner } from "./OperatorReadinessBanner";
 import { OverviewReportPrimaryMetrics } from "./OverviewReportPrimaryMetrics";
 import { OverviewReportSecondaryMetrics } from "./OverviewReportSecondaryMetrics";
+import { OverviewTrendEmptyState } from "./OverviewTrendEmptyState";
 import { RulingBadge } from "./RulingBadge";
 import {
   ATTENTION_ONLY_KEY,
@@ -255,9 +256,11 @@ export function Overview({
             </div>
           </div>
           {trendSummary.experiments.length === 0 ? (
-            <div style={{ color: "var(--text-muted)", fontSize: 13 }}>
-              No active experiments need attention for {trendSummary.as_of}.
-            </div>
+            <OverviewTrendEmptyState
+              asOf={trendSummary.as_of}
+              attentionOnly={attentionOnly}
+              onOpenActiveList={onOpenActiveList}
+            />
           ) : (
           <table style={{ width: "100%", fontSize: 13, borderCollapse: "collapse" }}>
             <thead>
