@@ -24,6 +24,56 @@ ATC_RISK_SUFFIX = " — creative or price needs revision."
 ATTENTION_RULINGS = frozenset({"kill", "pause_ads", "scale_requires_approval"})
 
 VALID_EXPERIMENT_STATUSES: frozenset[str] = frozenset({"active", "ended"})
+EXPERIMENT_STATUS_ACTIVE = "active"
+EXPERIMENT_STATUS_ENDED = "ended"
+
+STATUS_PATCH_BODY_KEY = "status"
+NOTE_BODY_KEY = "body"
+
+STATUS_PATCH_RESPONSE_KEYS: tuple[str, ...] = (
+    "experiment_id",
+    "status",
+    "ended_at",
+)
+
+EVALUATE_RESPONSE_KEYS: tuple[str, ...] = (
+    "experiment_id",
+    "product_name",
+    "ruling",
+    "risks",
+    "reason_summary",
+    "requires_approval",
+)
+
+NOTE_RESPONSE_KEYS: tuple[str, ...] = (
+    "id",
+    "experiment_id",
+    "created_at",
+    "body",
+)
+
+CHECKLIST_RESPONSE_KEYS: tuple[str, ...] = (
+    "experiment_id",
+    "product_name",
+    "ready",
+    "blockers",
+    "items",
+)
+
+CHECKLIST_ITEM_KEYS: tuple[str, ...] = (
+    "item_id",
+    "description",
+    "required",
+    "passed",
+    "evidence",
+)
+
+MISTAKES_RESPONSE_KEYS: tuple[str, ...] = (
+    "experiment_id",
+    "product_name",
+    "recorded",
+    "suggested",
+)
 
 LIFECYCLE_API_PATHS: tuple[str, ...] = (
     "/experiment/active",
@@ -134,6 +184,8 @@ __all__ = [
     "ACTIVE_STATUS_FILTERS",
     "ATC_RISK_SUFFIX",
     "ATTENTION_RULINGS",
+    "CHECKLIST_ITEM_KEYS",
+    "CHECKLIST_RESPONSE_KEYS",
     "DESKTOP_ACTIVE_EXPERIMENTS_COMPONENT_PATH",
     "DESKTOP_ACTIVE_EXPERIMENTS_PREFERENCES_PATH",
     "DESKTOP_ACTIVE_EXPERIMENTS_TEST_PATH",
@@ -141,14 +193,20 @@ __all__ = [
     "DESKTOP_DAILY_REPORT_NAVIGATION_PATH",
     "DESKTOP_EXPERIMENT_ATTENTION_PATH",
     "EVALUATE_API_PATH",
+    "EVALUATE_RESPONSE_KEYS",
     "EXPERIMENT_NOT_FOUND_DETAIL",
+    "EXPERIMENT_STATUS_ACTIVE",
+    "EXPERIMENT_STATUS_ENDED",
     "EXPERIMENTS_ROUTER_PATH",
     "LIFECYCLE_API_PATHS",
     "LIFECYCLE_EXPERIMENT_DETAIL_SUFFIXES",
     "LOW_ROAS_LESSON_MARKER",
+    "MISTAKES_RESPONSE_KEYS",
     "NO_EXPERIMENTS_RECOMMENDATION",
     "NO_ORDERS_LESSON_PREFIX",
+    "NOTE_BODY_KEY",
     "NOTE_EMPTY_BODY_DETAIL",
+    "NOTE_RESPONSE_KEYS",
     "PAST_LESSON_PREFIX",
     "PENDING_APPROVALS_LESSON_PATTERN",
     "PORTFOLIO_RESPONSE_KEYS",
@@ -156,7 +214,9 @@ __all__ = [
     "REFUND_RISK_SUFFIX",
     "ROAS_SCALE_LESSON_PHRASE",
     "SCALE_APPROVAL_PHRASE",
+    "STATUS_PATCH_BODY_KEY",
     "STATUS_PATCH_INVALID_FRAGMENT",
+    "STATUS_PATCH_RESPONSE_KEYS",
     "VALID_EXPERIMENT_STATUSES",
     "ZERO_ORDER_SPEND_RISK",
     "experiment_detail_path",

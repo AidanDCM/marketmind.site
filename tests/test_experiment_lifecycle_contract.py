@@ -1,4 +1,4 @@
-"""Phase B pass 32 (rotation 5): experiment lifecycle contract parity and deeper coverage."""
+"""Phase B pass 39 (rotation 6): experiment lifecycle contract parity and deeper coverage."""
 
 from __future__ import annotations
 
@@ -32,27 +32,37 @@ from marketmind.experiment_lifecycle_contract import (
     ACTIVE_STATUS_FILTERS,
     ATC_RISK_SUFFIX,
     ATTENTION_RULINGS,
+    CHECKLIST_ITEM_KEYS,
+    CHECKLIST_RESPONSE_KEYS,
     DESKTOP_ACTIVE_EXPERIMENTS_COMPONENT_PATH,
     DESKTOP_ACTIVE_EXPERIMENTS_PREFERENCES_PATH,
     DESKTOP_API_CLIENT_PATH,
     DESKTOP_DAILY_REPORT_NAVIGATION_PATH,
     DESKTOP_EXPERIMENT_ATTENTION_PATH,
     EVALUATE_API_PATH,
+    EVALUATE_RESPONSE_KEYS,
     EXPERIMENT_NOT_FOUND_DETAIL,
+    EXPERIMENT_STATUS_ACTIVE,
+    EXPERIMENT_STATUS_ENDED,
     EXPERIMENTS_ROUTER_PATH,
     LIFECYCLE_API_PATHS,
     LIFECYCLE_EXPERIMENT_DETAIL_SUFFIXES,
     LOW_ROAS_LESSON_MARKER,
+    MISTAKES_RESPONSE_KEYS,
     NO_EXPERIMENTS_RECOMMENDATION,
     NO_ORDERS_LESSON_PREFIX,
+    NOTE_BODY_KEY,
     NOTE_EMPTY_BODY_DETAIL,
+    NOTE_RESPONSE_KEYS,
     PAST_LESSON_PREFIX,
     PENDING_APPROVALS_LESSON_PATTERN,
     PORTFOLIO_RESPONSE_KEYS,
     POSITIVE_CONTRIBUTION_PREFIX,
     REFUND_RISK_SUFFIX,
     ROAS_SCALE_LESSON_PHRASE,
+    STATUS_PATCH_BODY_KEY,
     STATUS_PATCH_INVALID_FRAGMENT,
+    STATUS_PATCH_RESPONSE_KEYS,
     VALID_EXPERIMENT_STATUSES,
     ZERO_ORDER_SPEND_RISK,
     experiment_detail_path,
@@ -380,6 +390,7 @@ def test_experiment_detail_get_endpoints_smoke(
 def test_checklist_unknown_experiment_returns_404(lifecycle_client):
     resp = lifecycle_client.get(experiment_detail_path("unknown-exp", "checklist"))
     assert resp.status_code == 404
+    assert EXPERIMENT_NOT_FOUND_DETAIL in resp.json()["detail"]
 
 
 def test_active_experiments_component_documents_ui_labels():
@@ -441,3 +452,98 @@ def test_post_note_round_trip_through_contract_paths(lifecycle_client, lifecycle
     assert post.status_code == 200
     listed = lifecycle_client.get(experiment_detail_path("exp_note_r4", "notes")).json()
     assert any(n["body"] == "Contract note" for n in listed)
+
+
+def test_patch_status_ended_to_active_clears_ended_at(lifecycle_client, lifecycle_engine):
+    _seed_experiment(lifecycle_engine, "exp_reactivate")
+    lifecycle_client.patch(
+        experiment_detail_path("exp_reactivate", "status"),
+        json={STATUS_PATCH_BODY_KEY: EXPERIMENT_STATUS_ENDED},
+    )
+    resp = lifecycle_client.patch(
+        experiment_detail_path("exp_reactivate", "status"),
+        json={STATUS_PATCH_BODY_KEY: EXPERIMENT_STATUS_ACTIVE},
+    )
+    assert resp.status_code == 200
+    assert resp.json()["status"] == EXPERIMENT_STATUS_ACTIVE
+    assert resp.json()["ended_at"] is None
+
+
+def test_status_patch_response_includes_contract_keys(lifecycle_client, lifecycle_engine):
+    _seed_experiment(lifecycle_engine, "exp_patch_keys")
+    data = lifecycle_client.patch(
+        experiment_detail_path("exp_patch_keys", "status"),
+        json={STATUS_PATCH_BODY_KEY: EXPERIMENT_STATUS_ENDED},
+    ).json()
+    for key in STATUS_PATCH_RESPONSE_KEYS:
+        assert key in data
+
+
+def test_evaluate_response_includes_contract_keys(lifecycle_client):
+    data = lifecycle_client.post(
+        EVALUATE_API_PATH,
+        json={
+            "experiment_id": "exp_eval_keys",
+            "product_name": "Widget",
+            "break_even_cac": 25.0,
+            "qualified_visits": 800,
+            "orders": 0,
+        },
+    ).json()
+    for key in EVALUATE_RESPONSE_KEYS:
+        assert key in data
+
+
+def test_checklist_response_includes_contract_keys(lifecycle_client, lifecycle_engine):
+    _seed_experiment(lifecycle_engine, "exp_checklist_keys")
+    data = lifecycle_client.get(
+        experiment_detail_path("exp_checklist_keys", "checklist"),
+    ).json()
+    for key in CHECKLIST_RESPONSE_KEYS:
+        assert key in data
+    if data["items"]:
+        for item_key in CHECKLIST_ITEM_KEYS:
+            assert item_key in data["items"][0]
+
+
+def test_mistakes_response_includes_contract_keys(lifecycle_client, lifecycle_engine):
+    _seed_experiment(lifecycle_engine, "exp_mistakes_keys")
+    data = lifecycle_client.get(
+        experiment_detail_path("exp_mistakes_keys", "mistakes"),
+    ).json()
+    for key in MISTAKES_RESPONSE_KEYS:
+        assert key in data
+    assert data["recorded"] == []
+    assert isinstance(data["suggested"], list)
+
+
+def test_note_post_response_includes_contract_keys(lifecycle_client, lifecycle_engine):
+    _seed_experiment(lifecycle_engine, "exp_note_keys")
+    data = lifecycle_client.post(
+        experiment_detail_path("exp_note_keys", "notes"),
+        json={NOTE_BODY_KEY: "Keys note"},
+    ).json()
+    for key in NOTE_RESPONSE_KEYS:
+        assert key in data
+    assert data["body"] == "Keys note"
+
+
+def test_portfolio_reflects_seeded_active_experiment(lifecycle_client, lifecycle_engine):
+    _seed_experiment(lifecycle_engine, "exp_portfolio_count")
+    data = lifecycle_client.get("/experiment/portfolio").json()
+    assert data["total_experiments"] == 1
+    assert data["active"] == 1
+    assert data["ended"] == 0
+
+
+def test_experiments_router_documents_reactivate_clears_ended_at():
+    source = (REPO_ROOT / EXPERIMENTS_ROUTER_PATH).read_text(encoding="utf-8")
+    assert "clears ``ended_at``" in source
+    assert STATUS_PATCH_BODY_KEY in source
+    assert NOTE_BODY_KEY in source
+
+
+def test_desktop_client_documents_evaluate_experiment_function():
+    text = (REPO_ROOT / DESKTOP_API_CLIENT_PATH).read_text(encoding="utf-8")
+    assert "evaluateExperiment" in text
+    assert EVALUATE_API_PATH in text
