@@ -54,9 +54,37 @@ COMMERCE_IMPORT_API_PATHS: tuple[str, ...] = (
     "/imports/pull/shopify/products",
 )
 
+COMMERCE_IMPORT_HISTORY_API_PATHS: tuple[str, ...] = (
+    "/imports",
+    "/imports/{batch_id}",
+)
+
+COMMERCE_AD_IMPORT_API_PATHS: tuple[str, ...] = (
+    "/imports/ads/csv",
+    "/imports/ads/summary",
+)
+
 CHECK_COMMERCE_CONFIG_CLI = "scripts/check_commerce_config.py"
 
+COMMERCE_SOURCES_ROUTER_PATH = "marketmind/api/routers/sources.py"
+COMMERCE_IMPORTS_ROUTER_PATH = "marketmind/api/routers/imports.py"
+
 DESKTOP_API_CLIENT_PATH = "desktop/src/api/client.ts"
+DESKTOP_LIVE_DATA_COMPONENT_PATH = "desktop/src/components/LiveData.tsx"
+
+STRIPE_INTEGRATION_KEYS: tuple[str, ...] = ("configured", "dry_run", "live_ready")
+SHOPIFY_INTEGRATION_KEYS: tuple[str, ...] = ("configured", "read_only", "live_ready")
+
+INTEGRATIONS_LIVE_WRITES_KEY = "live_writes"
+
+COMMERCE_IMPORT_EMPTY_CSV_DETAIL = "csv_text must not be empty"
+
+LIVE_DATA_PAGE_TITLE = "Live Data Sources"
+LIVE_DATA_PULL_BUTTON = "Pull Now"
+LIVE_DATA_IMPORT_CSV_BUTTON = "Import CSV"
+LIVE_DATA_STRIPE_SOURCE_LABEL = "Stripe Charges"
+LIVE_DATA_SHOPIFY_ORDERS_LABEL = "Shopify Orders"
+LIVE_DATA_CREDENTIALS_409_HINT = "Credentials not configured on the server"
 
 COMMERCE_DRY_RUN_FLAGS: tuple[str, ...] = (
     "MARKETMIND_STRIPE_DRY_RUN",
@@ -79,15 +107,30 @@ __all__ = [
     "CANONICAL_STRIPE_ENV_NAMES",
     "CHECK_COMMERCE_CONFIG_CLI",
     "COMMERCE_ACTION_ALIASES",
+    "COMMERCE_AD_IMPORT_API_PATHS",
     "COMMERCE_API_EXECUTE_PATHS",
     "COMMERCE_API_READ_PATHS",
     "COMMERCE_DRY_RUN_FLAGS",
     "COMMERCE_HANDLER_ACTIONS",
     "COMMERCE_IMPORT_API_PATHS",
+    "COMMERCE_IMPORT_EMPTY_CSV_DETAIL",
+    "COMMERCE_IMPORT_HISTORY_API_PATHS",
+    "COMMERCE_IMPORTS_ROUTER_PATH",
     "COMMERCE_LIVE_WRITES_FLAG",
     "COMMERCE_SOURCE_API_PATHS",
+    "COMMERCE_SOURCES_ROUTER_PATH",
     "DESKTOP_API_CLIENT_PATH",
+    "DESKTOP_LIVE_DATA_COMPONENT_PATH",
     "GMAIL_INTEGRATION_KEYS",
+    "INTEGRATIONS_LIVE_WRITES_KEY",
     "INTEGRATIONS_SECRET_LEAK_MARKERS",
+    "LIVE_DATA_CREDENTIALS_409_HINT",
+    "LIVE_DATA_IMPORT_CSV_BUTTON",
+    "LIVE_DATA_PAGE_TITLE",
+    "LIVE_DATA_PULL_BUTTON",
+    "LIVE_DATA_SHOPIFY_ORDERS_LABEL",
+    "LIVE_DATA_STRIPE_SOURCE_LABEL",
     "SECRET_MASK_VECTORS",
+    "SHOPIFY_INTEGRATION_KEYS",
+    "STRIPE_INTEGRATION_KEYS",
 ]

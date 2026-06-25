@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 26: Commerce adapters hardening (rotation 4)
+
+### Hardening: import/ad API paths + integration key whitelists + LiveData pull wiring
+
+- **`commerce_adapters_contract.py`** — import history/ad paths, Stripe/Shopify keys, LiveData UI labels.
+- **`test_commerce_adapters_contract.py`** — +19 tests: 409 safe-fail matrix, ad CSV 422, mask vectors, UI parity.
+- **`LiveData.test.tsx`** — +1 test: Pull Now triggers Stripe import.
+
+---
+
 ## 2026-06-24 — Phase B pass 25: Experiment lifecycle hardening (rotation 4)
 
 ### Hardening: per-experiment API paths + ActiveExperiments UI parity + status/note 422 edges
