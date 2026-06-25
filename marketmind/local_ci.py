@@ -16,13 +16,20 @@ CI_STEPS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("pytest", ("python", "-m", "pytest", "-q", "--tb=short")),
 )
 
+# Parity contract with `.github/workflows/ci.yml` deploy-verify job (after API is up).
+CI_DEPLOY_VERIFY_SCRIPTS: tuple[str, ...] = (
+    "scripts/verify_marketmind_deploy.py",
+    "scripts/check_operator_readiness.py",
+)
+
 FULL_CI_EXTRA: tuple[tuple[str, tuple[str, ...]], ...] = (
     (
         "deploy_verify",
-        (
-            "python",
-            "scripts/verify_marketmind_deploy.py",
-        ),
+        ("python", CI_DEPLOY_VERIFY_SCRIPTS[0]),
+    ),
+    (
+        "operator_readiness_api",
+        ("python", CI_DEPLOY_VERIFY_SCRIPTS[1], "--api"),
     ),
 )
 
