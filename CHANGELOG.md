@@ -2,6 +2,17 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 9: Operator health hardening (rotation 2)
+
+### Hardening: warning string contract + readiness/preflight API paths
+
+- **`operator_health_contract.py`** — canonical warning strings shared with desktop parsers.
+- **`test_operator_health_hardening.py`** — Gmail live-writes warning, pending blockers,
+  readiness API strict mode, health-panel preflight parity, TS/Python constant cross-check.
+- **`OperatorMessageListItem.test.tsx`** — operator log warning renders without action button.
+
+---
+
 ## 2026-06-24 — Phase B pass 8: Approval gate hardening (rotation 2)
 
 ### Hardening: full BLOCKED_ACTIONS matrix + API batch/idempotency
