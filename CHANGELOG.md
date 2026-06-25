@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 40: Commerce adapters hardening (rotation 6)
+
+### Hardening: import pull Shopify orders 409, batch_id SSOT, Shopify Pull Vitest
+
+- **`commerce_adapters_contract.py`** — `batch_id`/`csv_text` keys, ad summary response keys, LiveData test path.
+- **`test_commerce_adapters_contract.py`** — +12 tests: Shopify orders pull 409, alias targets, client/router parity.
+- **`LiveData.test.tsx`** — +1 test: Shopify Orders tab calls `pullAndSaveShopifyOrders`.
+
+---
+
 ## 2026-06-24 — Phase B pass 39: Experiment lifecycle hardening (rotation 6)
 
 ### Hardening: reactivate clears ended_at, response key SSOT, notes load Vitest

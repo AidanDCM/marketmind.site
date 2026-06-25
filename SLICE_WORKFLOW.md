@@ -43,7 +43,7 @@ python -m pytest -q
 python -m pytest -q tests/test_<area>.py   # focused module
 ```
 
-973+ tests today (`tests/` mirrors `marketmind/`). Every behavior change adds a
+985+ tests today (`tests/` mirrors `marketmind/`). Every behavior change adds a
 regression test that names **what failure it prevents**. Doc/code parity is guarded
 by `marketmind/docs_contract.py` and `tests/test_docs_drift*.py`.
 
