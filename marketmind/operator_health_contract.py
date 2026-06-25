@@ -35,6 +35,32 @@ OPERATOR_HEALTH_API_PATHS: tuple[str, ...] = (
     "/operator/health-panel",
 )
 
+OPERATOR_HEALTH_DESKTOP_API_PATHS: tuple[str, ...] = (
+    "/operator/integrations",
+    "/operator/last-cycle",
+    "/operator/checklist-config",
+)
+
+OPERATOR_HEALTH_EXTENDED_API_PATHS: tuple[str, ...] = (
+    *OPERATOR_HEALTH_DESKTOP_API_PATHS,
+    "/operator/snapshot-gaps",
+)
+
+OPERATOR_READINESS_STRICT_QUERY = "strict"
+OPERATOR_READINESS_DATE_QUERY = "date"
+OPERATOR_HEALTH_PANEL_DATE_QUERY = "date"
+
+OPERATOR_READINESS_CLI_API_FLAG = "--api"
+
+DESKTOP_API_CLIENT_PATH = "desktop/src/api/client.ts"
+
+READINESS_BANNER_ACTION_LABELS: dict[str, str] = {
+    "approvals": "Open queue",
+    "active": "View experiment",
+    "snapshots": "Record snapshot",
+    "live": "Check Live Data",
+}
+
 OPERATOR_READINESS_CLI = "scripts/check_operator_readiness.py"
 
 DESKTOP_READINESS_CONSTANTS_PATH = "desktop/src/readinessBannerActions.ts"
@@ -81,16 +107,24 @@ def format_missing_snapshot_warning(
 
 __all__ = [
     "ATTENTION_RULINGS",
+    "DESKTOP_API_CLIENT_PATH",
     "DESKTOP_READINESS_CONSTANTS_PATH",
     "EXPERIMENT_RULING_BLOCKER_PATTERN",
     "GMAIL_LIVE_NOT_READY_WARNING",
     "GMAIL_SECRET_MISSING_WARNING",
     "MISSING_SNAPSHOT_WARNING_PATTERN",
     "OPERATOR_HEALTH_API_PATHS",
+    "OPERATOR_HEALTH_DESKTOP_API_PATHS",
+    "OPERATOR_HEALTH_EXTENDED_API_PATHS",
+    "OPERATOR_HEALTH_PANEL_DATE_QUERY",
     "OPERATOR_LOG_MISSING_WARNING",
     "OPERATOR_LOG_REL_PATH",
     "OPERATOR_READINESS_CLI",
+    "OPERATOR_READINESS_CLI_API_FLAG",
+    "OPERATOR_READINESS_DATE_QUERY",
+    "OPERATOR_READINESS_STRICT_QUERY",
     "PENDING_APPROVALS_BLOCKER_PATTERN",
+    "READINESS_BANNER_ACTION_LABELS",
     "SHOPIFY_LIVE_NOT_READY_WARNING",
     "SHOPIFY_LIVE_WARNING_PREFIX",
     "SNAPSHOT_GAP_TRUNCATION_LIMIT",
