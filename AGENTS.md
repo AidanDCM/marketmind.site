@@ -36,7 +36,7 @@ each turn tests deeply, improves gaps, or rebuilds broken parts — see
 
 ## Testing discipline (non-negotiable)
 
-- **465+** backend pytest cases and **23+** desktop Vitest files — every behavior
+- **512+** backend pytest cases and **27+** desktop Vitest files — every behavior
   change adds a regression test naming the failure it prevents.
 - Run `python -m ruff check .` and `python -m pytest -q` before every merge.
 - When touching UI: `cd desktop && npm test && npm run build`.

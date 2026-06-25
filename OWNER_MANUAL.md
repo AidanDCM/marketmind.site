@@ -3,8 +3,8 @@
 **Project:** MarketMind Autopilot  
 **Repo:** `AidanDCM/marketmind.site`  
 **Owner:** Aidan  
-**Last updated:** 2026-06-23  
-**Current status:** Building (active slice development)
+**Last updated:** 2026-06-24  
+**Current status:** Hardening (Phase B — system hardening after slice roadmap complete)
 
 ---
 
@@ -56,6 +56,9 @@ Research niche
 | Check local readiness (env + DB) | `python scripts/check_operator_readiness.py` | Exit 0; "Operator readiness passed" | Re-run with `--json`; use `--strict` to fail on warnings |
 | Check deployed API readiness | `python scripts/check_operator_readiness.py --api` | Exit 0 against `MARKETMIND_API_BASE` | Set `MARKETMIND_API_TOKEN` if auth enabled; optional `--date` |
 | Run tests | `python -m pytest -q` | All passing | Check ruff errors first; then read the failing test |
+| Run local CI gate | `python scripts/local_ci.py` | Exit 0; appends `reports/local_ci/TEST_LOG.md` | Fix ruff/pytest failures first |
+| Full deploy smoke (API running) | `python scripts/local_ci.py --full` | Deploy verify + operator readiness API checks | Start uvicorn; set `MARKETMIND_API_BASE` |
+| Verify deployed API | `python scripts/verify_marketmind_deploy.py` | Exit 0; health + health-panel + readiness | API must be running at `MARKETMIND_API_BASE` |
 | Deploy API (Docker) | `.\scripts\deploy_marketmind.ps1` from repo root | Health returns `ok`; preflight reachable | See `docs/DEPLOYMENT.md`; check `docker compose logs api` |
 | Roll back API | `.\scripts\rollback_marketmind.ps1` then checkout prior SHA + redeploy | Previous version running | Volumes kept by default — DB survives stop |
 
@@ -93,17 +96,23 @@ npm install
 
 | Variable | Required? | Purpose | Example shape |
 |---|---|---|---|
-| `STRIPE_SECRET_KEY` | For live Stripe reads | Stripe API auth | `sk_live_...` or `sk_test_...` |
+| `STRIPE_RESTRICTED_KEY` or `STRIPE_API_KEY` | For Stripe reads/writes | Stripe API auth (prefer restricted key) | `rk_test_...` or `sk_test_...` |
 | `STRIPE_WEBHOOK_SECRET` | For webhook endpoint | Verify webhook signatures | `whsec_...` |
-| `SHOPIFY_SHOP_DOMAIN` | For Shopify reads | Store subdomain | `mystore.myshopify.com` |
-| `SHOPIFY_ACCESS_TOKEN` | For Shopify reads | Admin API token | `shpat_...` |
+| `MARKETMIND_STRIPE_DRY_RUN` | Optional (default true) | Block live Stripe writes | `true` / `false` |
+| `SHOPIFY_STORE_DOMAIN` | For Shopify reads/writes | Store domain | `mystore.myshopify.com` |
+| `SHOPIFY_ACCESS_TOKEN` or `SHOPIFY_ADMIN_ACCESS_TOKEN` | For Shopify reads/writes | Admin API token | `shpat_...` |
+| `MARKETMIND_SHOPIFY_READ_ONLY` | Optional (default true) | Block live Shopify writes | `true` / `false` |
 | `SHOPIFY_WEBHOOK_SECRET` | For webhook endpoint | Verify webhook signatures | Any string |
+| `MARKETMIND_GMAIL_ENABLED` | Optional | Enable Gmail draft integration | `true` / `false` |
+| `GMAIL_CLIENT_ID` / `GMAIL_CLIENT_SECRET` / `GMAIL_REFRESH_TOKEN` | For live Gmail drafts | OAuth credentials | See Google Cloud console |
+| `MARKETMIND_ENABLE_LIVE_WRITES` | Optional (default false) | Master switch for live commerce writes | `true` / `false` |
 | `MARKETMIND_API_TOKEN` | Optional | Auth for the FastAPI backend | Any secure string |
 | `MARKETMIND_CHECKLIST_MIN_VISITS` | Optional | Scale checklist: min visits | `100` |
 | `MARKETMIND_CHECKLIST_MIN_ORDERS` | Optional | Scale checklist: min orders | `5` |
 | `MARKETMIND_CHECKLIST_MIN_SPEND` | Optional | Scale checklist: min ad spend ($) | `50.0` |
 
 Copy `.env.example` to `.env` and fill in real values locally. Never commit `.env`.
+Canonical names are also enforced by `tests/test_docs_drift.py`.
 
 ### Run commands
 

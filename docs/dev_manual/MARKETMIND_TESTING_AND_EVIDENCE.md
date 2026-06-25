@@ -14,7 +14,12 @@ python -m ruff check .
 python -m pytest -q
 cd desktop; npm test; npm run build
 python scripts/local_ci.py
+# API smoke (uvicorn running):
+python scripts/local_ci.py --full
 ```
+
+`--full` runs `verify_marketmind_deploy.py` and `check_operator_readiness.py --api`
+(matching the GitHub `deploy-verify` job). Requires `MARKETMIND_API_BASE`.
 
 Run focused tests first when changing a narrow area.
 
@@ -24,9 +29,12 @@ Run focused tests first when changing a narrow area.
 
 | Layer | Location | Count (approx) |
 |---|---|---|
-| Backend | `tests/test_*.py` | **465** pytest cases |
-| Desktop | `desktop/src/**/*.test.ts(x)` | **23** Vitest files |
+| Backend | `tests/test_*.py` | **512** pytest cases |
+| Desktop | `desktop/src/**/*.test.ts(x)` | **27** Vitest files |
 | CI | `.github/workflows/ci.yml` | ruff + pytest + deploy smoke + desktop build/test |
+| Docs drift | `tests/test_docs_drift.py` | env names, suite counts, verifier parity |
+
+Minimum counts are also defined in `marketmind/docs_contract.py`.
 
 ---
 
@@ -106,16 +114,18 @@ Follow-up:
 
 ## Phase B — system hardening passes
 
-When slice building is complete, each `proceed` runs a **hardening theme**:
+When slice building is complete, each `proceed` runs a **hardening theme** (see
+`.agents/skills/testing-marketmind-system/SKILL.md`):
 
-1. **Approval gate** — `tests/test_approvals.py`, `tests/test_commerce_approval_policy.py`
-2. **Operator surfaces** — health panel, readiness, preflight, snapshot gaps
-3. **Overview navigation** — every metric/link has Vitest coverage
-4. **Deploy path** — `verify_marketmind_deploy`, CI deploy-verify job
-5. **Commerce dry-run** — Stripe/Shopify adapters never live without approval
-6. **Experiment math** — rules, snapshots, trend summary, daily report
+1. **Approval gate** — pending never executes; `dry_run` defaults
+2. **Operator health** — preflight, readiness, snapshot gaps, health panel parsers
+3. **Overview navigation** — Vitest coverage for metrics and links
+4. **Experiment lifecycle** — rules, snapshots, trends, daily report math
+5. **Commerce adapters** — Stripe/Shopify/Gmail fakes; no secrets in logs
+6. **Deploy/CI** — `local_ci.py` parity with `.github/workflows/ci.yml`
+7. **Docs drift** — `OWNER_MANUAL`, `OPERATING_INDEX`, testing manual vs code
 
-Record each pass in `docs/engineering_log/` even if no code changed (document gaps).
+Record each pass in `docs/engineering_log/` even if only tests/docs changed.
 
 ---
 

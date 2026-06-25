@@ -43,7 +43,7 @@ python -m pytest -q
 python -m pytest -q tests/test_<area>.py   # focused module
 ```
 
-465+ tests today (`tests/` mirrors `marketmind/`). Every behavior change adds a
+512+ tests today (`tests/` mirrors `marketmind/`). Every behavior change adds a
 regression test that names **what failure it prevents**.
 
 ### Desktop (required when touching `desktop/`)
@@ -54,7 +54,7 @@ npm test
 npm run build
 ```
 
-23+ Vitest files today. Every new link/button/parser gets a component or unit test.
+27+ Vitest files today. Every new link/button/parser gets a component or unit test.
 
 ### Operator smoke (when touching API or deploy)
 

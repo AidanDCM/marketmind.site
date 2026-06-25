@@ -69,11 +69,14 @@ curl http://127.0.0.1:8000/operator/readiness
 curl http://127.0.0.1:8000/operator/checklist-config
 ```
 
-Or run the bundled verifier after deploy:
+Or run the bundled verifiers after deploy (API must be reachable):
 
 ```bash
 python scripts/verify_marketmind_deploy.py
+python scripts/check_operator_readiness.py --api
 ```
+
+Both run in CI and in `python scripts/local_ci.py --full`.
 
 Healthy: `health.status == "ok"`. Review `preflight.blockers` before any live
 execution. If `MARKETMIND_API_TOKEN` is set, add
