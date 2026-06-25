@@ -1,4 +1,4 @@
-"""Phase B pass 15 (rotation 3): approval gate contract parity and deeper coverage."""
+"""Phase B pass 29 (rotation 5): approval gate contract parity and deeper coverage."""
 
 from __future__ import annotations
 
@@ -8,17 +8,29 @@ from fastapi.testclient import TestClient
 from marketmind.api.app import app
 from marketmind.api.routers.execution import ExecuteRequest
 from marketmind.approval_gate_contract import (
+    APPROVAL_API_PATHS,
     APPROVAL_FILTER_OPTIONS,
+    APPROVAL_FILTER_STORAGE_KEY,
+    APPROVAL_LIST_STATUS_QUERY,
+    APPROVAL_NOT_FOUND_FRAGMENT,
+    APPROVAL_ROUTER_PATH,
+    APPROVAL_TRANSITION_CONFLICT_FRAGMENT,
     APPROVED_STATUS_ALIASES,
     AUTO_ALLOWED_ACTIONS,
     BLOCKED_ACTIONS,
     DEFAULT_EXECUTE_DRY_RUN,
     DESKTOP_API_CLIENT_PATH,
     DESKTOP_APPROVAL_FILTER_PATH,
+    DESKTOP_APPROVAL_QUEUE_COMPONENT_PATH,
     EXECUTE_API_PATHS,
+    EXECUTION_ROUTER_PATH,
     EXECUTOR_HANDLER_ACTIONS,
     GATE_UI_APPROVABLE_STATUS,
+    GATE_UI_APPROVE_BUTTON,
+    GATE_UI_DENY_BUTTON,
     GATE_UI_EXECUTABLE_STATUS,
+    GATE_UI_EXECUTE_BUTTON,
+    GATE_UI_FILTER_LABEL_TRANSFORM,
     HIGH_RISK_ACTIONS,
     POLICY_STATUS_APPROVED,
     POLICY_STATUS_AUTO_ALLOWED,
@@ -232,3 +244,126 @@ def test_execute_api_404_for_missing_approval(gate_client):
 def test_execute_api_paths_documented_in_contract():
     assert "/execute/{approval_id}" in EXECUTE_API_PATHS
     assert "/execute/log" in EXECUTE_API_PATHS
+
+
+def test_approvals_router_documents_contract_api_paths():
+    source = (REPO_ROOT / APPROVAL_ROUTER_PATH).read_text(encoding="utf-8")
+    for path in APPROVAL_API_PATHS:
+        suffix = path.removeprefix("/approvals")
+        assert suffix in source or path in source
+    assert APPROVAL_LIST_STATUS_QUERY in source
+
+
+def test_execution_router_documents_contract_execute_paths():
+    source = (REPO_ROOT / EXECUTION_ROUTER_PATH).read_text(encoding="utf-8")
+    for path in EXECUTE_API_PATHS:
+        suffix = path.removeprefix("/execute")
+        assert suffix in source or path in source
+
+
+def test_desktop_client_documents_status_query_param():
+    text = (REPO_ROOT / DESKTOP_API_CLIENT_PATH).read_text(encoding="utf-8")
+    assert f"?{APPROVAL_LIST_STATUS_QUERY}=" in text
+    assert "/approvals/pending" in text
+
+
+def test_list_pending_endpoint_returns_only_pending(gate_client, gate_engine):
+    create_approval(gate_engine, _record("apr_pending_list"))
+    create_approval(
+        gate_engine,
+        _record("apr_approved_list", status=ApprovalStatus.APPROVED),
+    )
+    pending = gate_client.get("/approvals/pending").json()
+    assert len(pending) == 1
+    assert pending[0]["approval_id"] == "apr_pending_list"
+
+
+def test_get_approval_by_id_returns_record(gate_client, gate_engine):
+    create_approval(gate_engine, _record("apr_get_one"))
+    data = gate_client.get("/approvals/apr_get_one").json()
+    assert data["approval_id"] == "apr_get_one"
+    assert data["status"] == GATE_UI_APPROVABLE_STATUS
+
+
+def test_get_approval_404_unknown(gate_client):
+    resp = gate_client.get("/approvals/apr_missing_get")
+    assert resp.status_code == 404
+    assert APPROVAL_NOT_FOUND_FRAGMENT in resp.json()["detail"].lower()
+
+
+def test_approve_already_approved_returns_409_with_contract_fragment(
+    gate_client, gate_engine,
+):
+    create_approval(gate_engine, _record("apr_double_approve"))
+    gate_client.post("/approvals/apr_double_approve/approve", json={"note": "ok"})
+    resp = gate_client.post("/approvals/apr_double_approve/approve", json={"note": "again"})
+    assert resp.status_code == 409
+    assert APPROVAL_TRANSITION_CONFLICT_FRAGMENT in resp.json()["detail"]
+
+
+def test_deny_already_denied_returns_409_with_contract_fragment(
+    gate_client, gate_engine,
+):
+    create_approval(gate_engine, _record("apr_double_deny"))
+    gate_client.post("/approvals/apr_double_deny/deny", json={"note": "no"})
+    resp = gate_client.post("/approvals/apr_double_deny/deny", json={"note": "again"})
+    assert resp.status_code == 409
+    assert APPROVAL_TRANSITION_CONFLICT_FRAGMENT in resp.json()["detail"]
+
+
+def test_list_approvals_status_query_filters_pending(gate_client, gate_engine):
+    create_approval(gate_engine, _record("apr_filter_pending"))
+    create_approval(
+        gate_engine,
+        _record("apr_filter_approved", status=ApprovalStatus.APPROVED),
+    )
+    rows = gate_client.get(f"/approvals?{APPROVAL_LIST_STATUS_QUERY}=pending").json()
+    assert len(rows) == 1
+    assert rows[0]["approval_id"] == "apr_filter_pending"
+
+
+def test_execute_all_endpoint_returns_list_on_empty_db(gate_client):
+    resp = gate_client.post("/execute", json={})
+    assert resp.status_code == 200
+    assert resp.json() == []
+
+
+def test_denied_execute_returns_409_not_approved(gate_client, gate_engine):
+    create_approval(
+        gate_engine,
+        _record("apr_denied_exec", status=ApprovalStatus.DENIED),
+    )
+    resp = gate_client.post("/execute/apr_denied_exec", json={})
+    assert resp.status_code == 409
+    assert REFUSAL_NOT_APPROVED_FRAGMENT in resp.json()["detail"].lower()
+
+
+def test_approval_queue_component_documents_ui_button_labels():
+    text = (REPO_ROOT / DESKTOP_APPROVAL_QUEUE_COMPONENT_PATH).read_text(
+        encoding="utf-8"
+    )
+    assert GATE_UI_APPROVE_BUTTON in text
+    assert GATE_UI_DENY_BUTTON in text
+    assert GATE_UI_EXECUTE_BUTTON in text
+    assert GATE_UI_FILTER_LABEL_TRANSFORM in text
+    assert "auto_allowed" in text
+
+
+def test_approval_queue_preferences_exports_storage_key_and_helpers():
+    text = (REPO_ROOT / DESKTOP_APPROVAL_FILTER_PATH).read_text(encoding="utf-8")
+    assert APPROVAL_FILTER_STORAGE_KEY in text
+    assert "readApprovalFilterPreference" in text
+    assert "writeApprovalFilterPreference" in text
+    assert "isApprovalFilter" in text
+
+
+def test_approval_queue_component_persists_filter_preference():
+    text = (REPO_ROOT / DESKTOP_APPROVAL_QUEUE_COMPONENT_PATH).read_text(
+        encoding="utf-8"
+    )
+    assert "writeApprovalFilterPreference" in text
+    assert APPROVAL_FILTER_STORAGE_KEY in (REPO_ROOT / DESKTOP_APPROVAL_FILTER_PATH).read_text(
+        encoding="utf-8"
+    )
+    for option in APPROVAL_FILTER_OPTIONS:
+        assert option in text or option.replace("_", " ") in text
