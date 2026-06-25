@@ -48,6 +48,38 @@ ACTIVE_LOCAL_STORAGE_KEYS: tuple[str, ...] = (
 
 EVALUATE_API_PATH = "/experiment/evaluate"
 
+EXPERIMENTS_ROUTER_PATH = "marketmind/api/routers/experiments.py"
+
+STATUS_PATCH_INVALID_FRAGMENT = "status must be one of"
+NOTE_EMPTY_BODY_DETAIL = "Note body must not be empty"
+EXPERIMENT_NOT_FOUND_DETAIL = "Experiment not found"
+
+PORTFOLIO_RESPONSE_KEYS: tuple[str, ...] = (
+    "total_experiments",
+    "active",
+    "ended",
+    "needs_attention",
+    "by_ruling",
+    "lessons_recorded",
+)
+
+ACTIVE_EXPERIMENT_ENTRY_KEYS: tuple[str, ...] = (
+    "experiment_id",
+    "product_name",
+    "break_even_cac",
+    "status",
+    "started_at",
+    "ended_at",
+    "latest_snapshot_date",
+    "ruling",
+    "risks",
+    "actual_cac",
+)
+
+ACTIVE_NOTES_PLACEHOLDER = "Add a note…"
+ACTIVE_NOTES_ADD_BUTTON = "Add"
+ACTIVE_NOTES_EMPTY_LABEL = "No notes yet."
+
 DESKTOP_DAILY_REPORT_NAVIGATION_PATH = "desktop/src/dailyReportNavigation.ts"
 DESKTOP_EXPERIMENT_ATTENTION_PATH = "desktop/src/experimentAttention.ts"
 DESKTOP_ACTIVE_EXPERIMENTS_TEST_PATH = "desktop/src/components/ActiveExperiments.test.tsx"
@@ -91,9 +123,13 @@ __all__ = [
     "ACTIVE_CHECKLIST_NOT_READY_LABEL",
     "ACTIVE_CHECKLIST_READY_LABEL",
     "ACTIVE_END_BUTTON",
+    "ACTIVE_EXPERIMENT_ENTRY_KEYS",
     "ACTIVE_LESSONS_HEADER",
     "ACTIVE_LOCAL_STORAGE_KEYS",
+    "ACTIVE_NOTES_ADD_BUTTON",
+    "ACTIVE_NOTES_EMPTY_LABEL",
     "ACTIVE_NOTES_HEADER",
+    "ACTIVE_NOTES_PLACEHOLDER",
     "ACTIVE_REACTIVATE_BUTTON",
     "ACTIVE_STATUS_FILTERS",
     "ATC_RISK_SUFFIX",
@@ -105,17 +141,22 @@ __all__ = [
     "DESKTOP_DAILY_REPORT_NAVIGATION_PATH",
     "DESKTOP_EXPERIMENT_ATTENTION_PATH",
     "EVALUATE_API_PATH",
+    "EXPERIMENT_NOT_FOUND_DETAIL",
+    "EXPERIMENTS_ROUTER_PATH",
     "LIFECYCLE_API_PATHS",
     "LIFECYCLE_EXPERIMENT_DETAIL_SUFFIXES",
     "LOW_ROAS_LESSON_MARKER",
     "NO_EXPERIMENTS_RECOMMENDATION",
     "NO_ORDERS_LESSON_PREFIX",
+    "NOTE_EMPTY_BODY_DETAIL",
     "PAST_LESSON_PREFIX",
     "PENDING_APPROVALS_LESSON_PATTERN",
+    "PORTFOLIO_RESPONSE_KEYS",
     "POSITIVE_CONTRIBUTION_PREFIX",
     "REFUND_RISK_SUFFIX",
     "ROAS_SCALE_LESSON_PHRASE",
     "SCALE_APPROVAL_PHRASE",
+    "STATUS_PATCH_INVALID_FRAGMENT",
     "VALID_EXPERIMENT_STATUSES",
     "ZERO_ORDER_SPEND_RISK",
     "experiment_detail_path",

@@ -28,6 +28,7 @@ vi.mock("./activeExperimentsPreferences", () => ({
 import {
   listActiveExperiments,
   patchExperimentStatus,
+  addExperimentNote,
   fetchExperimentChecklist,
   fetchExperimentMistakes,
 } from "../api/client";
@@ -248,5 +249,25 @@ describe("ActiveExperiments lifecycle wiring", () => {
       expect(screen.getByText("Scaled before checklist passed")).toBeInTheDocument();
     });
     expect(fetchExperimentMistakes).toHaveBeenCalledWith("exp-ok");
+  });
+
+  it("adds a note from the expanded experiment card", async () => {
+    vi.mocked(addExperimentNote).mockResolvedValue({
+      id: 1,
+      experiment_id: "exp-ok",
+      created_at: "2026-06-23T12:00:00Z",
+      body: "Operator note",
+    });
+    await renderActive([baseExp()], { focusExperimentId: "exp-ok" });
+
+    fireEvent.change(screen.getByPlaceholderText("Add a note…"), {
+      target: { value: "Operator note" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Add" }));
+
+    await waitFor(() => {
+      expect(addExperimentNote).toHaveBeenCalledWith("exp-ok", "Operator note");
+      expect(screen.getByText("Operator note")).toBeInTheDocument();
+    });
   });
 });
