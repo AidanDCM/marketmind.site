@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 10: Overview navigation hardening (rotation 2)
+
+### Hardening: parent-level Overview integration coverage
+
+- **`Overview.test.tsx`** — run cycle, readiness/health/metrics/report navigation,
+  date/lookback refetch, and attention-only empty state exercised through `Overview.tsx`
+  wiring (child components already covered in isolation).
+
+---
+
 ## 2026-06-24 — Phase B pass 9: Operator health hardening (rotation 2)
 
 ### Hardening: warning string contract + readiness/preflight API paths
