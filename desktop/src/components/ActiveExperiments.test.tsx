@@ -67,6 +67,7 @@ async function renderActive(
 
 describe("ActiveExperiments lifecycle wiring", () => {
   beforeEach(() => {
+    Element.prototype.scrollIntoView = vi.fn();
     vi.mocked(listActiveExperiments).mockReset();
     vi.mocked(patchExperimentStatus).mockReset();
     vi.mocked(patchExperimentStatus).mockResolvedValue({
