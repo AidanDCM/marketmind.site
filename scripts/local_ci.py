@@ -2,7 +2,7 @@
 
 Usage:
   python scripts/local_ci.py
-  python scripts/local_ci.py --full   # includes deploy verify (API must be running)
+  python scripts/local_ci.py --full   # deploy verify + operator readiness (API must be running)
 """
 
 from __future__ import annotations

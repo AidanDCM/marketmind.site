@@ -2,6 +2,19 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 6: Deploy/CI hardening
+
+### Hardening: local_ci parity with GitHub Actions deploy-verify job
+
+- **`local_ci --full`** — now runs `check_operator_readiness.py --api` after deploy verify,
+  matching `.github/workflows/ci.yml`.
+- **`CI_DEPLOY_VERIFY_SCRIPTS`** — documented parity contract; regression tests assert scripts
+  exist and appear in the workflow file.
+- **Deploy verify** — TestClient integration test, unreachable health/panel cases, warnings-only
+  pass semantics.
+
+---
+
 ## 2026-06-24 — Phase B pass 5: Commerce adapters hardening
 
 ### Hardening: Stripe/Shopify/Gmail fakes; no secrets in logs or API
