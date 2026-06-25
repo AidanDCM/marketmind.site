@@ -1,4 +1,4 @@
-"""Phase B pass 18 (rotation 3): experiment lifecycle contract parity and deeper coverage."""
+"""Phase B pass 25 (rotation 4): experiment lifecycle contract parity and deeper coverage."""
 
 from __future__ import annotations
 
@@ -6,18 +6,36 @@ import re
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
 
 from marketmind import ExperimentSnapshot, generate_daily_report
 from marketmind.api.app import app
 from marketmind.db.engine import make_engine
-from marketmind.db.models import Base
+from marketmind.db.models import Base, ExperimentRow
 from marketmind.docs_contract import REPO_ROOT
 from marketmind.experiment_lifecycle_contract import (
+    ACTIVE_ATTENTION_BANNER_FRAGMENT,
+    ACTIVE_ATTENTION_FILTER_LABEL,
+    ACTIVE_CHART_BUTTON,
+    ACTIVE_CHECKLIST_HEADER,
+    ACTIVE_CHECKLIST_NOT_READY_LABEL,
+    ACTIVE_CHECKLIST_READY_LABEL,
+    ACTIVE_END_BUTTON,
+    ACTIVE_LESSONS_HEADER,
+    ACTIVE_LOCAL_STORAGE_KEYS,
+    ACTIVE_NOTES_HEADER,
+    ACTIVE_REACTIVATE_BUTTON,
+    ACTIVE_STATUS_FILTERS,
     ATC_RISK_SUFFIX,
     ATTENTION_RULINGS,
+    DESKTOP_ACTIVE_EXPERIMENTS_COMPONENT_PATH,
+    DESKTOP_ACTIVE_EXPERIMENTS_PREFERENCES_PATH,
+    DESKTOP_API_CLIENT_PATH,
     DESKTOP_DAILY_REPORT_NAVIGATION_PATH,
+    DESKTOP_EXPERIMENT_ATTENTION_PATH,
     EVALUATE_API_PATH,
     LIFECYCLE_API_PATHS,
+    LIFECYCLE_EXPERIMENT_DETAIL_SUFFIXES,
     LOW_ROAS_LESSON_MARKER,
     NO_EXPERIMENTS_RECOMMENDATION,
     NO_ORDERS_LESSON_PREFIX,
@@ -26,7 +44,9 @@ from marketmind.experiment_lifecycle_contract import (
     POSITIVE_CONTRIBUTION_PREFIX,
     REFUND_RISK_SUFFIX,
     ROAS_SCALE_LESSON_PHRASE,
+    VALID_EXPERIMENT_STATUSES,
     ZERO_ORDER_SPEND_RISK,
+    experiment_detail_path,
     format_pending_approvals_lesson,
 )
 from marketmind.rules import KILL_ATC_RATE, KILL_REFUND_RATE
@@ -185,3 +205,154 @@ def test_each_attention_ruling_is_recognized_by_trend_summary(lifecycle_client):
     assert rulings["exp_kill"] in ATTENTION_RULINGS
     assert rulings["exp_pause"] in ATTENTION_RULINGS
     assert all(row["needs_attention"] for row in trend if row["experiment_id"] in ruling_cases)
+
+
+def _seed_experiment(engine, experiment_id: str = "exp_lifecycle_r4") -> None:
+    with Session(engine) as session:
+        session.add(
+            ExperimentRow(
+                experiment_id=experiment_id,
+                product_name="Lifecycle Widget",
+                break_even_cac=25.0,
+                status="active",
+            )
+        )
+        session.commit()
+
+
+def test_experiment_attention_rulings_match_desktop_module():
+    text = (REPO_ROOT / DESKTOP_EXPERIMENT_ATTENTION_PATH).read_text(encoding="utf-8")
+    for ruling in ATTENTION_RULINGS:
+        assert ruling in text
+    assert "experimentNeedsAttention" in text
+
+
+def test_desktop_client_documents_lifecycle_experiment_api_paths():
+    text = (REPO_ROOT / DESKTOP_API_CLIENT_PATH).read_text(encoding="utf-8")
+    for path in (*LIFECYCLE_API_PATHS, EVALUATE_API_PATH):
+        assert path in text
+    assert "encodeURIComponent" in text
+    for suffix in LIFECYCLE_EXPERIMENT_DETAIL_SUFFIXES:
+        assert suffix in text
+
+
+def test_experiments_router_documents_detail_suffixes():
+    source = (REPO_ROOT / "marketmind/api/routers/experiments.py").read_text(
+        encoding="utf-8"
+    )
+    for suffix in LIFECYCLE_EXPERIMENT_DETAIL_SUFFIXES:
+        assert suffix in source
+    assert "VALID_EXPERIMENT_STATUSES" not in source
+    for status in VALID_EXPERIMENT_STATUSES:
+        assert status in source
+
+
+def test_experiment_detail_path_formatter_matches_router_pattern():
+    path = experiment_detail_path("exp-42", "checklist")
+    assert path == "/experiment/exp-42/checklist"
+
+
+def test_patch_status_422_for_invalid_status(lifecycle_client, lifecycle_engine):
+    _seed_experiment(lifecycle_engine)
+    resp = lifecycle_client.patch(
+        experiment_detail_path("exp_lifecycle_r4", "status"),
+        json={"status": "paused"},
+    )
+    assert resp.status_code == 422
+
+
+def test_patch_status_404_for_unknown_experiment(lifecycle_client):
+    resp = lifecycle_client.patch(
+        experiment_detail_path("missing-exp", "status"),
+        json={"status": "ended"},
+    )
+    assert resp.status_code == 404
+
+
+def test_add_note_empty_body_returns_422(lifecycle_client, lifecycle_engine):
+    _seed_experiment(lifecycle_engine)
+    resp = lifecycle_client.post(
+        experiment_detail_path("exp_lifecycle_r4", "notes"),
+        json={"body": "   "},
+    )
+    assert resp.status_code == 422
+
+
+@pytest.mark.parametrize(
+    "suffix",
+    [s for s in LIFECYCLE_EXPERIMENT_DETAIL_SUFFIXES if s != "status"],
+)
+def test_experiment_detail_get_endpoints_smoke(
+    lifecycle_client, lifecycle_engine, suffix: str,
+):
+    _seed_experiment(lifecycle_engine)
+    resp = lifecycle_client.get(
+        experiment_detail_path("exp_lifecycle_r4", suffix),
+    )
+    assert resp.status_code == 200
+
+
+def test_checklist_unknown_experiment_returns_404(lifecycle_client):
+    resp = lifecycle_client.get(experiment_detail_path("unknown-exp", "checklist"))
+    assert resp.status_code == 404
+
+
+def test_active_experiments_component_documents_ui_labels():
+    text = (REPO_ROOT / DESKTOP_ACTIVE_EXPERIMENTS_COMPONENT_PATH).read_text(
+        encoding="utf-8"
+    )
+    for label in (
+        ACTIVE_ATTENTION_FILTER_LABEL,
+        ACTIVE_CHECKLIST_HEADER,
+        ACTIVE_CHECKLIST_READY_LABEL,
+        ACTIVE_CHECKLIST_NOT_READY_LABEL,
+        ACTIVE_LESSONS_HEADER,
+        ACTIVE_NOTES_HEADER,
+        ACTIVE_END_BUTTON,
+        ACTIVE_REACTIVATE_BUTTON,
+        ACTIVE_CHART_BUTTON,
+    ):
+        assert label in text
+    assert ACTIVE_ATTENTION_BANNER_FRAGMENT in text
+
+
+def test_active_experiments_preferences_exports_filter_helpers():
+    text = (REPO_ROOT / DESKTOP_ACTIVE_EXPERIMENTS_PREFERENCES_PATH).read_text(
+        encoding="utf-8"
+    )
+    assert "isActiveStatusFilter" in text
+    assert "readActiveAttentionOnlyPreference" in text
+    assert "writeActiveStatusFilterPreference" in text
+    for key in ACTIVE_LOCAL_STORAGE_KEYS:
+        assert key in text
+
+
+def test_active_status_filters_match_preferences_module():
+    text = (REPO_ROOT / DESKTOP_ACTIVE_EXPERIMENTS_PREFERENCES_PATH).read_text(
+        encoding="utf-8"
+    )
+    for status in ACTIVE_STATUS_FILTERS:
+        assert status in text
+
+
+def test_active_experiments_component_persists_preference_keys():
+    text = (REPO_ROOT / DESKTOP_ACTIVE_EXPERIMENTS_COMPONENT_PATH).read_text(
+        encoding="utf-8"
+    )
+    assert "writeActiveAttentionOnlyPreference" in text
+    assert "writeActiveStatusFilterPreference" in text
+    for key in ACTIVE_LOCAL_STORAGE_KEYS:
+        assert key in (REPO_ROOT / DESKTOP_ACTIVE_EXPERIMENTS_PREFERENCES_PATH).read_text(
+            encoding="utf-8"
+        )
+
+
+def test_post_note_round_trip_through_contract_paths(lifecycle_client, lifecycle_engine):
+    _seed_experiment(lifecycle_engine, "exp_note_r4")
+    post = lifecycle_client.post(
+        experiment_detail_path("exp_note_r4", "notes"),
+        json={"body": "Contract note"},
+    )
+    assert post.status_code == 200
+    listed = lifecycle_client.get(experiment_detail_path("exp_note_r4", "notes")).json()
+    assert any(n["body"] == "Contract note" for n in listed)
