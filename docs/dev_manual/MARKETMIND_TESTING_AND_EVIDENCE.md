@@ -29,8 +29,8 @@ Run focused tests first when changing a narrow area.
 
 | Layer | Location | Count (approx) |
 |---|---|---|
-| Backend | `tests/test_*.py` | **512** pytest cases |
-| Desktop | `desktop/src/**/*.test.ts(x)` | **27** Vitest files |
+| Backend | `tests/test_*.py` | **556** pytest cases |
+| Desktop | `desktop/src/**/*.test.ts(x)` | **28** Vitest files |
 | CI | `.github/workflows/ci.yml` | ruff + pytest + deploy smoke + desktop build/test |
 | Docs drift | `tests/test_docs_drift.py` | env names, suite counts, verifier parity |
 

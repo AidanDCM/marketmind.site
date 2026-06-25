@@ -9,6 +9,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
 from .db.models import ExperimentRow, ExperimentSnapshotRow
+from .experiment_lifecycle_contract import ATTENTION_RULINGS
 from .experiment_rules import evaluate_experiment
 from .lookback import MAX_LOOKBACK_DAYS, MIN_LOOKBACK_DAYS, normalize_lookback_days
 from .schemas import ExperimentSnapshot
@@ -18,11 +19,10 @@ MIN_TREND_SUMMARY_DAYS = MIN_LOOKBACK_DAYS
 normalize_trend_summary_days = normalize_lookback_days
 
 _CAC_FLAT_EPSILON = 0.01
-_ATTENTION_RULINGS = {"kill", "pause_ads", "scale_requires_approval"}
 
 
 def _needs_attention(ruling: str | None, above_break_even: bool | None) -> bool:
-    if ruling in _ATTENTION_RULINGS:
+    if ruling in ATTENTION_RULINGS:
         return True
     return above_break_even is True
 
