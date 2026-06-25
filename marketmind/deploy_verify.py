@@ -8,7 +8,13 @@ import urllib.request
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
-from .deploy_ci_contract import INTEGRATIONS_SECRET_LEAK_MARKERS
+from .deploy_ci_contract import (
+    DEPLOY_READINESS_NOT_READY_FAILURE,
+    DEPLOY_VERIFY_SUCCESS_LINE,
+    HEALTH_STATUS_OK,
+    INTEGRATIONS_SECRET_LEAK_MARKERS,
+    format_integrations_leak_failure,
+)
 
 
 def _default_get(url: str, token: str | None) -> dict:
@@ -35,7 +41,7 @@ def _integrations_response_is_secret_free(payload: dict) -> str | None:
     text = json.dumps(payload)
     for marker in INTEGRATIONS_SECRET_LEAK_MARKERS:
         if marker in text:
-            return f"integrations response contains forbidden substring {marker!r}"
+            return format_integrations_leak_failure(marker)
     return None
 
 
@@ -62,7 +68,7 @@ def verify_marketmind_deploy(
         )
 
     health_version = health.get("version")
-    if health.get("status") != "ok":
+    if health.get("status") != HEALTH_STATUS_OK:
         failures.append(f"health.status != ok ({health!r})")
         lines.extend(f"FAIL {item}" for item in failures)
         return DeployVerifyResult(
@@ -106,7 +112,7 @@ def verify_marketmind_deploy(
     operator_ready = readiness.get("ready")
     lines.append(f"OK  GET /operator/readiness -> ready={operator_ready}")
     if operator_ready is not True:
-        failures.append("operator readiness not ready")
+        failures.append(DEPLOY_READINESS_NOT_READY_FAILURE)
         for blocker in readiness.get("blockers", []):
             failures.append(f"readiness blocker: {blocker}")
 
@@ -134,7 +140,7 @@ def verify_marketmind_deploy(
 
     ok = not failures
     if ok:
-        lines.append("Deploy verification passed.")
+        lines.append(DEPLOY_VERIFY_SUCCESS_LINE)
     else:
         lines.extend(f"FAIL {item}" for item in failures)
 

@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 20: Deploy/CI hardening (rotation 3)
+
+### Hardening: deploy_ci_contract step/env constants + verify failure formatter
+
+- **`deploy_ci_contract.py`** — local-ci step names, deploy env vars, failure/success lines, formatter.
+- **`deploy_verify.py`** — wired to contract constants and `format_integrations_leak_failure`.
+- **`test_deploy_ci_contract.py`** — 21 tests: workflow parity, leak-marker matrix, endpoint smoke, docs.
+
+---
+
 ## 2026-06-24 — Phase B pass 19: Commerce adapters hardening (rotation 3)
 
 ### Hardening: commerce_adapters_contract API paths + deploy leak-marker parity
