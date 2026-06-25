@@ -1,4 +1,4 @@
-"""Phase B pass 29 (rotation 5): approval gate contract parity and deeper coverage."""
+"""Phase B pass 36 (rotation 6): approval gate contract parity and deeper coverage."""
 
 from __future__ import annotations
 
@@ -9,10 +9,13 @@ from marketmind.api.app import app
 from marketmind.api.routers.execution import ExecuteRequest
 from marketmind.approval_gate_contract import (
     APPROVAL_API_PATHS,
+    APPROVAL_APPROVE_PATH_SUFFIX,
+    APPROVAL_DENY_PATH_SUFFIX,
     APPROVAL_FILTER_OPTIONS,
     APPROVAL_FILTER_STORAGE_KEY,
     APPROVAL_LIST_STATUS_QUERY,
     APPROVAL_NOT_FOUND_FRAGMENT,
+    APPROVAL_NOTE_BODY_KEY,
     APPROVAL_ROUTER_PATH,
     APPROVAL_TRANSITION_CONFLICT_FRAGMENT,
     APPROVED_STATUS_ALIASES,
@@ -25,6 +28,7 @@ from marketmind.approval_gate_contract import (
     EXECUTE_API_PATHS,
     EXECUTION_ROUTER_PATH,
     EXECUTOR_HANDLER_ACTIONS,
+    GATE_STATUS_BADGE_CLASSES,
     GATE_UI_APPROVABLE_STATUS,
     GATE_UI_APPROVE_BUTTON,
     GATE_UI_DENY_BUTTON,
@@ -239,6 +243,7 @@ def test_execute_log_lists_execution_after_approve_and_execute(gate_client, gate
 def test_execute_api_404_for_missing_approval(gate_client):
     resp = gate_client.post("/execute/apr_missing_gate", json={})
     assert resp.status_code == 404
+    assert APPROVAL_NOT_FOUND_FRAGMENT in resp.json()["detail"].lower()
 
 
 def test_execute_api_paths_documented_in_contract():
@@ -367,3 +372,68 @@ def test_approval_queue_component_persists_filter_preference():
     )
     for option in APPROVAL_FILTER_OPTIONS:
         assert option in text or option.replace("_", " ") in text
+
+
+def test_approve_unknown_returns_404_with_not_found_fragment(gate_client):
+    resp = gate_client.post("/approvals/apr_missing_approve/approve", json={"note": ""})
+    assert resp.status_code == 404
+    assert APPROVAL_NOT_FOUND_FRAGMENT in resp.json()["detail"].lower()
+
+
+def test_deny_unknown_returns_404_with_not_found_fragment(gate_client):
+    resp = gate_client.post("/approvals/apr_missing_deny/deny", json={"note": ""})
+    assert resp.status_code == 404
+    assert APPROVAL_NOT_FOUND_FRAGMENT in resp.json()["detail"].lower()
+
+
+def test_list_approvals_empty_db_returns_empty_list(gate_client):
+    resp = gate_client.get("/approvals")
+    assert resp.status_code == 200
+    assert resp.json() == []
+
+
+def test_approve_denied_record_returns_409_transition_conflict(gate_client, gate_engine):
+    create_approval(
+        gate_engine,
+        _record("apr_approve_denied", status=ApprovalStatus.DENIED),
+    )
+    resp = gate_client.post("/approvals/apr_approve_denied/approve", json={"note": "retry"})
+    assert resp.status_code == 409
+    assert APPROVAL_TRANSITION_CONFLICT_FRAGMENT in resp.json()["detail"]
+
+
+def test_deny_approved_record_returns_409_transition_conflict(gate_client, gate_engine):
+    create_approval(
+        gate_engine,
+        _record("apr_deny_approved", status=ApprovalStatus.APPROVED),
+    )
+    resp = gate_client.post("/approvals/apr_deny_approved/deny", json={"note": "too late"})
+    assert resp.status_code == 409
+    assert APPROVAL_TRANSITION_CONFLICT_FRAGMENT in resp.json()["detail"]
+
+
+def test_approvals_router_documents_note_body_field():
+    source = (REPO_ROOT / APPROVAL_ROUTER_PATH).read_text(encoding="utf-8")
+    assert APPROVAL_NOTE_BODY_KEY in source
+    assert APPROVAL_APPROVE_PATH_SUFFIX in source
+    assert APPROVAL_DENY_PATH_SUFFIX in source
+
+
+def test_desktop_client_documents_deny_record_function():
+    text = (REPO_ROOT / DESKTOP_API_CLIENT_PATH).read_text(encoding="utf-8")
+    assert "denyRecord(id: string, note: string)" in text
+    assert f"/deny`, {{ {APPROVAL_NOTE_BODY_KEY} }}" in text
+
+
+def test_approval_queue_documents_status_badge_map():
+    text = (REPO_ROOT / DESKTOP_APPROVAL_QUEUE_COMPONENT_PATH).read_text(
+        encoding="utf-8"
+    )
+    for status, badge_class in GATE_STATUS_BADGE_CLASSES.items():
+        assert f'{status}: "{badge_class}"' in text
+
+
+def test_execution_router_documents_not_found_detail_pattern():
+    source = (REPO_ROOT / EXECUTION_ROUTER_PATH).read_text(encoding="utf-8")
+    assert APPROVAL_NOT_FOUND_FRAGMENT in source.lower()
+    assert "HTTPException(status_code=404" in source

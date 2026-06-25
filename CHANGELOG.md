@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 36: Approval gate hardening (rotation 6)
+
+### Hardening: approve/deny 404 edges, badge map SSOT, Deny button Vitest
+
+- **`approval_gate_contract.py`** — note body key, path suffixes, status badge class map.
+- **`test_approval_gate_contract.py`** — +9 tests: approve/deny 404, cross-transition 409, badge parity.
+- **`ApprovalQueue.test.tsx`** — +1 test: Deny calls `denyRecord`.
+
+---
+
 ## 2026-06-24 — Phase B pass 35: Docs drift hardening (rotation 5)
 
 ### Hardening: rotation 5 contract SSOT, vitest inventory guards, engineering-log parity

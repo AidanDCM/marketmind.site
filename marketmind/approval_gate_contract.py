@@ -113,12 +113,28 @@ GATE_UI_FILTER_LABEL_TRANSFORM = 'replace("_", " ")'
 APPROVAL_TRANSITION_CONFLICT_FRAGMENT = "Only PENDING approvals can be transitioned"
 APPROVAL_NOT_FOUND_FRAGMENT = "not found"
 
+APPROVAL_NOTE_BODY_KEY = "note"
+APPROVAL_APPROVE_PATH_SUFFIX = "/approve"
+APPROVAL_DENY_PATH_SUFFIX = "/deny"
+
 DENIED_STATUS = "denied"
 BLOCKED_STATUS = "blocked"
+AUTO_ALLOWED_STATUS = "auto_allowed"
+EXPIRED_STATUS = "expired"
 
 # Desktop ApprovalQueue card gating (must match ``ApprovalQueue.tsx``).
 GATE_UI_APPROVABLE_STATUS = "pending"
 GATE_UI_EXECUTABLE_STATUS = "approved"
+
+# Status → CSS badge class map in ``ApprovalQueue.tsx`` ``statusBadgeClass``.
+GATE_STATUS_BADGE_CLASSES: dict[str, str] = {
+    "pending": "badge-pending",
+    "approved": "badge-approved",
+    "denied": "badge-denied",
+    "blocked": "badge-blocked",
+    "auto_allowed": "badge-auto",
+    "expired": "badge-pending",
+}
 
 APPROVAL_FILTER_OPTIONS: tuple[str, ...] = (
     "pending",
@@ -138,14 +154,18 @@ POLICY_STATUSES: tuple[str, ...] = (
 
 __all__ = [
     "APPROVAL_API_PATHS",
+    "APPROVAL_APPROVE_PATH_SUFFIX",
+    "APPROVAL_DENY_PATH_SUFFIX",
     "APPROVAL_FILTER_OPTIONS",
     "APPROVAL_FILTER_STORAGE_KEY",
     "APPROVAL_LIST_STATUS_QUERY",
     "APPROVAL_NOT_FOUND_FRAGMENT",
+    "APPROVAL_NOTE_BODY_KEY",
     "APPROVAL_ROUTER_PATH",
     "APPROVAL_TRANSITION_CONFLICT_FRAGMENT",
     "APPROVED_STATUS_ALIASES",
     "AUTO_ALLOWED_ACTIONS",
+    "AUTO_ALLOWED_STATUS",
     "BLOCKED_ACTIONS",
     "BLOCKED_STATUS",
     "DEFAULT_EXECUTE_DRY_RUN",
@@ -157,6 +177,8 @@ __all__ = [
     "EXECUTE_API_PATHS",
     "EXECUTION_ROUTER_PATH",
     "EXECUTOR_HANDLER_ACTIONS",
+    "EXPIRED_STATUS",
+    "GATE_STATUS_BADGE_CLASSES",
     "GATE_UI_APPROVABLE_STATUS",
     "GATE_UI_APPROVE_BUTTON",
     "GATE_UI_DENY_BUTTON",
