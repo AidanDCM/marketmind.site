@@ -229,3 +229,27 @@ Append-only evidence. Do not edit past entries.
   - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pytest -q --tb=short` — ok (24.6s)
 - Failure output: none
 - Follow-up: none
+## 2026-06-25T03:07:25Z
+- Branch: harden/phase-b-operator-health-r2
+- Commit: 647f8423f78abcb913c434dbf773dedebb3d956e
+- Environment: marketmind-local-ci, Python 3.14.5
+- Result: FAIL
+- Commands:
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pip install --upgrade pip` — ok (7.3s)
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pip install -e .[dev]` — ok (28.0s)
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m ruff check .` — FAILED (exit 1) (0.4s)
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pytest -q --tb=short` — ok (27.9s)
+- Failure output: see ruff above
+- Follow-up: none
+## 2026-06-25T03:11:05Z
+- Branch: harden/phase-b-operator-health-r2
+- Commit: 647f8423f78abcb913c434dbf773dedebb3d956e
+- Environment: marketmind-local-ci, Python 3.14.5
+- Result: PASS
+- Commands:
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pip install --upgrade pip` — ok (5.5s)
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pip install -e .[dev]` — ok (23.6s)
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m ruff check .` — ok (0.6s)
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pytest -q --tb=short` — ok (29.3s)
+- Failure output: none
+- Follow-up: none

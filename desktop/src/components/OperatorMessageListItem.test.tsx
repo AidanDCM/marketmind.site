@@ -60,4 +60,19 @@ describe("OperatorMessageListItem", () => {
     fireEvent.click(screen.getByRole("button", { name: "View experiment" }));
     expect(onOpenActive).toHaveBeenCalledWith("exp-kill");
   });
+
+  it("renders operator log warning without an action button", () => {
+    const onOpenLiveData = vi.fn();
+    render(
+      <ul>
+        <OperatorMessageListItem
+          text="Operator event log not found at logs/operator_events.jsonl"
+          muted
+          onOpenLiveData={onOpenLiveData}
+        />
+      </ul>,
+    );
+    expect(screen.getByText(/Operator event log not found/)).toBeInTheDocument();
+    expect(screen.queryByRole("button")).toBeNull();
+  });
 });

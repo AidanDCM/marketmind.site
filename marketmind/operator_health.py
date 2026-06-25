@@ -9,6 +9,13 @@ from .checklist_config import get_checklist_thresholds
 from .cycle_status import get_last_daily_cycle
 from .experiment_portfolio import build_experiment_portfolio
 from .integrations_status import get_integrations_status
+from .operator_health_contract import (
+    GMAIL_LIVE_NOT_READY_WARNING,
+    GMAIL_SECRET_MISSING_WARNING,
+    OPERATOR_LOG_MISSING_WARNING,
+    SHOPIFY_LIVE_NOT_READY_WARNING,
+    STRIPE_LIVE_NOT_READY_WARNING,
+)
 from .operator_preflight import run_preflight
 from .snapshot_gaps import list_snapshot_gaps
 
@@ -24,7 +31,7 @@ def build_operator_health(engine: Engine, snapshot_date: str | None = None) -> d
 
     warnings: list[str] = []
     if not preflight.operator_log_exists:
-        warnings.append("Operator event log not found at logs/operator_events.jsonl")
+        warnings.append(OPERATOR_LOG_MISSING_WARNING)
     if snapshot_gaps["missing_count"] > 0:
         ids = ", ".join(m["experiment_id"] for m in snapshot_gaps["missing"][:5])
         suffix = "…" if snapshot_gaps["missing_count"] > 5 else ""
@@ -35,20 +42,14 @@ def build_operator_health(engine: Engine, snapshot_date: str | None = None) -> d
     if integrations.get("live_writes", {}).get("enabled") and not integrations["gmail"].get(
         "live_ready"
     ):
-        warnings.append("MARKETMIND_ENABLE_LIVE_WRITES=true but Gmail is not live-ready")
+        warnings.append(GMAIL_LIVE_NOT_READY_WARNING)
     if integrations["gmail"].get("mode") == "live_missing_secret":
-        warnings.append("Gmail live mode enabled but GMAIL_CLIENT_SECRET is missing")
+        warnings.append(GMAIL_SECRET_MISSING_WARNING)
     if integrations.get("live_writes", {}).get("enabled"):
         if not integrations["stripe"].get("live_ready"):
-            warnings.append(
-                "MARKETMIND_ENABLE_LIVE_WRITES=true but Stripe is not live-ready "
-                "(set STRIPE_API_KEY and MARKETMIND_STRIPE_DRY_RUN=false)"
-            )
+            warnings.append(STRIPE_LIVE_NOT_READY_WARNING)
         if not integrations["shopify"].get("live_ready"):
-            warnings.append(
-                "MARKETMIND_ENABLE_LIVE_WRITES=true but Shopify is not live-ready "
-                "(set store credentials and MARKETMIND_SHOPIFY_READ_ONLY=false)"
-            )
+            warnings.append(SHOPIFY_LIVE_NOT_READY_WARNING)
 
     return {
         "safe_to_operate": preflight.safe_to_operate,
