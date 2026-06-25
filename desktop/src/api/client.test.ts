@@ -63,6 +63,13 @@ describe("api client", () => {
     expect(opts.headers["Authorization"]).toBe("Bearer tok123");
   });
 
+  it("defaults executeApproved to dry_run true when omitted", async () => {
+    const fn = mockFetch({ executed: true, dry_run: true, approval_id: "apr_1", action: "x" });
+    await executeApproved("apr_1");
+    const [, opts] = fn.mock.calls[0];
+    expect(JSON.parse(opts.body).dry_run).toBe(true);
+  });
+
   it("omits Authorization header when no token is stored", async () => {
     const fn = mockFetch({ status: "ok", version: "x" });
     await fetchHealth();

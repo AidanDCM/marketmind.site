@@ -1,8 +1,11 @@
 """Unit tests for marketmind.commerce_approval_policy."""
 
+import pytest
+
 from marketmind.commerce_approval_policy import (
     CommerceApprovalRequest,
     evaluate_commerce_approval,
+    normalize_commerce_action,
 )
 
 
@@ -70,3 +73,31 @@ def test_stripe_action_alias_approved_with_approval():
     )
     result = evaluate_commerce_approval(req)
     assert result.status == "Approved"
+
+
+def test_normalize_commerce_action_aliases():
+    assert normalize_commerce_action("create_stripe_payment_link") == "send_payment_link"
+    assert normalize_commerce_action("publish_shopify_product") == "publish_product_page"
+    assert normalize_commerce_action("scale_campaign") == "scale_ad_spend"
+    assert normalize_commerce_action("launch_paid_ad_campaign") == "launch_ad_campaign"
+    assert normalize_commerce_action("increase_ad_budget") == "scale_ad_spend"
+    assert normalize_commerce_action("  SCALE_CAMPAIGN  ") == "scale_ad_spend"
+
+
+def test_bypass_approval_gate_blocked_even_with_approval():
+    req = CommerceApprovalRequest(
+        action_type="bypass_approval_gate",
+        approval_status="approved",
+    )
+    result = evaluate_commerce_approval(req)
+    assert result.status == "Blocked"
+
+
+@pytest.mark.parametrize("status", ["Draft", "pending", "denied", "PENDING"])
+def test_high_risk_pending_status_needs_review(status: str):
+    req = CommerceApprovalRequest(
+        action_type="scale_ad_spend",
+        approval_status=status,
+    )
+    result = evaluate_commerce_approval(req)
+    assert result.status == "Needs Review"
