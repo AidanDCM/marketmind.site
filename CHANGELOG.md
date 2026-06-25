@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 27: Deploy/CI hardening (rotation 4)
+
+### Hardening: workflow boot constants + verify failure matrix + local_ci log helpers
+
+- **`deploy_ci_contract.py`** — CI node/DB/uvicorn constants, deploy failure prefixes, local_ci paths.
+- **`test_deploy_ci_contract.py`** — +18 tests: workflow parity, verify failure edges, token forwarding.
+
+---
+
 ## 2026-06-24 — Phase B pass 26: Commerce adapters hardening (rotation 4)
 
 ### Hardening: import/ad API paths + integration key whitelists + LiveData pull wiring

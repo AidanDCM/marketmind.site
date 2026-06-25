@@ -1,4 +1,4 @@
-"""Phase B pass 20 (rotation 3): deploy/CI contract parity and deeper coverage."""
+"""Phase B pass 27 (rotation 4): deploy/CI contract parity and deeper coverage."""
 
 from __future__ import annotations
 
@@ -13,12 +13,27 @@ from marketmind.db.engine import make_engine
 from marketmind.db.models import Base
 from marketmind.deploy_ci_contract import (
     CHECK_OPERATOR_READINESS_API_FLAG,
+    CI_API_HOST,
+    CI_API_PORT,
+    CI_BACKEND_JOBS,
+    CI_BACKEND_PYTEST_COMMAND,
+    CI_BACKEND_RUFF_COMMAND,
+    CI_DATABASE_URL,
     CI_DEPLOY_VERIFY_ENDPOINTS,
     CI_DEPLOY_VERIFY_JOB_NAME,
     CI_DEPLOY_VERIFY_SCRIPTS,
+    CI_FRONTEND_STEP_COMMANDS,
+    CI_HEALTH_PATH,
+    CI_HEALTH_WAIT_MAX_ATTEMPTS,
+    CI_NODE_VERSION,
     CI_PYTHON_VERSION,
     CI_WORKFLOW_REL_PATH,
+    DEPLOY_HEALTH_FETCH_FAILURE_PREFIX,
+    DEPLOY_HEALTH_STATUS_FAILURE_PREFIX,
     DEPLOY_INTEGRATIONS_LEAK_FAILURE_PREFIX,
+    DEPLOY_PANEL_FETCH_FAILURE_PREFIX,
+    DEPLOY_PREFLIGHT_BLOCKER_PREFIX,
+    DEPLOY_READINESS_BLOCKER_PREFIX,
     DEPLOY_READINESS_NOT_READY_FAILURE,
     DEPLOY_VERIFY_DEFAULT_API_BASE,
     DEPLOY_VERIFY_ENV_VARS,
@@ -27,12 +42,21 @@ from marketmind.deploy_ci_contract import (
     HEALTH_STATUS_OK,
     INTEGRATIONS_SECRET_LEAK_MARKERS,
     LOCAL_CI_BACKEND_STEP_NAMES,
+    LOCAL_CI_FULL_FLAG,
     LOCAL_CI_SCRIPT,
+    LOCAL_CI_STATUS_CONTEXT,
     format_integrations_leak_failure,
 )
 from marketmind.deploy_verify import verify_marketmind_deploy
 from marketmind.docs_contract import DEPLOYMENT_DOC_PATH, REPO_ROOT
-from marketmind.local_ci import CI_STEPS, FULL_CI_EXTRA
+from marketmind.local_ci import (
+    CI_STEPS,
+    FULL_CI_EXTRA,
+    STATUS_CONTEXT,
+    StepResult,
+    format_test_log_entry,
+    status_description,
+)
 
 
 def _mock_fetch(responses: dict[str, dict]):
@@ -202,3 +226,182 @@ def test_verify_readiness_not_ready_uses_contract_failure():
 def test_contract_endpoints_return_200_on_test_client(deploy_contract_client, path: str):
     resp = deploy_contract_client.get(path)
     assert resp.status_code == 200, path
+
+
+def test_ci_workflow_documents_database_url_and_uvicorn_boot():
+    workflow = (REPO_ROOT / CI_WORKFLOW_REL_PATH).read_text(encoding="utf-8")
+    assert f"DATABASE_URL={CI_DATABASE_URL}" in workflow
+    assert f"--host {CI_API_HOST}" in workflow
+    assert f"--port {CI_API_PORT}" in workflow
+    assert f"curl -sf http://{CI_API_HOST}:{CI_API_PORT}{CI_HEALTH_PATH}" in workflow
+    assert f"seq 1 {CI_HEALTH_WAIT_MAX_ATTEMPTS}" in workflow
+
+
+def test_ci_workflow_node_version_and_backend_commands_match_contract():
+    workflow = (REPO_ROOT / CI_WORKFLOW_REL_PATH).read_text(encoding="utf-8")
+    assert f'node-version: "{CI_NODE_VERSION}"' in workflow
+    assert CI_BACKEND_RUFF_COMMAND in workflow
+    assert CI_BACKEND_PYTEST_COMMAND in workflow
+
+
+@pytest.mark.parametrize("job", CI_BACKEND_JOBS)
+def test_ci_workflow_declares_contract_backend_jobs(job: str):
+    workflow = (REPO_ROOT / CI_WORKFLOW_REL_PATH).read_text(encoding="utf-8")
+    assert f"{job}:" in workflow
+
+
+@pytest.mark.parametrize("command", CI_FRONTEND_STEP_COMMANDS)
+def test_ci_workflow_runs_contract_frontend_commands(command: str):
+    workflow = (REPO_ROOT / CI_WORKFLOW_REL_PATH).read_text(encoding="utf-8")
+    assert command in workflow
+
+
+def test_local_ci_status_context_matches_contract():
+    assert STATUS_CONTEXT == LOCAL_CI_STATUS_CONTEXT
+
+
+def test_local_ci_script_documents_full_flag_and_test_log_path():
+    source = (REPO_ROOT / LOCAL_CI_SCRIPT).read_text(encoding="utf-8")
+    assert LOCAL_CI_FULL_FLAG in source
+    assert "local_ci" in source
+    assert "TEST_LOG.md" in source
+
+
+def test_format_test_log_entry_records_step_outcomes():
+    results = [
+        StepResult("ruff", ("python", "-m", "ruff", "check", "."), 0, 1.0),
+        StepResult("pytest", ("python", "-m", "pytest", "-q"), 1, 2.0),
+    ]
+    entry = format_test_log_entry(
+        timestamp="2026-06-24T00:00:00Z",
+        branch="main",
+        commit="abc123",
+        python="3.12.0",
+        results=results,
+    )
+    assert "FAIL" in entry
+    assert "pytest" in entry
+    assert status_description(results).startswith(LOCAL_CI_STATUS_CONTEXT)
+
+
+def test_verify_fails_when_health_status_not_ok():
+    result = verify_marketmind_deploy(
+        "http://127.0.0.1:8000",
+        fetch=_mock_fetch({
+            CI_HEALTH_PATH: {"status": "degraded", "version": "0.1.0"},
+        }),
+    )
+    assert result.ok is False
+    assert any(
+        DEPLOY_HEALTH_STATUS_FAILURE_PREFIX in item for item in result.failures
+    )
+
+
+def test_verify_fails_on_health_fetch_error():
+    def fetch(_url: str, _token: str | None) -> dict:
+        raise TimeoutError("health timeout")
+
+    result = verify_marketmind_deploy("http://127.0.0.1:8000", fetch=fetch)
+    assert result.ok is False
+    assert any(
+        item.startswith(DEPLOY_HEALTH_FETCH_FAILURE_PREFIX)
+        for item in result.failures
+    )
+
+
+def test_verify_fails_on_health_panel_preflight_blocker():
+    result = verify_marketmind_deploy(
+        "http://127.0.0.1:8000",
+        fetch=_mock_fetch({
+            CI_HEALTH_PATH: {"status": HEALTH_STATUS_OK, "version": "0.1.0"},
+            "/operator/health-panel": {
+                "safe_to_operate": False,
+                "warnings": [],
+                "preflight": {"blockers": ["pending approvals"]},
+            },
+            "/operator/readiness": {"ready": True, "blockers": []},
+            "/operator/integrations": _integrations_payload(),
+        }),
+    )
+    assert result.ok is False
+    assert any(
+        DEPLOY_PREFLIGHT_BLOCKER_PREFIX in item for item in result.failures
+    )
+
+
+def test_verify_fails_on_health_panel_fetch_error():
+    def fetch(url: str, token: str | None) -> dict:
+        del token
+        if url.endswith(CI_HEALTH_PATH):
+            return {"status": HEALTH_STATUS_OK, "version": "0.1.0"}
+        raise TimeoutError("panel timeout")
+
+    result = verify_marketmind_deploy("http://127.0.0.1:8000", fetch=fetch)
+    assert result.ok is False
+    assert any(
+        item.startswith(DEPLOY_PANEL_FETCH_FAILURE_PREFIX)
+        for item in result.failures
+    )
+
+
+def test_verify_lists_readiness_blockers_when_not_ready():
+    result = verify_marketmind_deploy(
+        "http://127.0.0.1:8000",
+        fetch=_mock_fetch({
+            CI_HEALTH_PATH: {"status": HEALTH_STATUS_OK},
+            "/operator/health-panel": _panel_payload(),
+            "/operator/readiness": {
+                "ready": False,
+                "blockers": ["missing snapshot"],
+            },
+            "/operator/integrations": _integrations_payload(),
+        }),
+    )
+    assert result.ok is False
+    assert DEPLOY_READINESS_NOT_READY_FAILURE in result.failures
+    assert any(
+        DEPLOY_READINESS_BLOCKER_PREFIX in item for item in result.failures
+    )
+
+
+def test_verify_warnings_do_not_fail_deploy():
+    panel = _panel_payload()
+    panel["warnings"] = ["Operator event log not found"]
+    result = verify_marketmind_deploy(
+        "http://127.0.0.1:8000",
+        fetch=_mock_fetch({
+            CI_HEALTH_PATH: {"status": HEALTH_STATUS_OK, "version": "0.1.0"},
+            "/operator/health-panel": panel,
+            "/operator/readiness": {"ready": True, "blockers": []},
+            "/operator/integrations": _integrations_payload(),
+        }),
+    )
+    assert result.ok is True
+    assert result.warnings
+    assert DEPLOY_VERIFY_SUCCESS_LINE in result.lines
+
+
+def test_verify_forwards_api_token_to_fetch_callable():
+    seen: list[str | None] = []
+
+    def fetch(url: str, token: str | None) -> dict:
+        seen.append(token)
+        responses = {
+            CI_HEALTH_PATH: {"status": HEALTH_STATUS_OK, "version": "0.1.0"},
+            "/operator/health-panel": _panel_payload(),
+            "/operator/readiness": {"ready": True, "blockers": []},
+            "/operator/integrations": _integrations_payload(),
+        }
+        for path, payload in responses.items():
+            if url.endswith(path):
+                return payload
+        raise KeyError(url)
+
+    result = verify_marketmind_deploy(
+        "http://127.0.0.1:8000",
+        token="deploy-token",
+        fetch=fetch,
+    )
+    assert result.ok is True
+    assert seen
+    assert all(token == "deploy-token" for token in seen)
