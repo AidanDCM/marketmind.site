@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 35: Docs drift hardening (rotation 5)
+
+### Hardening: rotation 5 contract SSOT, vitest inventory guards, engineering-log parity
+
+- **`docs_contract.py`** — `PHASE_B_ROTATION_5_CONTRACTS`, pass 29–35 constants; `MIN_PYTEST_CASES` → 935.
+- **`test_docs_drift_contract.py`** — +18 tests: rotation 5 file parity, pass 35 status, operating index.
+- **`MARKETMIND_TESTING_AND_EVIDENCE.md`** — Passes 29–35 contract table; rotation 5 complete.
+
+---
+
 ## 2026-06-24 — Phase B pass 34: Deploy/CI hardening (rotation 5)
 
 ### Hardening: readiness/integrations fetch failures, health keys, workflow job parity
