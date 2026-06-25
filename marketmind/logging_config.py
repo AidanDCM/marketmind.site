@@ -23,6 +23,7 @@ from typing import Any
 
 _SECRET_PATTERN = re.compile(
     r"(sk_(?:live|test)_[A-Za-z0-9]+|"
+    r"rk_(?:live|test)_[A-Za-z0-9]+|"
     r"pk_(?:live|test)_[A-Za-z0-9]+|"
     r"whsec_[A-Za-z0-9+/=]+|"
     r"shpat_[A-Za-z0-9]+|"

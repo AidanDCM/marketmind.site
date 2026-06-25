@@ -29,7 +29,7 @@ Run focused tests first when changing a narrow area.
 
 | Layer | Location | Count (approx) |
 |---|---|---|
-| Backend | `tests/test_*.py` | **985** pytest cases |
+| Backend | `tests/test_*.py` | **994** pytest cases |
 | Desktop | `desktop/src/**/*.test.ts(x)` | **29** Vitest files |
 | CI | `.github/workflows/ci.yml` | ruff + pytest + deploy smoke + desktop build/test |
 | Docs drift | `tests/test_docs_drift.py`, `test_docs_drift_hardening.py`, `test_docs_drift_contract.py` | env names, suite counts, rotation 3–5 contract parity |
@@ -180,6 +180,20 @@ failure-edge guards and rotation SSOT tables:
 | 35 | Docs drift | `docs_contract.py` | `test_docs_drift_contract.py` |
 
 See engineering logs `2026-06-24-*-r5.md`.
+
+**Rotation 6** (passes 36–42) deepens rotation 5 contracts with additional API/UI
+failure-edge guards:
+
+| Pass | Theme | Contract module | Contract tests |
+|---|---|---|---|
+| 36 | Approval gate | `approval_gate_contract.py` | `test_approval_gate_contract.py` |
+| 37 | Operator health | `operator_health_contract.py` | `test_operator_health_contract.py` |
+| 38 | Overview navigation | `overview_navigation_contract.py` | `test_overview_navigation_contract.py` |
+| 39 | Experiment lifecycle | `experiment_lifecycle_contract.py` | `test_experiment_lifecycle_contract.py` |
+| 40 | Commerce adapters | `commerce_adapters_contract.py` | `test_commerce_adapters_contract.py` |
+| 41 | Deploy/CI | `deploy_ci_contract.py` | `test_deploy_ci_contract.py` |
+
+See engineering logs `2026-06-24-*-r6.md` and `2026-06-25-*-r6.md`.
 
 Record each pass in `docs/engineering_log/` even if only tests/docs changed.
 
