@@ -232,6 +232,32 @@ describe("Overview navigation wiring", () => {
     expect(onOpenAttention).toHaveBeenCalledOnce();
   });
 
+  it("opens attention filter from health panel through Overview", async () => {
+    mockOverviewData({});
+    vi.mocked(fetchOperatorHealthPanel).mockResolvedValue({
+      ...baseHealth,
+      safe_to_operate: false,
+      preflight: {
+        ...baseHealth.preflight,
+        safe_to_operate: false,
+        summary: "ATTENTION REQUIRED: 1 experiment(s) need attention",
+        experiments_needing_attention: [
+          {
+            experiment_id: "exp-attn",
+            product_name: "Widget",
+            ruling: "kill",
+            risks: [],
+          },
+        ],
+      },
+    });
+    const onOpenAttention = vi.fn();
+    await renderOverview({ onOpenAttention });
+
+    fireEvent.click(screen.getByRole("button", { name: "Show attention" }));
+    expect(onOpenAttention).toHaveBeenCalledOnce();
+  });
+
   it("opens trend chart and experiment details from trend row", async () => {
     mockOverviewData({});
     const onOpenTrend = vi.fn();
