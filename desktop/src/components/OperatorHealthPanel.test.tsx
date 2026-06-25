@@ -59,7 +59,8 @@ describe("OperatorHealthPanelView", () => {
     render(
       <OperatorHealthPanelView health={baseHealth} onOpenApprovals={onOpenApprovals} />,
     );
-    fireEvent.click(screen.getByRole("button", { name: "Open queue" }));
+    const lastCycle = screen.getByText("Last daily cycle").closest(".card")!;
+    fireEvent.click(within(lastCycle as HTMLElement).getByRole("button", { name: "Open queue" }));
     expect(onOpenApprovals).toHaveBeenCalledOnce();
   });
 
@@ -205,7 +206,9 @@ describe("OperatorHealthPanelView", () => {
       <OperatorHealthPanelView health={baseHealth} onOpenApprovals={onOpenApprovals} />,
     );
     const preflightAlert = screen.getByText(/ATTENTION REQUIRED/).closest(".alert")!;
-    fireEvent.click(within(preflightAlert as HTMLElement).getByRole("button", { name: "Open queue" }));
+    fireEvent.click(
+      within(preflightAlert as HTMLElement).getAllByRole("button", { name: "Open queue" })[0],
+    );
     expect(onOpenApprovals).toHaveBeenCalledOnce();
   });
 
