@@ -297,6 +297,37 @@ def test_shopify_live_without_creds_refused(engine, monkeypatch):
         execute_approved(engine, "apr_shopify", dry_run=False)
 
 
+def test_shopify_live_with_mocked_client(engine, monkeypatch):
+    from marketmind.adapters import shopify_client as shopify_mod
+
+    token = "shpat_executor_leak_check_999"
+    monkeypatch.setenv("SHOPIFY_STORE_DOMAIN", "demo.myshopify.com")
+    monkeypatch.setenv("SHOPIFY_ACCESS_TOKEN", token)
+
+    def fake_post(self_inner, path, body):
+        return {
+            "product": {
+                "id": "shopify_live_x",
+                "title": body["product"]["title"],
+                "status": "draft",
+            }
+        }
+
+    monkeypatch.setattr(shopify_mod.ShopifyClient, "_post", fake_post)
+    approval_store.create_approval(engine, _shopify_record())
+    payload = ProductDraftPayload(
+        title="Interior Kit", body_html="x", vendor="MM", product_type="Auto",
+        variants=(ShopifyVariant(price="59.00"),),
+    )
+    record_action_payload(engine, "apr_shopify", payload.to_dict())
+
+    result = execute_approved(engine, "apr_shopify", dry_run=False)
+    assert result.executed is True
+    assert result.detail["simulated"] is False
+    assert result.detail["id"] == "shopify_live_x"
+    assert token not in str(result.to_dict())
+
+
 def test_contact_supplier_dry_run_exports_draft_file(engine, tmp_path, monkeypatch):
     from marketmind import gmail_draft
     from marketmind.pipeline import prepare_supplier_outreach_for_approval
@@ -326,9 +357,10 @@ def test_contact_supplier_dry_run_exports_draft_file(engine, tmp_path, monkeypat
 def test_contact_supplier_live_uses_gmail_simulate_when_wired(engine, monkeypatch):
     from marketmind.pipeline import prepare_supplier_outreach_for_approval
 
+    refresh = "rtok_executor_leak_check_999"
     monkeypatch.setenv("MARKETMIND_GMAIL_ENABLED", "true")
     monkeypatch.setenv("GMAIL_CLIENT_ID", "cid")
-    monkeypatch.setenv("GMAIL_REFRESH_TOKEN", "rtok")
+    monkeypatch.setenv("GMAIL_REFRESH_TOKEN", refresh)
 
     record = prepare_supplier_outreach_for_approval(
         engine,
@@ -340,3 +372,4 @@ def test_contact_supplier_live_uses_gmail_simulate_when_wired(engine, monkeypatc
     result = execute_approved(engine, record.approval_id, dry_run=False)
     assert result.detail["simulated"] is True
     assert "gmail_draft_id" in result.detail
+    assert refresh not in str(result.to_dict())
