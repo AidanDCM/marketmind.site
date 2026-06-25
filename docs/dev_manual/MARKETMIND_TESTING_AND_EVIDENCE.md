@@ -29,10 +29,10 @@ Run focused tests first when changing a narrow area.
 
 | Layer | Location | Count (approx) |
 |---|---|---|
-| Backend | `tests/test_*.py` | **578** pytest cases |
+| Backend | `tests/test_*.py` | **585** pytest cases |
 | Desktop | `desktop/src/**/*.test.ts(x)` | **28** Vitest files |
 | CI | `.github/workflows/ci.yml` | ruff + pytest + deploy smoke + desktop build/test |
-| Docs drift | `tests/test_docs_drift.py` | env names, suite counts, verifier parity |
+| Docs drift | `tests/test_docs_drift.py`, `test_docs_drift_hardening.py` | env names, suite counts, deploy verify doc parity |
 
 Minimum counts are also defined in `marketmind/docs_contract.py`.
 
@@ -68,9 +68,15 @@ uvicorn marketmind.api.app:app --reload
 curl -s http://127.0.0.1:8000/health
 curl -s http://127.0.0.1:8000/operator/preflight
 curl -s "http://127.0.0.1:8000/operator/health-panel?date=2026-06-23"
+curl -s http://127.0.0.1:8000/operator/readiness
+curl -s http://127.0.0.1:8000/operator/integrations
 python scripts/check_operator_readiness.py --api
 python scripts/verify_marketmind_deploy.py
 ```
+
+`verify_marketmind_deploy.py` checks the same four endpoints as CI (`deploy_ci_contract.py`):
+`/health`, `/operator/health-panel`, `/operator/readiness`, `/operator/integrations`
+(secret-free JSON — no `sk_test_`, `shpat_`, etc.).
 
 With API running locally:
 
@@ -124,6 +130,10 @@ When slice building is complete, each `proceed` runs a **hardening theme** (see
 5. **Commerce adapters** — Stripe/Shopify/Gmail fakes; no secrets in logs
 6. **Deploy/CI** — `local_ci.py` parity with `.github/workflows/ci.yml`
 7. **Docs drift** — `OWNER_MANUAL`, `OPERATING_INDEX`, testing manual vs code
+
+**Rotation 2** (passes 8–14) adds contract modules and hardening test files per theme
+(e.g. `deploy_ci_contract.py`, `test_docs_drift_hardening.py`). See engineering logs
+`2026-06-24-*-r2.md`.
 
 Record each pass in `docs/engineering_log/` even if only tests/docs changed.
 

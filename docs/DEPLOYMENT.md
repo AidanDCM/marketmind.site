@@ -66,6 +66,7 @@ curl http://127.0.0.1:8000/health
 curl http://127.0.0.1:8000/operator/preflight
 curl http://127.0.0.1:8000/operator/health-panel
 curl http://127.0.0.1:8000/operator/readiness
+curl http://127.0.0.1:8000/operator/integrations
 curl http://127.0.0.1:8000/operator/checklist-config
 ```
 
@@ -76,7 +77,12 @@ python scripts/verify_marketmind_deploy.py
 python scripts/check_operator_readiness.py --api
 ```
 
-Both run in CI and in `python scripts/local_ci.py --full`.
+`verify_marketmind_deploy.py` hits `/health`, `/operator/health-panel`,
+`/operator/readiness`, and `/operator/integrations`. The integrations check fails if
+the JSON body contains forbidden secret substrings (`sk_test_`, `sk_live_`, `shpat_`,
+`whsec_`, `Bearer `) — configured integrations must stay metadata-only.
+
+Both verifiers run in CI and in `python scripts/local_ci.py --full`.
 
 Healthy: `health.status == "ok"`. Review `preflight.blockers` before any live
 execution. If `MARKETMIND_API_TOKEN` is set, add

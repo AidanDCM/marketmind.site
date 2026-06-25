@@ -2,6 +2,17 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 14: Docs drift hardening (rotation 2)
+
+### Hardening: deploy-verify doc parity + stale inventory guards
+
+- **`docs_contract.py`** — stale pytest/Vitest inventory lists, `DEPLOYMENT_DOC_PATH`.
+- **`test_docs_drift_hardening.py`** — 7 tests: verify endpoints in DEPLOYMENT/testing manual,
+  integrations secret-leak docs, Phase B rotation 2, no stale 512/567 counts in operator docs.
+- **`DEPLOYMENT.md`**, **`MARKETMIND_TESTING_AND_EVIDENCE.md`**, **`OWNER_MANUAL.md`** — integrations verify.
+
+---
+
 ## 2026-06-24 — Phase B pass 13: Deploy/CI hardening (rotation 2)
 
 ### Hardening: deploy verify integrations + CI workflow contract

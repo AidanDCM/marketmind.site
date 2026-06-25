@@ -10,7 +10,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 # Minimum suite sizes — tests fail if collection/file count drops below these.
-MIN_PYTEST_CASES = 578
+MIN_PYTEST_CASES = 585
 MIN_VITEST_FILES = 28
 
 # Env var names used in code / .env.example (not stale doc aliases).
@@ -30,3 +30,9 @@ OPERATOR_DOC_PATHS = (
     "AGENTS.md",
     "SLICE_WORKFLOW.md",
 )
+
+DEPLOYMENT_DOC_PATH = "docs/DEPLOYMENT.md"
+
+# Stale inventory counts — must not reappear in active operator docs (archive logs OK).
+STALE_PYTEST_INVENTORY = ("465", "512", "556", "567")
+STALE_VITEST_INVENTORY = ("13 desktop Vitest", "27 desktop Vitest")
