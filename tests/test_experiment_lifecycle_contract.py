@@ -1,4 +1,4 @@
-"""Phase B pass 25 (rotation 4): experiment lifecycle contract parity and deeper coverage."""
+"""Phase B pass 32 (rotation 5): experiment lifecycle contract parity and deeper coverage."""
 
 from __future__ import annotations
 
@@ -21,9 +21,13 @@ from marketmind.experiment_lifecycle_contract import (
     ACTIVE_CHECKLIST_NOT_READY_LABEL,
     ACTIVE_CHECKLIST_READY_LABEL,
     ACTIVE_END_BUTTON,
+    ACTIVE_EXPERIMENT_ENTRY_KEYS,
     ACTIVE_LESSONS_HEADER,
     ACTIVE_LOCAL_STORAGE_KEYS,
+    ACTIVE_NOTES_ADD_BUTTON,
+    ACTIVE_NOTES_EMPTY_LABEL,
     ACTIVE_NOTES_HEADER,
+    ACTIVE_NOTES_PLACEHOLDER,
     ACTIVE_REACTIVATE_BUTTON,
     ACTIVE_STATUS_FILTERS,
     ATC_RISK_SUFFIX,
@@ -34,16 +38,21 @@ from marketmind.experiment_lifecycle_contract import (
     DESKTOP_DAILY_REPORT_NAVIGATION_PATH,
     DESKTOP_EXPERIMENT_ATTENTION_PATH,
     EVALUATE_API_PATH,
+    EXPERIMENT_NOT_FOUND_DETAIL,
+    EXPERIMENTS_ROUTER_PATH,
     LIFECYCLE_API_PATHS,
     LIFECYCLE_EXPERIMENT_DETAIL_SUFFIXES,
     LOW_ROAS_LESSON_MARKER,
     NO_EXPERIMENTS_RECOMMENDATION,
     NO_ORDERS_LESSON_PREFIX,
+    NOTE_EMPTY_BODY_DETAIL,
     PAST_LESSON_PREFIX,
     PENDING_APPROVALS_LESSON_PATTERN,
+    PORTFOLIO_RESPONSE_KEYS,
     POSITIVE_CONTRIBUTION_PREFIX,
     REFUND_RISK_SUFFIX,
     ROAS_SCALE_LESSON_PHRASE,
+    STATUS_PATCH_INVALID_FRAGMENT,
     VALID_EXPERIMENT_STATUSES,
     ZERO_ORDER_SPEND_RISK,
     experiment_detail_path,
@@ -237,19 +246,15 @@ def test_desktop_client_documents_lifecycle_experiment_api_paths():
 
 
 def test_experiments_router_documents_detail_suffixes():
-    source = (REPO_ROOT / "marketmind/api/routers/experiments.py").read_text(
-        encoding="utf-8"
-    )
+    source = (REPO_ROOT / EXPERIMENTS_ROUTER_PATH).read_text(encoding="utf-8")
     for suffix in LIFECYCLE_EXPERIMENT_DETAIL_SUFFIXES:
         assert suffix in source
-    assert "VALID_EXPERIMENT_STATUSES" not in source
+    assert STATUS_PATCH_INVALID_FRAGMENT in source
+    assert NOTE_EMPTY_BODY_DETAIL in source
+    assert EXPERIMENT_NOT_FOUND_DETAIL in source
+    assert "Returns an empty list for unknown experiments" in source
     for status in VALID_EXPERIMENT_STATUSES:
         assert status in source
-
-
-def test_experiment_detail_path_formatter_matches_router_pattern():
-    path = experiment_detail_path("exp-42", "checklist")
-    assert path == "/experiment/exp-42/checklist"
 
 
 def test_patch_status_422_for_invalid_status(lifecycle_client, lifecycle_engine):
@@ -259,14 +264,7 @@ def test_patch_status_422_for_invalid_status(lifecycle_client, lifecycle_engine)
         json={"status": "paused"},
     )
     assert resp.status_code == 422
-
-
-def test_patch_status_404_for_unknown_experiment(lifecycle_client):
-    resp = lifecycle_client.patch(
-        experiment_detail_path("missing-exp", "status"),
-        json={"status": "ended"},
-    )
-    assert resp.status_code == 404
+    assert STATUS_PATCH_INVALID_FRAGMENT in resp.json()["detail"]
 
 
 def test_add_note_empty_body_returns_422(lifecycle_client, lifecycle_engine):
@@ -276,6 +274,93 @@ def test_add_note_empty_body_returns_422(lifecycle_client, lifecycle_engine):
         json={"body": "   "},
     )
     assert resp.status_code == 422
+    assert NOTE_EMPTY_BODY_DETAIL in resp.json()["detail"]
+
+
+def test_add_note_unknown_experiment_returns_404(lifecycle_client):
+    resp = lifecycle_client.post(
+        experiment_detail_path("missing-exp", "notes"),
+        json={"body": "hello"},
+    )
+    assert resp.status_code == 404
+    assert EXPERIMENT_NOT_FOUND_DETAIL in resp.json()["detail"]
+
+
+def test_notes_get_unknown_experiment_returns_empty_list(lifecycle_client):
+    resp = lifecycle_client.get(experiment_detail_path("missing-exp", "notes"))
+    assert resp.status_code == 200
+    assert resp.json() == []
+
+
+def test_mistakes_unknown_experiment_returns_404(lifecycle_client):
+    resp = lifecycle_client.get(experiment_detail_path("missing-exp", "mistakes"))
+    assert resp.status_code == 404
+    assert EXPERIMENT_NOT_FOUND_DETAIL in resp.json()["detail"]
+
+
+def test_portfolio_response_includes_contract_keys(lifecycle_client):
+    data = lifecycle_client.get("/experiment/portfolio").json()
+    for key in PORTFOLIO_RESPONSE_KEYS:
+        assert key in data
+
+
+def test_active_list_entry_includes_contract_keys(lifecycle_client, lifecycle_engine):
+    _seed_experiment(lifecycle_engine, "exp_active_keys")
+    rows = lifecycle_client.get("/experiment/active").json()
+    assert len(rows) == 1
+    for key in ACTIVE_EXPERIMENT_ENTRY_KEYS:
+        assert key in rows[0]
+
+
+def test_patch_status_active_to_ended_updates_ended_at(lifecycle_client, lifecycle_engine):
+    _seed_experiment(lifecycle_engine, "exp_status_rt")
+    resp = lifecycle_client.patch(
+        experiment_detail_path("exp_status_rt", "status"),
+        json={"status": "ended"},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "ended"
+    assert data["ended_at"] is not None
+
+
+def test_desktop_client_documents_lifecycle_patch_and_note_functions():
+    text = (REPO_ROOT / DESKTOP_API_CLIENT_PATH).read_text(encoding="utf-8")
+    assert "patchExperimentStatus" in text
+    assert "addExperimentNote" in text
+    assert "getExperimentNotes" in text
+    assert "fetchExperimentChecklist" in text
+    assert "fetchExperimentMistakes" in text
+
+
+def test_active_experiments_component_documents_notes_section_labels():
+    text = (REPO_ROOT / DESKTOP_ACTIVE_EXPERIMENTS_COMPONENT_PATH).read_text(
+        encoding="utf-8"
+    )
+    assert ACTIVE_NOTES_PLACEHOLDER in text
+    assert ACTIVE_NOTES_ADD_BUTTON in text
+    assert ACTIVE_NOTES_EMPTY_LABEL in text
+    assert "addExperimentNote" in text
+    assert "getExperimentNotes" in text
+
+
+def test_evaluate_endpoint_rejects_missing_body_422(lifecycle_client):
+    resp = lifecycle_client.post(EVALUATE_API_PATH, json={})
+    assert resp.status_code == 422
+
+
+def test_experiment_detail_path_formatter_matches_router_pattern():
+    path = experiment_detail_path("exp-42", "checklist")
+    assert path == "/experiment/exp-42/checklist"
+
+
+def test_patch_status_404_for_unknown_experiment(lifecycle_client):
+    resp = lifecycle_client.patch(
+        experiment_detail_path("missing-exp", "status"),
+        json={"status": "ended"},
+    )
+    assert resp.status_code == 404
+    assert EXPERIMENT_NOT_FOUND_DETAIL in resp.json()["detail"]
 
 
 @pytest.mark.parametrize(

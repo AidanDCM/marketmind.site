@@ -110,9 +110,9 @@ New API endpoints added by the integration:
 
 - **Active owner:** Aidan
 - **Active maintainer:** Aidan / Codex agents
-- **Current phase:** Hardening — Phase B pass 31 complete (overview navigation r5); rotation 5 — see `SLICE_WORKFLOW.md`
+- **Current phase:** Hardening — Phase B pass 32 complete (experiment lifecycle r5); rotation 5 — see `SLICE_WORKFLOW.md`
 - **Last reviewed:** 2026-06-24
-- **Test inventory:** ~894 pytest + 29 desktop Vitest files; `tests/test_docs_drift_contract.py` + `tests/test_overview_navigation_contract.py` guard parity
+- **Test inventory:** ~903 pytest + 29 desktop Vitest files; `tests/test_docs_drift_contract.py` + `tests/test_experiment_lifecycle_contract.py` guard parity
 - **Known blockers:** None
 
 ---

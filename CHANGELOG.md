@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 32: Experiment lifecycle hardening (rotation 5)
+
+### Hardening: status/note 404 edges, portfolio keys, notes UI wiring
+
+- **`experiment_lifecycle_contract.py`** — router path, validation fragments, portfolio/active entry keys, notes UI labels.
+- **`test_experiment_lifecycle_contract.py`** — +9 tests: 404/422 edges, portfolio keys, status round-trip, notes empty-list behavior.
+- **`ActiveExperiments.test.tsx`** — +1 test: Add note calls `addExperimentNote`.
+
+---
+
 ## 2026-06-24 — Phase B pass 31: Overview navigation hardening (rotation 5)
 
 ### Hardening: trend as_of ISO 422, days max edge, daily-report date query, health-panel snapshots
