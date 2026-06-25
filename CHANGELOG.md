@@ -2,6 +2,17 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 18: Experiment lifecycle hardening (rotation 3)
+
+### Hardening: lifecycle API contract + report suffix matrix + ActiveExperiments checklist
+
+- **`experiment_lifecycle_contract.py`** — API paths, pending-lesson formatter, lesson regex pattern.
+- **`test_experiment_lifecycle_contract.py`** — 11 tests: refund/ATC suffixes, API smoke, evaluate kill, attention rulings.
+- **`reports.py`** — pending lesson uses `format_pending_approvals_lesson`.
+- **`ActiveExperiments.test.tsx`** — +3 tests: scale attention filter, checklist, mistakes sections.
+
+---
+
 ## 2026-06-24 — Phase B pass 17: Overview navigation hardening (rotation 3)
 
 ### Hardening: overview_navigation_contract + parent-level metric/recommendation links
