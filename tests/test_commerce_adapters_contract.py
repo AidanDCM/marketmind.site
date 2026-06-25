@@ -1,4 +1,4 @@
-"""Phase B pass 26 (rotation 4): commerce adapters contract parity and deeper coverage."""
+"""Phase B pass 33 (rotation 5): commerce adapters contract parity and deeper coverage."""
 
 from __future__ import annotations
 
@@ -15,20 +15,25 @@ from marketmind.commerce_adapters_contract import (
     CHECK_COMMERCE_CONFIG_CLI,
     COMMERCE_ACTION_ALIASES,
     COMMERCE_AD_IMPORT_API_PATHS,
+    COMMERCE_AD_SUMMARY_HAS_DATA_KEY,
     COMMERCE_API_EXECUTE_PATHS,
     COMMERCE_API_READ_PATHS,
     COMMERCE_DRY_RUN_FLAGS,
     COMMERCE_HANDLER_ACTIONS,
     COMMERCE_IMPORT_API_PATHS,
+    COMMERCE_IMPORT_BATCH_NOT_FOUND_DETAIL,
     COMMERCE_IMPORT_EMPTY_CSV_DETAIL,
     COMMERCE_IMPORT_HISTORY_API_PATHS,
     COMMERCE_IMPORTS_ROUTER_PATH,
+    COMMERCE_INTEGRATIONS_MODULE_PATH,
     COMMERCE_LIVE_WRITES_FLAG,
+    COMMERCE_READINESS_COMMERCE_KEY,
     COMMERCE_SOURCE_API_PATHS,
     COMMERCE_SOURCES_ROUTER_PATH,
     DESKTOP_API_CLIENT_PATH,
     DESKTOP_LIVE_DATA_COMPONENT_PATH,
     GMAIL_INTEGRATION_KEYS,
+    IMPORT_HISTORY_SOURCE_QUERY,
     INTEGRATIONS_LIVE_WRITES_KEY,
     INTEGRATIONS_SECRET_LEAK_MARKERS,
     LIVE_DATA_CREDENTIALS_409_HINT,
@@ -36,6 +41,7 @@ from marketmind.commerce_adapters_contract import (
     LIVE_DATA_PAGE_TITLE,
     LIVE_DATA_PULL_BUTTON,
     LIVE_DATA_SHOPIFY_ORDERS_LABEL,
+    LIVE_DATA_SHOPIFY_PRODUCTS_LABEL,
     LIVE_DATA_STRIPE_SOURCE_LABEL,
     SECRET_MASK_VECTORS,
     SHOPIFY_INTEGRATION_KEYS,
@@ -293,6 +299,69 @@ def test_imports_router_documents_contract_import_paths():
     ):
         suffix = path.removeprefix("/imports")
         assert suffix in source
+    assert COMMERCE_IMPORT_BATCH_NOT_FOUND_DETAIL in source
+    assert COMMERCE_IMPORT_EMPTY_CSV_DETAIL in source
+
+
+def test_import_batch_unknown_returns_404_with_contract_detail(commerce_contract_client):
+    resp = commerce_contract_client.get("/imports/99999")
+    assert resp.status_code == 404
+    assert COMMERCE_IMPORT_BATCH_NOT_FOUND_DETAIL in resp.json()["detail"]
+
+
+def test_desktop_client_documents_get_import_batch_and_source_query():
+    text = (REPO_ROOT / DESKTOP_API_CLIENT_PATH).read_text(encoding="utf-8")
+    assert "getImportBatch" in text
+    assert f"?{IMPORT_HISTORY_SOURCE_QUERY}=" in text
+    assert "pullAndSaveShopifyOrders" in text
+    assert "pullAndSaveShopifyProducts" in text
+
+
+def test_readiness_commerce_payload_uses_integration_keys(
+    commerce_contract_client, monkeypatch,
+):
+    monkeypatch.setenv("STRIPE_API_KEY", _STRIPE_KEY)
+    monkeypatch.setenv("SHOPIFY_STORE_DOMAIN", "demo.myshopify.com")
+    monkeypatch.setenv("SHOPIFY_ACCESS_TOKEN", _SHOPIFY_TOKEN)
+    commerce = commerce_contract_client.get("/operator/readiness").json()[
+        COMMERCE_READINESS_COMMERCE_KEY
+    ]
+    assert set(commerce["stripe"]) == set(STRIPE_INTEGRATION_KEYS)
+    assert set(commerce["shopify"]) == set(SHOPIFY_INTEGRATION_KEYS)
+    _assert_no_secrets(json.dumps(commerce))
+
+
+def test_import_pull_shopify_products_safe_fails_without_credentials(
+    commerce_contract_client,
+):
+    resp = commerce_contract_client.post("/imports/pull/shopify/products")
+    assert resp.status_code == 409
+    _assert_no_secrets(resp.text)
+
+
+def test_commerce_integrations_module_documents_canonical_env_names():
+    source = (REPO_ROOT / COMMERCE_INTEGRATIONS_MODULE_PATH).read_text(encoding="utf-8")
+    assert "CANONICAL_STRIPE_ENV_NAMES" in source
+    assert "CANONICAL_SHOPIFY_DOMAIN" in source
+    assert "CANONICAL_SHOPIFY_TOKEN_NAMES" in source
+
+
+def test_live_data_component_documents_shopify_products_label():
+    text = (REPO_ROOT / DESKTOP_LIVE_DATA_COMPONENT_PATH).read_text(encoding="utf-8")
+    assert LIVE_DATA_SHOPIFY_PRODUCTS_LABEL in text
+    assert "importAdCsv" in text
+
+
+def test_import_history_accepts_source_query_param(commerce_contract_client):
+    resp = commerce_contract_client.get("/imports?source=stripe_charges")
+    assert resp.status_code == 200
+    assert resp.json() == []
+
+
+def test_import_history_list_returns_200_on_empty_db(commerce_contract_client):
+    resp = commerce_contract_client.get("/imports")
+    assert resp.status_code == 200
+    assert resp.json() == []
 
 
 @pytest.mark.parametrize(
@@ -324,14 +393,8 @@ def test_ad_csv_empty_body_returns_422(commerce_contract_client):
 
 def test_ad_spend_summary_empty_db_returns_has_data_false(commerce_contract_client):
     data = commerce_contract_client.get("/imports/ads/summary").json()
-    assert data["has_data"] is False
+    assert data[COMMERCE_AD_SUMMARY_HAS_DATA_KEY] is False
     assert data["summary"] is None
-
-
-def test_import_history_list_returns_200_on_empty_db(commerce_contract_client):
-    resp = commerce_contract_client.get("/imports")
-    assert resp.status_code == 200
-    assert resp.json() == []
 
 
 def test_live_data_component_documents_source_labels_and_pull_ui():
@@ -341,6 +404,7 @@ def test_live_data_component_documents_source_labels_and_pull_ui():
     assert LIVE_DATA_IMPORT_CSV_BUTTON in text
     assert LIVE_DATA_STRIPE_SOURCE_LABEL in text
     assert LIVE_DATA_SHOPIFY_ORDERS_LABEL in text
+    assert LIVE_DATA_SHOPIFY_PRODUCTS_LABEL in text
     assert LIVE_DATA_CREDENTIALS_409_HINT in text
 
 

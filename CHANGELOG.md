@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 33: Commerce adapters hardening (rotation 5)
+
+### Hardening: import batch 404, readiness commerce keys, Shopify products pull, ad CSV wiring
+
+- **`commerce_adapters_contract.py`** — batch-not-found detail, readiness commerce key, Shopify products label, source query.
+- **`test_commerce_adapters_contract.py`** — +7 tests: 404/409 edges, client parity, readiness commerce keys.
+- **`LiveData.test.tsx`** — +1 test: Import CSV calls `importAdCsv`.
+
+---
+
 ## 2026-06-24 — Phase B pass 32: Experiment lifecycle hardening (rotation 5)
 
 ### Hardening: status/note 404 edges, portfolio keys, notes UI wiring
