@@ -546,4 +546,13 @@ describe("Overview navigation wiring", () => {
     fireEvent.click(links[links.length - 1]);
     expect(onOpenActiveList).toHaveBeenCalled();
   });
+
+  it("opens snapshots from health panel View snapshots through Overview", async () => {
+    mockOverviewData({});
+    const onOpenSnapshots = vi.fn();
+    await renderOverview({ onOpenSnapshots });
+
+    fireEvent.click(screen.getByRole("button", { name: "View snapshots" }));
+    expect(onOpenSnapshots).toHaveBeenCalledWith("2026-06-23");
+  });
 });

@@ -625,3 +625,15 @@ Append-only evidence. Do not edit past entries.
   - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pytest -q --tb=short` — ok (33.4s)
 - Failure output: none
 - Follow-up: none
+## 2026-06-25T09:55:11Z
+- Branch: harden/phase-b-overview-navigation-r5
+- Commit: a5fe6f51de3bc98456fabaf940b3a4fcfa04d42a
+- Environment: marketmind-local-ci, Python 3.14.5
+- Result: PASS
+- Commands:
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pip install --upgrade pip` — ok (7.6s)
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pip install -e .[dev]` — ok (25.6s)
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m ruff check .` — ok (0.5s)
+  - `C:\Users\Aidan\AppData\Local\Python\pythoncore-3.14-64\python.exe -m pytest -q --tb=short` — ok (39.8s)
+- Failure output: none
+- Follow-up: none
