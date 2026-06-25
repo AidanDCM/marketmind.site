@@ -102,4 +102,43 @@ describe("ApprovalQueue gate UI", () => {
     expect(within(card as HTMLElement).queryByRole("button", { name: "Deny" })).toBeNull();
     expect(within(card as HTMLElement).queryByRole("button", { name: "Execute (dry-run)" })).toBeNull();
   });
+
+  it("renders all approval filter options from preferences contract", async () => {
+    await renderQueue([]);
+    for (const label of ["pending", "all", "approved", "denied", "blocked", "auto allowed"]) {
+      expect(screen.getByRole("button", { name: label })).toBeInTheDocument();
+    }
+  });
+
+  it("surfaces already_executed reason after repeat dry-run execute", async () => {
+    vi.mocked(executeApproved)
+      .mockResolvedValueOnce({
+        approval_id: "apr-approved",
+        action: "scale_campaign",
+        executed: true,
+        dry_run: true,
+        reason: "",
+        detail: { kind: "scale_campaign" },
+      })
+      .mockResolvedValueOnce({
+        approval_id: "apr-approved",
+        action: "scale_campaign",
+        executed: false,
+        dry_run: true,
+        reason: "already_executed",
+        detail: {},
+      });
+    await renderQueue([approvedRec]);
+    const card = screen.getByText("Approved scale request").closest(".approval-card")!;
+    fireEvent.click(within(card as HTMLElement).getByText("Approved scale request"));
+    const executeBtn = within(card as HTMLElement).getByRole("button", { name: "Execute (dry-run)" });
+    fireEvent.click(executeBtn);
+    await waitFor(() => {
+      expect(screen.getByText(/Executed \(dry-run\)/)).toBeInTheDocument();
+    });
+    fireEvent.click(executeBtn);
+    await waitFor(() => {
+      expect(screen.getByText(/Not executed: already_executed/)).toBeInTheDocument();
+    });
+  });
 });
