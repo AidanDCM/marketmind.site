@@ -2,6 +2,14 @@
 
 ---
 
+## 2026-06-24 — Slice 118: Trend attention empty link
+
+### Slice 118: Jump from empty attention-only trends to Active Experiments
+
+- **`OverviewTrendEmptyState`** — when attention filter shows no rows, **View all experiments** opens Active Experiments.
+
+---
+
 ## 2026-06-24 — Slice 117: Conversion zero-order link
 
 ### Slice 117: Jump from zero-order conversion to Active Experiments
