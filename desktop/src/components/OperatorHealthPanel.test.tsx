@@ -213,7 +213,7 @@ describe("OperatorHealthPanelView", () => {
   });
 
   it("links experiment ruling blockers in preflight list to experiment details", () => {
-    const onOpenActive = vi.fn();
+    const onOpenExperiment = vi.fn();
     const health: OperatorHealthPanel = {
       ...baseHealth,
       preflight: {
@@ -226,10 +226,10 @@ describe("OperatorHealthPanelView", () => {
       },
     };
     render(
-      <OperatorHealthPanelView health={health} onOpenActive={onOpenActive} />,
+      <OperatorHealthPanelView health={health} onOpenExperiment={onOpenExperiment} />,
     );
     fireEvent.click(screen.getByRole("button", { name: "View experiment" }));
-    expect(onOpenActive).toHaveBeenCalledWith("exp-kill");
+    expect(onOpenExperiment).toHaveBeenCalledWith("exp-kill");
   });
 
   it("links integration warnings to Live Data", () => {
