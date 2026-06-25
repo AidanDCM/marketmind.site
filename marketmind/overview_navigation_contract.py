@@ -17,6 +17,9 @@ OVERVIEW_FETCH_API_PATHS: tuple[str, ...] = (
 )
 
 OVERVIEW_RUN_CYCLE_PATH = "/operator/run-cycle"
+OVERVIEW_PENDING_APPROVALS_PATH = "/approvals/pending"
+OVERVIEW_RUN_CYCLE_DATE_QUERY = "date"
+OVERVIEW_RUN_CYCLE_EMPTY_DATE_DETAIL = "date must not be empty when provided"
 
 OVERVIEW_LOCAL_STORAGE_KEYS: tuple[str, ...] = (
     "marketmind_attention_only",
@@ -46,7 +49,9 @@ DAILY_REPORT_DATE_QUERY = "date"
 
 TREND_AS_OF_EMPTY_DETAIL = "as_of must not be empty when provided"
 TREND_AS_OF_ISO_DETAIL = "as_of must be an ISO date"
+TREND_DAYS_MIN_FRAGMENT = "days must be at least 1"
 TREND_DAYS_MAX_FRAGMENT = "days must be at most 90"
+TREND_ATTENTION_ONLY_QUERY = "attention_only"
 
 TREND_SUMMARY_RESPONSE_KEYS: tuple[str, ...] = (
     "days",
@@ -55,13 +60,24 @@ TREND_SUMMARY_RESPONSE_KEYS: tuple[str, ...] = (
     "experiments",
 )
 
+DAILY_REPORT_RESPONSE_DATE_KEY = "date"
+DAILY_REPORT_RESPONSE_KEYS: tuple[str, ...] = (
+    "date",
+    "metrics",
+    "pending_approvals",
+    "recommendations",
+    "risks",
+    "lessons",
+)
+
 OVERVIEW_PAGE_TITLE = "Overview"
 OVERVIEW_ATTENTION_EMPTY_BUTTON = "View all experiments"
+OVERVIEW_TREND_EMPTY_STATE_ATTENTION_PREFIX = "No active experiments need attention for"
 
 OVERVIEW_TREND_QUERY_PARAMS: tuple[str, ...] = (
     "days",
     "as_of",
-    "attention_only",
+    TREND_ATTENTION_ONLY_QUERY,
 )
 
 TREND_LOOKBACK_LABEL = "Lookback"
@@ -73,6 +89,8 @@ SNAPSHOT_STALE_RECORD_BUTTON = "Record"
 __all__ = [
     "DAILY_REPORT_API_PATH",
     "DAILY_REPORT_DATE_QUERY",
+    "DAILY_REPORT_RESPONSE_DATE_KEY",
+    "DAILY_REPORT_RESPONSE_KEYS",
     "DEFAULT_LOOKBACK_DAYS",
     "DESKTOP_API_CLIENT_PATH",
     "DESKTOP_LOOKBACK_OPTIONS_PATH",
@@ -88,8 +106,12 @@ __all__ = [
     "OVERVIEW_FETCH_API_PATHS",
     "OVERVIEW_LOCAL_STORAGE_KEYS",
     "OVERVIEW_PAGE_TITLE",
+    "OVERVIEW_PENDING_APPROVALS_PATH",
+    "OVERVIEW_RUN_CYCLE_DATE_QUERY",
+    "OVERVIEW_RUN_CYCLE_EMPTY_DATE_DETAIL",
     "OVERVIEW_RUN_CYCLE_PATH",
     "OVERVIEW_SNAPSHOTS_HEADER_BUTTON",
+    "OVERVIEW_TREND_EMPTY_STATE_ATTENTION_PREFIX",
     "OVERVIEW_TREND_QUERY_PARAMS",
     "OVERVIEW_TREND_SUMMARY_API_PATH",
     "REPORTS_ROUTER_PATH",
@@ -98,7 +120,9 @@ __all__ = [
     "TREND_AS_OF_EMPTY_DETAIL",
     "TREND_AS_OF_ISO_DETAIL",
     "TREND_ATTENTION_ONLY_LABEL",
+    "TREND_ATTENTION_ONLY_QUERY",
     "TREND_DAYS_MAX_FRAGMENT",
+    "TREND_DAYS_MIN_FRAGMENT",
     "TREND_LOOKBACK_LABEL",
     "TREND_SUMMARY_RESPONSE_KEYS",
 ]

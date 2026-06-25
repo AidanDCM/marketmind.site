@@ -1,4 +1,4 @@
-"""Phase B pass 31 (rotation 5): Overview navigation contract parity and deeper coverage."""
+"""Phase B pass 38 (rotation 6): Overview navigation contract parity and deeper coverage."""
 
 from __future__ import annotations
 
@@ -14,6 +14,8 @@ from marketmind.docs_contract import REPO_ROOT
 from marketmind.overview_navigation_contract import (
     DAILY_REPORT_API_PATH,
     DAILY_REPORT_DATE_QUERY,
+    DAILY_REPORT_RESPONSE_DATE_KEY,
+    DAILY_REPORT_RESPONSE_KEYS,
     DEFAULT_LOOKBACK_DAYS,
     DESKTOP_API_CLIENT_PATH,
     DESKTOP_LOOKBACK_OPTIONS_PATH,
@@ -28,16 +30,23 @@ from marketmind.overview_navigation_contract import (
     OVERVIEW_FETCH_API_PATHS,
     OVERVIEW_LOCAL_STORAGE_KEYS,
     OVERVIEW_PAGE_TITLE,
+    OVERVIEW_PENDING_APPROVALS_PATH,
+    OVERVIEW_RUN_CYCLE_DATE_QUERY,
+    OVERVIEW_RUN_CYCLE_EMPTY_DATE_DETAIL,
     OVERVIEW_RUN_CYCLE_PATH,
     OVERVIEW_SNAPSHOTS_HEADER_BUTTON,
+    OVERVIEW_TREND_EMPTY_STATE_ATTENTION_PREFIX,
     OVERVIEW_TREND_QUERY_PARAMS,
     OVERVIEW_TREND_SUMMARY_API_PATH,
+    REPORTS_ROUTER_PATH,
     SCALE_APPROVAL_PHRASE,
     SNAPSHOT_STALE_RECORD_BUTTON,
     TREND_AS_OF_EMPTY_DETAIL,
     TREND_AS_OF_ISO_DETAIL,
     TREND_ATTENTION_ONLY_LABEL,
+    TREND_ATTENTION_ONLY_QUERY,
     TREND_DAYS_MAX_FRAGMENT,
+    TREND_DAYS_MIN_FRAGMENT,
     TREND_LOOKBACK_LABEL,
     TREND_SUMMARY_RESPONSE_KEYS,
 )
@@ -222,6 +231,7 @@ def test_overview_daily_cycle_module_passes_attention_only_through_fetch():
 def test_trend_summary_invalid_days_returns_422(overview_client):
     resp = overview_client.get(f"{OVERVIEW_TREND_SUMMARY_API_PATH}?days=0")
     assert resp.status_code == 422
+    assert TREND_DAYS_MIN_FRAGMENT in resp.json()["detail"]
 
 
 def test_trend_summary_empty_as_of_returns_422(overview_client):
@@ -233,6 +243,70 @@ def test_trend_summary_empty_as_of_returns_422(overview_client):
 def test_run_cycle_empty_date_returns_422(overview_client):
     resp = overview_client.post(f"{OVERVIEW_RUN_CYCLE_PATH}?date=")
     assert resp.status_code == 422
+    assert OVERVIEW_RUN_CYCLE_EMPTY_DATE_DETAIL in resp.json()["detail"]
+
+
+def test_reports_router_documents_daily_date_query():
+    source = (REPO_ROOT / REPORTS_ROUTER_PATH).read_text(encoding="utf-8")
+    assert DAILY_REPORT_API_PATH.removeprefix("/report") in source or "/daily" in source
+    assert DAILY_REPORT_DATE_QUERY in source
+
+
+def test_daily_report_date_query_scopes_response_date(overview_client):
+    path = f"{DAILY_REPORT_API_PATH}?{DAILY_REPORT_DATE_QUERY}=2026-06-18"
+    data = overview_client.get(path).json()
+    for key in DAILY_REPORT_RESPONSE_KEYS:
+        assert key in data
+    assert data[DAILY_REPORT_RESPONSE_DATE_KEY] == "2026-06-18"
+
+
+def test_trend_summary_default_days_when_omitted(overview_client):
+    data = overview_client.get(f"{OVERVIEW_TREND_SUMMARY_API_PATH}?as_of=2026-06-23").json()
+    assert data["days"] == DEFAULT_LOOKBACK_DAYS
+
+
+def test_desktop_client_documents_attention_only_and_pending_paths():
+    text = (REPO_ROOT / DESKTOP_API_CLIENT_PATH).read_text(encoding="utf-8")
+    assert TREND_ATTENTION_ONLY_QUERY in text
+    assert OVERVIEW_PENDING_APPROVALS_PATH in text
+    assert "fetchPendingApprovals" in text
+
+
+def test_trend_summary_needs_attention_count_zero_on_empty_db(overview_client):
+    data = overview_client.get(
+        f"{OVERVIEW_TREND_SUMMARY_API_PATH}?days={DEFAULT_LOOKBACK_DAYS}&as_of=2026-06-23"
+    ).json()
+    assert data["needs_attention_count"] == 0
+    assert data["experiments"] == []
+
+
+def test_overview_preferences_exports_trend_day_options_alias():
+    text = (REPO_ROOT / DESKTOP_OVERVIEW_PREFERENCES_PATH).read_text(encoding="utf-8")
+    assert "TREND_DAY_OPTIONS" in text
+    assert "LOOKBACK_DAY_OPTIONS" in text
+
+
+def test_overview_trend_empty_state_documents_attention_prefix():
+    text = (REPO_ROOT / DESKTOP_OVERVIEW_TREND_EMPTY_STATE_PATH).read_text(
+        encoding="utf-8"
+    )
+    assert OVERVIEW_TREND_EMPTY_STATE_ATTENTION_PREFIX in text
+    assert OVERVIEW_ATTENTION_EMPTY_BUTTON in text
+
+
+def test_overview_component_documents_pending_approvals_fetch():
+    text = (REPO_ROOT / DESKTOP_OVERVIEW_COMPONENT_PATH).read_text(encoding="utf-8")
+    assert "fetchPendingApprovals" in text
+    assert OVERVIEW_PENDING_APPROVALS_PATH in (REPO_ROOT / DESKTOP_API_CLIENT_PATH).read_text(
+        encoding="utf-8"
+    )
+
+
+def test_run_cycle_router_documents_empty_date_guard():
+    source = (REPO_ROOT / "marketmind/api/routers/operator.py").read_text(encoding="utf-8")
+    run_cycle_section = source.split('@router.post("/run-cycle")', 1)[1]
+    assert OVERVIEW_RUN_CYCLE_EMPTY_DATE_DETAIL in run_cycle_section.split("@router.", 1)[0]
+    assert OVERVIEW_RUN_CYCLE_DATE_QUERY in run_cycle_section
 
 
 @pytest.mark.parametrize("days", LOOKBACK_DAY_OPTIONS)

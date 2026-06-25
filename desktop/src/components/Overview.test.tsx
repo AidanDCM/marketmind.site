@@ -413,6 +413,17 @@ describe("Overview navigation wiring", () => {
     });
   });
 
+  it("refetches trend summary when attention-only is toggled", async () => {
+    mockOverviewData({});
+    await renderOverview({});
+
+    fireEvent.click(screen.getByLabelText("Attention only"));
+
+    await waitFor(() => {
+      expect(fetchExperimentTrendSummary).toHaveBeenLastCalledWith(14, "2026-06-23", true);
+    });
+  });
+
   it("shows attention-only empty trend state and opens active list", async () => {
     mockOverviewData({});
     vi.mocked(fetchExperimentTrendSummary).mockImplementation(

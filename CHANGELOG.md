@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 38: Overview navigation hardening (rotation 6)
+
+### Hardening: trend min-days fragment, daily report keys, attention-only refetch Vitest
+
+- **`overview_navigation_contract.py`** — min-days fragment, daily report keys, pending path, empty-state prefix.
+- **`test_overview_navigation_contract.py`** — +8 tests: daily report date scope, default days, attention_only client parity.
+- **`Overview.test.tsx`** — +1 test: attention-only toggle refetches trend with `attentionOnly=true`.
+
+---
+
 ## 2026-06-24 — Phase B pass 37: Operator health hardening (rotation 6)
 
 ### Hardening: snapshot-gaps empty date 422, run-cycle edges, CLI pending blocker
