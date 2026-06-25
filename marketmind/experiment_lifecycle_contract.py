@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 NO_EXPERIMENTS_RECOMMENDATION = (
     "No experiments active today. Pick a product candidate to test."
 )
@@ -21,5 +23,45 @@ ATC_RISK_SUFFIX = " — creative or price needs revision."
 
 ATTENTION_RULINGS = frozenset({"kill", "pause_ads", "scale_requires_approval"})
 
+LIFECYCLE_API_PATHS: tuple[str, ...] = (
+    "/experiment/active",
+    "/experiment/trend-summary",
+    "/experiment/portfolio",
+    "/report/daily",
+)
+
+EVALUATE_API_PATH = "/experiment/evaluate"
+
 DESKTOP_DAILY_REPORT_NAVIGATION_PATH = "desktop/src/dailyReportNavigation.ts"
 DESKTOP_EXPERIMENT_ATTENTION_PATH = "desktop/src/experimentAttention.ts"
+DESKTOP_ACTIVE_EXPERIMENTS_TEST_PATH = "desktop/src/components/ActiveExperiments.test.tsx"
+
+PENDING_APPROVALS_LESSON_PATTERN = re.compile(
+    r"^(\d+) approval\(s\) pending — unblocking these may unlock next steps\.$"
+)
+
+
+def format_pending_approvals_lesson(count: int) -> str:
+    return f"{count} approval(s) pending — unblocking these may unlock next steps."
+
+
+__all__ = [
+    "ATC_RISK_SUFFIX",
+    "ATTENTION_RULINGS",
+    "DESKTOP_ACTIVE_EXPERIMENTS_TEST_PATH",
+    "DESKTOP_DAILY_REPORT_NAVIGATION_PATH",
+    "DESKTOP_EXPERIMENT_ATTENTION_PATH",
+    "EVALUATE_API_PATH",
+    "LIFECYCLE_API_PATHS",
+    "LOW_ROAS_LESSON_MARKER",
+    "NO_EXPERIMENTS_RECOMMENDATION",
+    "NO_ORDERS_LESSON_PREFIX",
+    "PAST_LESSON_PREFIX",
+    "PENDING_APPROVALS_LESSON_PATTERN",
+    "POSITIVE_CONTRIBUTION_PREFIX",
+    "REFUND_RISK_SUFFIX",
+    "ROAS_SCALE_LESSON_PHRASE",
+    "SCALE_APPROVAL_PHRASE",
+    "ZERO_ORDER_SPEND_RISK",
+    "format_pending_approvals_lesson",
+]

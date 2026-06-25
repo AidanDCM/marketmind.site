@@ -28,6 +28,8 @@ vi.mock("./activeExperimentsPreferences", () => ({
 import {
   listActiveExperiments,
   patchExperimentStatus,
+  fetchExperimentChecklist,
+  fetchExperimentMistakes,
 } from "../api/client";
 
 const baseExp = (overrides: Partial<ActiveExperiment> = {}): ActiveExperiment => ({
@@ -158,5 +160,69 @@ describe("ActiveExperiments lifecycle wiring", () => {
     await waitFor(() => {
       expect(screen.getByText(/No experiments need attention/i)).toBeInTheDocument();
     });
+  });
+
+  it("includes scale_requires_approval in attention filter", async () => {
+    await renderActive([
+      baseExp(),
+      baseExp({
+        experiment_id: "exp-scale",
+        ruling: "scale_requires_approval",
+        actual_cac: 20,
+      }),
+    ]);
+
+    fireEvent.click(screen.getByLabelText("Needs attention"));
+
+    await waitFor(() => {
+      expect(screen.getByText("exp-scale")).toBeInTheDocument();
+      expect(screen.queryByText("exp-ok")).toBeNull();
+    });
+  });
+
+  it("loads scale-readiness checklist when card is focused", async () => {
+    vi.mocked(fetchExperimentChecklist).mockResolvedValue({
+      ready: false,
+      blockers: ["Need more visits"],
+      items: [
+        {
+          item_id: "visits",
+          description: "Minimum qualified visits",
+          passed: false,
+          evidence: "50 / 100",
+        },
+      ],
+    });
+    await renderActive([baseExp()], { focusExperimentId: "exp-ok" });
+
+    await waitFor(() => {
+      expect(screen.getByText("Scale-readiness checklist")).toBeInTheDocument();
+      expect(screen.getByText("Not ready")).toBeInTheDocument();
+      expect(screen.getByText("Minimum qualified visits")).toBeInTheDocument();
+    });
+    expect(fetchExperimentChecklist).toHaveBeenCalledWith("exp-ok");
+  });
+
+  it("loads mistake tracker when card is focused", async () => {
+    vi.mocked(fetchExperimentMistakes).mockResolvedValue({
+      recorded: [
+        {
+          mistake_id: "m1",
+          category: "scale_too_early",
+          summary: "Scaled before checklist passed",
+          lesson: "Wait for visits threshold",
+          tags: ["scale"],
+          created_at: "2026-06-01T00:00:00Z",
+        },
+      ],
+      suggested: [],
+    });
+    await renderActive([baseExp()], { focusExperimentId: "exp-ok" });
+
+    await waitFor(() => {
+      expect(screen.getByText("Lessons learned")).toBeInTheDocument();
+      expect(screen.getByText("Scaled before checklist passed")).toBeInTheDocument();
+    });
+    expect(fetchExperimentMistakes).toHaveBeenCalledWith("exp-ok");
   });
 });

@@ -23,6 +23,7 @@ from .experiment_lifecycle_contract import (
     ROAS_SCALE_LESSON_PHRASE,
     SCALE_APPROVAL_PHRASE,
     ZERO_ORDER_SPEND_RISK,
+    format_pending_approvals_lesson,
 )
 from .rules import KILL_ATC_RATE, KILL_REFUND_RATE, SCALE_MAX_CAC_FACTOR, SCALE_MIN_ORDERS
 from .schemas import (
@@ -143,9 +144,7 @@ def _derive_lessons(
 
     pending = [r for r in pending_approvals if r.status == ApprovalStatus.PENDING]
     if pending:
-        lessons.append(
-            f"{len(pending)} approval(s) pending — unblocking these may unlock next steps."
-        )
+        lessons.append(format_pending_approvals_lesson(len(pending)))
 
     for mistake_lesson in recent_mistakes or []:
         lessons.append(f"{PAST_LESSON_PREFIX}{mistake_lesson}")
