@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from .approval_gate_contract import EXECUTOR_HANDLER_ACTIONS
+from .deploy_ci_contract import INTEGRATIONS_SECRET_LEAK_MARKERS
 from .docs_contract import (
     CANONICAL_SHOPIFY_DOMAIN,
     CANONICAL_SHOPIFY_TOKEN_NAMES,
@@ -27,10 +29,65 @@ COMMERCE_ACTION_ALIASES: dict[str, str] = {
     "increase_ad_budget": "scale_ad_spend",
 }
 
+# Executor handlers that touch Stripe/Shopify/Gmail (subset of approval-gate handlers).
+COMMERCE_HANDLER_ACTIONS: frozenset[str] = EXECUTOR_HANDLER_ACTIONS
+
+COMMERCE_API_READ_PATHS: tuple[str, ...] = (
+    "/operator/integrations",
+    "/operator/readiness",
+)
+
+COMMERCE_API_EXECUTE_PATHS: tuple[str, ...] = (
+    "/execute/{approval_id}",
+    "/execute/log",
+)
+
+COMMERCE_SOURCE_API_PATHS: tuple[str, ...] = (
+    "/sources/stripe/orders",
+    "/sources/shopify/orders",
+    "/sources/shopify/products",
+)
+
+COMMERCE_IMPORT_API_PATHS: tuple[str, ...] = (
+    "/imports/pull/stripe/orders",
+    "/imports/pull/shopify/orders",
+    "/imports/pull/shopify/products",
+)
+
+CHECK_COMMERCE_CONFIG_CLI = "scripts/check_commerce_config.py"
+
+DESKTOP_API_CLIENT_PATH = "desktop/src/api/client.ts"
+
+COMMERCE_DRY_RUN_FLAGS: tuple[str, ...] = (
+    "MARKETMIND_STRIPE_DRY_RUN",
+    "MARKETMIND_SHOPIFY_READ_ONLY",
+)
+
+COMMERCE_LIVE_WRITES_FLAG = "MARKETMIND_ENABLE_LIVE_WRITES"
+
+GMAIL_INTEGRATION_KEYS: tuple[str, ...] = (
+    "enabled",
+    "wired",
+    "dry_run",
+    "live_ready",
+    "mode",
+)
+
 __all__ = [
     "CANONICAL_SHOPIFY_DOMAIN",
     "CANONICAL_SHOPIFY_TOKEN_NAMES",
     "CANONICAL_STRIPE_ENV_NAMES",
+    "CHECK_COMMERCE_CONFIG_CLI",
     "COMMERCE_ACTION_ALIASES",
+    "COMMERCE_API_EXECUTE_PATHS",
+    "COMMERCE_API_READ_PATHS",
+    "COMMERCE_DRY_RUN_FLAGS",
+    "COMMERCE_HANDLER_ACTIONS",
+    "COMMERCE_IMPORT_API_PATHS",
+    "COMMERCE_LIVE_WRITES_FLAG",
+    "COMMERCE_SOURCE_API_PATHS",
+    "DESKTOP_API_CLIENT_PATH",
+    "GMAIL_INTEGRATION_KEYS",
+    "INTEGRATIONS_SECRET_LEAK_MARKERS",
     "SECRET_MASK_VECTORS",
 ]
