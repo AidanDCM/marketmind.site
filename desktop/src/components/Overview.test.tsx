@@ -36,6 +36,7 @@ import {
   fetchOperatorHealthPanel,
   fetchOperatorReadiness,
   fetchExperimentTrendSummary,
+  runOperatorDailyCycle,
 } from "../api/client";
 
 const baseHealth: OperatorHealthPanel = {
@@ -153,7 +154,11 @@ async function renderOverview(handlers: Partial<{
   onOpenAttention: () => void;
   onOpenSnapshots: (snapshotDate: string, experimentId?: string) => void;
   onOpenActiveList: () => void;
+  onOpenLessons: () => void;
+  onOpenImportHistory: () => void;
+  onOpenLiveData: () => void;
   onOpenScoreProduct: () => void;
+  onCycleComplete: () => void;
 }>) {
   render(
     <Overview
@@ -163,7 +168,11 @@ async function renderOverview(handlers: Partial<{
       onOpenAttention={handlers.onOpenAttention ?? vi.fn()}
       onOpenSnapshots={handlers.onOpenSnapshots ?? vi.fn()}
       onOpenActiveList={handlers.onOpenActiveList}
+      onOpenLessons={handlers.onOpenLessons}
+      onOpenImportHistory={handlers.onOpenImportHistory}
+      onOpenLiveData={handlers.onOpenLiveData}
       onOpenScoreProduct={handlers.onOpenScoreProduct}
+      onCycleComplete={handlers.onCycleComplete}
     />,
   );
   await waitFor(() => {
@@ -179,6 +188,8 @@ describe("Overview navigation wiring", () => {
     vi.mocked(fetchOperatorHealthPanel).mockReset();
     vi.mocked(fetchOperatorReadiness).mockReset();
     vi.mocked(fetchExperimentTrendSummary).mockReset();
+    vi.mocked(runOperatorDailyCycle).mockReset();
+    vi.mocked(runOperatorDailyCycle).mockResolvedValue({});
   });
 
   it("opens snapshots from header button with selected date", async () => {
@@ -254,5 +265,152 @@ describe("Overview navigation wiring", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Score a product" }));
     expect(onOpenScoreProduct).toHaveBeenCalledOnce();
+  });
+
+  it("runs daily cycle and refreshes overview data", async () => {
+    mockOverviewData({});
+    const onCycleComplete = vi.fn();
+    await renderOverview({ onCycleComplete });
+
+    fireEvent.click(screen.getByRole("button", { name: "Run cycle now" }));
+
+    await waitFor(() => {
+      expect(runOperatorDailyCycle).toHaveBeenCalledWith("2026-06-23");
+      expect(onCycleComplete).toHaveBeenCalledOnce();
+    });
+  });
+
+  it("opens approval queue from readiness banner with first pending id", async () => {
+    mockOverviewData({
+      pending: [
+        {
+          approval_id: "ap-ready",
+          action: "pause_ads",
+          risk_level: "medium",
+          status: "pending",
+          summary: "Pause ads",
+          expected_cost: 0,
+          rollback_plan: "Resume",
+          reason: "CAC high",
+        },
+      ],
+    });
+    vi.mocked(fetchOperatorReadiness).mockResolvedValue({
+      ...baseReadiness,
+      ready: false,
+      blockers: ["2 pending approval(s) have not been reviewed"],
+    });
+    const onOpenApprovals = vi.fn();
+    await renderOverview({ onOpenApprovals });
+
+    fireEvent.click(screen.getByRole("button", { name: "Open queue" }));
+    expect(onOpenApprovals).toHaveBeenCalledWith("ap-ready");
+  });
+
+  it("opens lessons library from health panel through Overview", async () => {
+    mockOverviewData({});
+    const onOpenLessons = vi.fn();
+    await renderOverview({ onOpenLessons });
+
+    fireEvent.click(screen.getByTitle("Open Lessons library"));
+    expect(onOpenLessons).toHaveBeenCalledOnce();
+  });
+
+  it("opens import history from primary metrics through Overview", async () => {
+    mockOverviewData({});
+    const onOpenImportHistory = vi.fn();
+    await renderOverview({ onOpenImportHistory });
+
+    fireEvent.click(screen.getByTitle("Open Import History"));
+    expect(onOpenImportHistory).toHaveBeenCalledOnce();
+  });
+
+  it("opens experiment from daily report risk through Overview", async () => {
+    mockOverviewData({
+      report: {
+        date: "2026-06-23",
+        metrics: baseMetrics,
+        pending_approvals: [],
+        risks: ["Widget: CAC $60.00 above break-even $50.00."],
+        recommendations: [],
+        lessons: [],
+      },
+    });
+    const onOpenActive = vi.fn();
+    await renderOverview({ onOpenActive });
+
+    fireEvent.click(screen.getByRole("button", { name: "View experiment" }));
+    expect(onOpenActive).toHaveBeenCalledWith("exp-trend");
+  });
+
+  it("opens lessons library from daily report card through Overview", async () => {
+    mockOverviewData({
+      report: {
+        date: "2026-06-23",
+        metrics: baseMetrics,
+        pending_approvals: [],
+        risks: [],
+        recommendations: [],
+        lessons: ["Pause ads when CAC exceeds break-even for 3 days"],
+      },
+    });
+    const onOpenLessons = vi.fn();
+    await renderOverview({ onOpenLessons });
+
+    fireEvent.click(screen.getByRole("button", { name: "View library" }));
+    expect(onOpenLessons).toHaveBeenCalledOnce();
+  });
+
+  it("refetches overview data when the date changes", async () => {
+    mockOverviewData({});
+    await renderOverview({});
+
+    fireEvent.change(screen.getByDisplayValue("2026-06-23"), {
+      target: { value: "2026-06-20" },
+    });
+
+    await waitFor(() => {
+      expect(fetchDailyReport).toHaveBeenLastCalledWith("2026-06-20");
+      expect(fetchOperatorHealthPanel).toHaveBeenLastCalledWith("2026-06-20");
+      expect(fetchExperimentTrendSummary).toHaveBeenLastCalledWith(14, "2026-06-20", false);
+    });
+  });
+
+  it("refetches trend summary when lookback changes", async () => {
+    mockOverviewData({});
+    await renderOverview({});
+
+    fireEvent.change(screen.getByLabelText(/Lookback/i), { target: { value: "30" } });
+
+    await waitFor(() => {
+      expect(fetchExperimentTrendSummary).toHaveBeenLastCalledWith(30, "2026-06-23", false);
+    });
+  });
+
+  it("shows attention-only empty trend state and opens active list", async () => {
+    mockOverviewData({});
+    vi.mocked(fetchExperimentTrendSummary).mockImplementation(
+      async (_days, _date, attentionOnly) => {
+        if (attentionOnly) {
+          return {
+            days: 14,
+            as_of: "2026-06-23",
+            needs_attention_count: 0,
+            experiments: [],
+          };
+        }
+        return baseTrend;
+      },
+    );
+    const onOpenActiveList = vi.fn();
+    await renderOverview({ onOpenActiveList });
+
+    fireEvent.click(screen.getByLabelText("Attention only"));
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "View all experiments" })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole("button", { name: "View all experiments" }));
+    expect(onOpenActiveList).toHaveBeenCalledOnce();
   });
 });
