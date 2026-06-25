@@ -14,6 +14,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from .commerce_adapters_contract import COMMERCE_ACTION_ALIASES as _ACTION_ALIASES
+
 # Actions that require an ApprovalRow with status=APPROVED before execution.
 # Any attempt to execute these in dry_run=False without approval is rejected.
 HIGH_RISK_ACTIONS: frozenset[str] = frozenset({
@@ -57,14 +59,7 @@ BLOCKED_ACTIONS: frozenset[str] = frozenset({
     "delete_operator_log",
 })
 
-# Map approval-queue action names to commerce-policy action names.
-_ACTION_ALIASES: dict[str, str] = {
-    "create_stripe_payment_link": "send_payment_link",
-    "publish_shopify_product": "publish_product_page",
-    "scale_campaign": "scale_ad_spend",
-    "launch_paid_ad_campaign": "launch_ad_campaign",
-    "increase_ad_budget": "scale_ad_spend",
-}
+# Map approval-queue action names to commerce-policy action names via contract.
 
 
 def normalize_commerce_action(action: str) -> str:

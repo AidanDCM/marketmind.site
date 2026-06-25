@@ -4,22 +4,28 @@ from __future__ import annotations
 
 import os
 
+from .commerce_adapters_contract import (
+    CANONICAL_SHOPIFY_DOMAIN,
+    CANONICAL_SHOPIFY_TOKEN_NAMES,
+    CANONICAL_STRIPE_ENV_NAMES,
+)
 from .gmail_config import _env_flag
 
 
 def _stripe_configured() -> bool:
-    for name in ("STRIPE_API_KEY", "STRIPE_RESTRICTED_KEY"):
+    for name in CANONICAL_STRIPE_ENV_NAMES:
         if os.environ.get(name, "").strip():
             return True
     return False
 
 
 def _shopify_configured() -> bool:
-    domain = os.environ.get("SHOPIFY_STORE_DOMAIN", "").strip()
-    token = (
-        os.environ.get("SHOPIFY_ACCESS_TOKEN", "").strip()
-        or os.environ.get("SHOPIFY_ADMIN_ACCESS_TOKEN", "").strip()
-    )
+    domain = os.environ.get(CANONICAL_SHOPIFY_DOMAIN, "").strip()
+    token = ""
+    for name in CANONICAL_SHOPIFY_TOKEN_NAMES:
+        token = os.environ.get(name, "").strip()
+        if token:
+            break
     return bool(domain and token)
 
 
