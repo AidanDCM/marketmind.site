@@ -58,7 +58,7 @@ Research niche
 | Run tests | `python -m pytest -q` | All passing | Check ruff errors first; then read the failing test |
 | Run local CI gate | `python scripts/local_ci.py` | Exit 0; appends `reports/local_ci/TEST_LOG.md` | Fix ruff/pytest failures first |
 | Full deploy smoke (API running) | `python scripts/local_ci.py --full` | Deploy verify + operator readiness API checks | Start uvicorn; set `MARKETMIND_API_BASE` |
-| Verify deployed API | `python scripts/verify_marketmind_deploy.py` | Exit 0; health + health-panel + readiness | API must be running at `MARKETMIND_API_BASE` |
+| Verify deployed API | `python scripts/verify_marketmind_deploy.py` | Exit 0; health, health-panel, readiness, integrations (no secret substrings) | API must be running at `MARKETMIND_API_BASE` |
 | Deploy API (Docker) | `.\scripts\deploy_marketmind.ps1` from repo root | Health returns `ok`; preflight reachable | See `docs/DEPLOYMENT.md`; check `docker compose logs api` |
 | Roll back API | `.\scripts\rollback_marketmind.ps1` then checkout prior SHA + redeploy | Previous version running | Volumes kept by default — DB survives stop |
 
