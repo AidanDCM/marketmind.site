@@ -179,3 +179,16 @@ def test_negative_visits_is_invalid():
 def test_missing_experiment_id_is_invalid():
     with pytest.raises(ValueError, match="experiment_id is required"):
         _snap(experiment_id="  ")
+
+
+def test_kill_ruling_takes_priority_over_pause():
+    result = evaluate_experiment(_snap(
+        consecutive_losing_periods=3,
+        qualified_visits=200,
+        orders=1,
+        total_ad_spend=40.0,
+        add_to_cart_count=12,
+    ))
+    assert result.ruling == ExperimentRuling.KILL
+    assert "cac_above_break_even" in result.risks
+    assert "cac_above_break_even_multiple_periods" in result.risks

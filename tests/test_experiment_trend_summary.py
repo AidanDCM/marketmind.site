@@ -136,3 +136,69 @@ def test_trend_summary_attention_only_filter(engine):
     )
     assert len(summary["experiments"]) == 1
     assert summary["experiments"][0]["experiment_id"] == "exp_hot"
+
+
+def test_trend_summary_cac_direction_down(engine):
+    _add_exp(engine, "exp_trend_down")
+    _add_snap(engine, "exp_trend_down", "2026-06-10", orders=10, ad_spend=100.0)
+    _add_snap(engine, "exp_trend_down", "2026-06-12", orders=10, ad_spend=50.0)
+
+    summary = build_experiment_trend_summary(engine, days=90, as_of_date="2026-06-12")
+    row = summary["experiments"][0]
+    assert row["cac_direction"] == "down"
+    assert row["latest_cac"] == pytest.approx(5.0)
+    assert row["prior_cac"] == pytest.approx(10.0)
+
+
+def test_trend_summary_cac_direction_flat(engine):
+    _add_exp(engine, "exp_trend_flat")
+    _add_snap(engine, "exp_trend_flat", "2026-06-10", orders=10, ad_spend=100.0)
+    _add_snap(engine, "exp_trend_flat", "2026-06-12", orders=10, ad_spend=100.0)
+
+    summary = build_experiment_trend_summary(engine, days=90, as_of_date="2026-06-12")
+    assert summary["experiments"][0]["cac_direction"] == "flat"
+
+
+def test_trend_summary_active_without_snapshots(engine):
+    _add_exp(engine, "exp_no_snaps")
+
+    summary = build_experiment_trend_summary(engine, days=14, as_of_date="2026-06-12")
+    row = summary["experiments"][0]
+    assert row["latest_cac"] is None
+    assert row["cac_direction"] == "unknown"
+    assert row["snapshot_count"] == 0
+    assert row["needs_attention"] is False
+
+
+def test_trend_summary_scale_ruling_needs_attention(engine):
+    with Session(engine) as session:
+        session.add(
+            ExperimentRow(
+                experiment_id="exp_scale",
+                product_name="Kit",
+                break_even_cac=25.50,
+                status="active",
+            )
+        )
+        session.add(
+            ExperimentSnapshotRow(
+                experiment_id="exp_scale",
+                snapshot_date="2026-06-12",
+                qualified_visits=500,
+                orders=15,
+                total_ad_spend=195.0,
+                total_revenue=900.0,
+                refund_count=1,
+                actual_shipping_cost=8.0,
+                planned_shipping_cost=8.0,
+                add_to_cart_count=40,
+                consecutive_losing_periods=0,
+                budget_cap=200.0,
+            )
+        )
+        session.commit()
+
+    summary = build_experiment_trend_summary(engine, days=90, as_of_date="2026-06-12")
+    row = summary["experiments"][0]
+    assert row["ruling"] == "scale_requires_approval"
+    assert row["needs_attention"] is True
