@@ -36,7 +36,7 @@ each turn tests deeply, improves gaps, or rebuilds broken parts — see
 
 ## Testing discipline (non-negotiable)
 
-- **935+** backend pytest cases and **29+** desktop Vitest files — every behavior
+- **944+** backend pytest cases and **29+** desktop Vitest files — every behavior
   change adds a regression test naming the failure it prevents.
 - Doc/code parity is enforced by `marketmind/docs_contract.py` and
   `tests/test_docs_drift*.py` (suite counts, env names, rotation contract tables).

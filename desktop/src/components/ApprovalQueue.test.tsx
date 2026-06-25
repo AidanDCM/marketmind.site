@@ -10,7 +10,7 @@ vi.mock("../api/client", () => ({
   executeApproved: vi.fn(),
 }));
 
-import { fetchApprovals, executeApproved, approveRecord } from "../api/client";
+import { fetchApprovals, executeApproved, approveRecord, denyRecord } from "../api/client";
 
 const pendingRec: ApprovalRecord = {
   approval_id: "apr-pending",
@@ -43,9 +43,24 @@ describe("ApprovalQueue gate UI", () => {
     vi.mocked(fetchApprovals).mockReset();
     vi.mocked(executeApproved).mockReset();
     vi.mocked(approveRecord).mockReset();
+    vi.mocked(denyRecord).mockReset();
     vi.mocked(approveRecord).mockResolvedValue({
       ...pendingRec,
       status: "approved",
+    });
+    vi.mocked(denyRecord).mockResolvedValue({
+      ...pendingRec,
+      status: "denied",
+    });
+  });
+
+  it("denies pending record when Deny is clicked", async () => {
+    await renderQueue([pendingRec]);
+    const card = screen.getByText("Scale Interior Kit ads").closest(".approval-card")!;
+    fireEvent.click(within(card as HTMLElement).getByText("Scale Interior Kit ads"));
+    fireEvent.click(within(card as HTMLElement).getByRole("button", { name: "Deny" }));
+    await waitFor(() => {
+      expect(denyRecord).toHaveBeenCalledWith("apr-pending", "");
     });
   });
 
