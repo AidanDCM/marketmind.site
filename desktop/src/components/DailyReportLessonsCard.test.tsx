@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, within } from "@testing-library/react";
 import { DailyReportLessonsCard } from "./DailyReportLessonsCard";
 
 describe("DailyReportLessonsCard", () => {
@@ -53,7 +53,8 @@ describe("DailyReportLessonsCard", () => {
         onOpenLessons={onOpenLessons}
       />,
     );
-    fireEvent.click(screen.getByRole("button", { name: "View library" }));
+    const lessonRow = screen.getByText(/Past lesson:/).closest(".list-item")!;
+    fireEvent.click(within(lessonRow as HTMLElement).getByRole("button", { name: "View library" }));
     expect(onOpenLessons).toHaveBeenCalledOnce();
   });
 });

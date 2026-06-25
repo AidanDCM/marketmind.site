@@ -1,4 +1,4 @@
-import type { DailyMetrics } from "../api/client";
+import type { DailyMetrics } from "./api/client";
 
 /** Matches Overview metric-down styling for refund rate. */
 export const REFUND_RATE_ELEVATED = 0.05;

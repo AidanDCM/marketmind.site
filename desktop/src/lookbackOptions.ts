@@ -1,4 +1,4 @@
-"""Shared lookback day options for Overview and Trend pages."""
+// Shared lookback day options for Overview and Trend pages.
 
 export const LOOKBACK_DAY_OPTIONS = [7, 14, 30, 60, 90] as const;
 

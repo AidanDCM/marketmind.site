@@ -3,7 +3,7 @@ import {
   LOOKBACK_DAY_OPTIONS,
   DEFAULT_LOOKBACK_DAYS,
   isLookbackDayOption,
-} from "../lookbackOptions";
+} from "./lookbackOptions";
 
 describe("lookbackOptions", () => {
   it("includes 60 and 90 day windows", () => {
