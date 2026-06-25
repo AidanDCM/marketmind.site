@@ -2,6 +2,17 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 19: Commerce adapters hardening (rotation 3)
+
+### Hardening: commerce_adapters_contract API paths + deploy leak-marker parity
+
+- **`commerce_adapters_contract.py`** — handler actions, read/execute/source/import API paths,
+  deploy leak markers, Gmail integration keys, CLI path.
+- **`test_commerce_adapters_contract.py`** — 20 tests: mask parity with deploy markers,
+  handler/policy matrix, integrations secret-free, Shopify execute/log API, sources 409.
+
+---
+
 ## 2026-06-24 — Phase B pass 18: Experiment lifecycle hardening (rotation 3)
 
 ### Hardening: lifecycle API contract + report suffix matrix + ActiveExperiments checklist
