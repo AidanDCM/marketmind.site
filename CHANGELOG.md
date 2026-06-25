@@ -2,6 +2,17 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 15: Approval gate hardening (rotation 3)
+
+### Hardening: approval_gate_contract SSOT + full action-set matrix
+
+- **`approval_gate_contract.py`** — BLOCKED/HIGH_RISK/AUTO_ALLOWED sets, handler names, refusal fragments.
+- **`commerce_approval_policy.py`** — imports action sets from contract; `complete` status alias.
+- **`test_approval_gate_contract.py`** — 45 tests: disjoint sets, HIGH_RISK/AUTO/BLOCKED matrix, API/executor parity.
+- **`ApprovalQueue.test.tsx`** — blocked records hide approve/deny/execute.
+
+---
+
 ## 2026-06-24 — Phase B pass 14: Docs drift hardening (rotation 2)
 
 ### Hardening: deploy-verify doc parity + stale inventory guards
