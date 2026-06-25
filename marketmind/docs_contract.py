@@ -10,7 +10,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 # Minimum suite sizes — tests fail if collection/file count drops below these.
-MIN_PYTEST_CASES = 910
+MIN_PYTEST_CASES = 917
 MIN_VITEST_FILES = 29
 
 # Env var names used in code / .env.example (not stale doc aliases).
@@ -123,14 +123,15 @@ PHASE_B_ROTATION_4_CONTRACTS: tuple[tuple[str, str, str], ...] = (
 PHASE_B_ROTATION_4_PASS_START = 22
 PHASE_B_ROTATION_4_PASS_END = 28
 
-CURRENT_HARDENING_PASS = 33
-CURRENT_HARDENING_PHASE_LABEL = "commerce adapters r5"
+CURRENT_HARDENING_PASS = 34
+CURRENT_HARDENING_PHASE_LABEL = "deploy/CI r5"
 
 PHASE_B_ROTATION_4_ENGINEERING_LOG_SUFFIX = "-r4.md"
 
 # Stale inventory counts — must not reappear in active operator docs (archive logs OK).
 STALE_PYTEST_INVENTORY = (
     "465", "512", "556", "567", "585", "630", "644", "656", "667",
-    "687", "708", "728", "757", "770", "784", "819", "837", "860", "874", "884", "894", "903",
+    "687", "708", "728", "757", "770", "784", "819", "837", "860",
+    "874", "884", "894", "903", "910",
 )
 STALE_VITEST_INVENTORY = ("13 desktop Vitest", "27 desktop Vitest", "28 desktop Vitest")

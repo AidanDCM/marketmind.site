@@ -1,4 +1,4 @@
-"""Phase B pass 27 (rotation 4): deploy/CI contract parity and deeper coverage."""
+"""Phase B pass 34 (rotation 5): deploy/CI contract parity and deeper coverage."""
 
 from __future__ import annotations
 
@@ -15,6 +15,7 @@ from marketmind.deploy_ci_contract import (
     CHECK_OPERATOR_READINESS_API_FLAG,
     CI_API_HOST,
     CI_API_PORT,
+    CI_BACKEND_JOB_NAME,
     CI_BACKEND_JOBS,
     CI_BACKEND_PYTEST_COMMAND,
     CI_BACKEND_RUFF_COMMAND,
@@ -22,23 +23,29 @@ from marketmind.deploy_ci_contract import (
     CI_DEPLOY_VERIFY_ENDPOINTS,
     CI_DEPLOY_VERIFY_JOB_NAME,
     CI_DEPLOY_VERIFY_SCRIPTS,
+    CI_FRONTEND_JOB_NAME,
     CI_FRONTEND_STEP_COMMANDS,
     CI_HEALTH_PATH,
     CI_HEALTH_WAIT_MAX_ATTEMPTS,
     CI_NODE_VERSION,
     CI_PYTHON_VERSION,
+    CI_UVICORN_APP_TARGET,
     CI_WORKFLOW_REL_PATH,
     DEPLOY_HEALTH_FETCH_FAILURE_PREFIX,
     DEPLOY_HEALTH_STATUS_FAILURE_PREFIX,
+    DEPLOY_INTEGRATIONS_FETCH_FAILURE_PREFIX,
     DEPLOY_INTEGRATIONS_LEAK_FAILURE_PREFIX,
     DEPLOY_PANEL_FETCH_FAILURE_PREFIX,
     DEPLOY_PREFLIGHT_BLOCKER_PREFIX,
     DEPLOY_READINESS_BLOCKER_PREFIX,
+    DEPLOY_READINESS_FETCH_FAILURE_PREFIX,
     DEPLOY_READINESS_NOT_READY_FAILURE,
     DEPLOY_VERIFY_DEFAULT_API_BASE,
     DEPLOY_VERIFY_ENV_VARS,
+    DEPLOY_VERIFY_MODULE_PATH,
     DEPLOY_VERIFY_SUCCESS_LINE,
     FULL_CI_EXTRA_STEP_NAMES,
+    HEALTH_RESPONSE_KEYS,
     HEALTH_STATUS_OK,
     INTEGRATIONS_SECRET_LEAK_MARKERS,
     LOCAL_CI_BACKEND_STEP_NAMES,
@@ -135,11 +142,84 @@ def test_ci_workflow_python_version_matches_contract():
 
 
 def test_deploy_failure_constants_used_by_verify_module():
-    source = (REPO_ROOT / "marketmind" / "deploy_verify.py").read_text(encoding="utf-8")
+    source = (REPO_ROOT / DEPLOY_VERIFY_MODULE_PATH).read_text(encoding="utf-8")
     assert "HEALTH_STATUS_OK" in source
     assert "DEPLOY_READINESS_NOT_READY_FAILURE" in source
     assert "DEPLOY_VERIFY_SUCCESS_LINE" in source
     assert "format_integrations_leak_failure" in source
+    assert DEPLOY_READINESS_FETCH_FAILURE_PREFIX.strip(":") in source
+    assert DEPLOY_INTEGRATIONS_FETCH_FAILURE_PREFIX.strip(":") in source
+
+
+def test_health_endpoint_returns_contract_keys(deploy_contract_client):
+    data = deploy_contract_client.get(CI_HEALTH_PATH).json()
+    for key in HEALTH_RESPONSE_KEYS:
+        assert key in data
+    assert data["status"] == HEALTH_STATUS_OK
+
+
+def test_verify_fails_on_readiness_fetch_error():
+    def fetch(url: str, token: str | None) -> dict:
+        del token
+        if url.endswith(CI_HEALTH_PATH):
+            return {"status": HEALTH_STATUS_OK, "version": "0.1.0"}
+        if url.endswith("/operator/health-panel"):
+            return _panel_payload()
+        raise TimeoutError("readiness timeout")
+
+    result = verify_marketmind_deploy("http://127.0.0.1:8000", fetch=fetch)
+    assert result.ok is False
+    assert any(
+        item.startswith(DEPLOY_READINESS_FETCH_FAILURE_PREFIX)
+        for item in result.failures
+    )
+
+
+def test_verify_fails_on_integrations_fetch_error():
+    def fetch(url: str, token: str | None) -> dict:
+        del token
+        if url.endswith(CI_HEALTH_PATH):
+            return {"status": HEALTH_STATUS_OK, "version": "0.1.0"}
+        if url.endswith("/operator/health-panel"):
+            return _panel_payload()
+        if url.endswith("/operator/readiness"):
+            return {"ready": True, "blockers": []}
+        raise TimeoutError("integrations timeout")
+
+    result = verify_marketmind_deploy("http://127.0.0.1:8000", fetch=fetch)
+    assert result.ok is False
+    assert any(
+        item.startswith(DEPLOY_INTEGRATIONS_FETCH_FAILURE_PREFIX)
+        for item in result.failures
+    )
+
+
+def test_local_ci_script_documents_test_log_rel_path():
+    source = (REPO_ROOT / LOCAL_CI_SCRIPT).read_text(encoding="utf-8")
+    assert "TEST_LOG.md" in source
+    assert "reports" in source and "local_ci" in source
+    assert "format_test_log_entry" in source
+
+
+def test_verify_script_documents_exit_codes_and_verify_call():
+    source = (REPO_ROOT / CI_DEPLOY_VERIFY_SCRIPTS[0]).read_text(encoding="utf-8")
+    assert "verify_marketmind_deploy" in source
+    assert "return 0 if result.ok else 1" in source
+
+
+def test_ci_workflow_runs_deploy_verify_scripts_with_api_base():
+    workflow = (REPO_ROOT / CI_WORKFLOW_REL_PATH).read_text(encoding="utf-8")
+    assert CI_DEPLOY_VERIFY_SCRIPTS[0] in workflow
+    assert CI_DEPLOY_VERIFY_SCRIPTS[1] in workflow
+    assert f"MARKETMIND_API_BASE=http://{CI_API_HOST}:{CI_API_PORT}" in workflow
+    assert CHECK_OPERATOR_READINESS_API_FLAG in workflow
+
+
+def test_ci_workflow_documents_job_names_and_uvicorn_target():
+    workflow = (REPO_ROOT / CI_WORKFLOW_REL_PATH).read_text(encoding="utf-8")
+    assert CI_BACKEND_JOB_NAME in workflow
+    assert CI_FRONTEND_JOB_NAME in workflow
+    assert CI_UVICORN_APP_TARGET in workflow
 
 
 def test_commerce_contract_reexports_deploy_leak_markers():
