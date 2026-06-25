@@ -180,6 +180,30 @@ describe("ActiveExperiments lifecycle wiring", () => {
     });
   });
 
+  it("reactivates an ended experiment from the expanded card", async () => {
+    vi.mocked(patchExperimentStatus).mockResolvedValue({
+      experiment_id: "exp-ended",
+      status: "active",
+      ended_at: null,
+    });
+    await renderActive(
+      [
+        baseExp({
+          experiment_id: "exp-ended",
+          status: "ended",
+          ended_at: "2026-06-10T00:00:00Z",
+        }),
+      ],
+      { focusExperimentId: "exp-ended" },
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Reactivate" }));
+
+    await waitFor(() => {
+      expect(patchExperimentStatus).toHaveBeenCalledWith("exp-ended", "active");
+    });
+  });
+
   it("loads scale-readiness checklist when card is focused", async () => {
     vi.mocked(fetchExperimentChecklist).mockResolvedValue({
       ready: false,

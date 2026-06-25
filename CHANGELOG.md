@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 25: Experiment lifecycle hardening (rotation 4)
+
+### Hardening: per-experiment API paths + ActiveExperiments UI parity + status/note 422 edges
+
+- **`experiment_lifecycle_contract.py`** — detail suffixes, status filters, UI labels, preference keys.
+- **`test_experiment_lifecycle_contract.py`** — +16 tests: client/router parity, 404/422 edges, note round-trip.
+- **`ActiveExperiments.test.tsx`** — +1 test: reactivate ended experiment.
+
+---
+
 ## 2026-06-24 — Phase B pass 24: Overview navigation hardening (rotation 4)
 
 ### Hardening: trend query params + lookback validation + health-panel attention link
