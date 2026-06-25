@@ -1,4 +1,4 @@
-"""Phase B pass 28 (rotation 4): docs drift contract parity and deeper coverage."""
+"""Phase B pass 35 (rotation 5): docs drift contract parity and deeper coverage."""
 
 from __future__ import annotations
 
@@ -21,6 +21,10 @@ from marketmind.docs_contract import (
     PHASE_B_ROTATION_4_ENGINEERING_LOG_SUFFIX,
     PHASE_B_ROTATION_4_PASS_END,
     PHASE_B_ROTATION_4_PASS_START,
+    PHASE_B_ROTATION_5_CONTRACTS,
+    PHASE_B_ROTATION_5_ENGINEERING_LOG_SUFFIX,
+    PHASE_B_ROTATION_5_PASS_END,
+    PHASE_B_ROTATION_5_PASS_START,
     REPO_ROOT,
     STALE_PYTEST_INVENTORY,
 )
@@ -197,3 +201,68 @@ def test_operator_inventory_docs_cite_current_vitest_minimum(rel: str):
         or f"{MIN_VITEST_FILES}+" in text
         or f"~{MIN_VITEST_FILES}" in text
     )
+
+
+@pytest.mark.parametrize(
+    ("theme", "contract_path", "test_path"),
+    PHASE_B_ROTATION_5_CONTRACTS,
+    ids=[theme for theme, _, _ in PHASE_B_ROTATION_5_CONTRACTS],
+)
+def test_rotation_5_contract_files_exist_on_disk(
+    theme: str, contract_path: str, test_path: str,
+):
+    assert (REPO_ROOT / contract_path).is_file(), contract_path
+    assert (REPO_ROOT / test_path).is_file(), test_path
+    assert theme in contract_path
+    assert theme.replace("_", "") in test_path.replace("_", "")
+
+
+def test_rotation_5_contract_count_matches_pass_range():
+    pass_count = PHASE_B_ROTATION_5_PASS_END - PHASE_B_ROTATION_5_PASS_START + 1
+    assert len(PHASE_B_ROTATION_5_CONTRACTS) == pass_count - 1
+
+
+def test_testing_manual_documents_rotation_5_pass_range():
+    text = _read("docs/dev_manual/MARKETMIND_TESTING_AND_EVIDENCE.md")
+    assert str(PHASE_B_ROTATION_5_PASS_START) in text
+    assert str(PHASE_B_ROTATION_5_PASS_END) in text
+    assert re.search(
+        rf"passes {PHASE_B_ROTATION_5_PASS_START}[–-]{PHASE_B_ROTATION_5_PASS_END}|"
+        rf"pass {PHASE_B_ROTATION_5_PASS_START}\+",
+        text,
+    )
+
+
+def test_testing_manual_lists_rotation_5_contract_modules():
+    text = _read("docs/dev_manual/MARKETMIND_TESTING_AND_EVIDENCE.md")
+    for _theme, contract_path, _test_path in PHASE_B_ROTATION_5_CONTRACTS:
+        module_name = contract_path.split("/")[-1].replace(".py", "")
+        assert module_name in text, f"testing manual missing {module_name}"
+
+
+def test_testing_manual_lists_rotation_5_contract_tests():
+    text = _read("docs/dev_manual/MARKETMIND_TESTING_AND_EVIDENCE.md")
+    for _theme, _contract_path, test_path in PHASE_B_ROTATION_5_CONTRACTS:
+        test_name = test_path.split("/")[-1].replace(".py", "")
+        assert test_name in text, f"testing manual missing {test_name}"
+
+
+def test_changelog_documents_rotation_5_bookend_passes():
+    text = _read("CHANGELOG.md")
+    assert f"pass {PHASE_B_ROTATION_5_PASS_START}" in text
+    assert f"pass {PHASE_B_ROTATION_5_PASS_END - 1}" in text
+
+
+@pytest.mark.parametrize("theme", [theme for theme, _, _ in PHASE_B_ROTATION_5_CONTRACTS])
+def test_engineering_log_has_rotation_5_entry_per_theme(theme: str):
+    log_dir = REPO_ROOT / ENGINEERING_LOG_DIR
+    pattern = f"*{theme.replace('_', '-')}*{PHASE_B_ROTATION_5_ENGINEERING_LOG_SUFFIX}"
+    matches = [path for path in log_dir.glob(pattern) if path.is_file()]
+    assert matches, f"missing engineering log for rotation 5 theme {theme!r}"
+
+
+def test_operating_index_documents_rotation_5_complete():
+    text = _read("OPERATING_INDEX.md")
+    assert str(PHASE_B_ROTATION_5_PASS_END) in text
+    assert "rotation 5 complete" in text.lower()
+    assert "docs drift r5" in text

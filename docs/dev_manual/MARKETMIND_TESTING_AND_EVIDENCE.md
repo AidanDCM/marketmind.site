@@ -29,10 +29,10 @@ Run focused tests first when changing a narrow area.
 
 | Layer | Location | Count (approx) |
 |---|---|---|
-| Backend | `tests/test_*.py` | **917** pytest cases |
+| Backend | `tests/test_*.py` | **935** pytest cases |
 | Desktop | `desktop/src/**/*.test.ts(x)` | **29** Vitest files |
 | CI | `.github/workflows/ci.yml` | ruff + pytest + deploy smoke + desktop build/test |
-| Docs drift | `tests/test_docs_drift.py`, `test_docs_drift_hardening.py`, `test_docs_drift_contract.py` | env names, suite counts, rotation 3 contract parity |
+| Docs drift | `tests/test_docs_drift.py`, `test_docs_drift_hardening.py`, `test_docs_drift_contract.py` | env names, suite counts, rotation 3–5 contract parity |
 
 Minimum counts are also defined in `marketmind/docs_contract.py`.
 
@@ -165,6 +165,21 @@ UI label parity, and extended failure-edge guards:
 | 28 | Docs drift | `docs_contract.py` | `test_docs_drift_contract.py` |
 
 See engineering logs `2026-06-24-*-r4.md`.
+
+**Rotation 5** (passes 29–35) deepens rotation 4 contracts with additional API/UI
+failure-edge guards and rotation SSOT tables:
+
+| Pass | Theme | Contract module | Contract tests |
+|---|---|---|---|
+| 29 | Approval gate | `approval_gate_contract.py` | `test_approval_gate_contract.py` |
+| 30 | Operator health | `operator_health_contract.py` | `test_operator_health_contract.py` |
+| 31 | Overview navigation | `overview_navigation_contract.py` | `test_overview_navigation_contract.py` |
+| 32 | Experiment lifecycle | `experiment_lifecycle_contract.py` | `test_experiment_lifecycle_contract.py` |
+| 33 | Commerce adapters | `commerce_adapters_contract.py` | `test_commerce_adapters_contract.py` |
+| 34 | Deploy/CI | `deploy_ci_contract.py` | `test_deploy_ci_contract.py` |
+| 35 | Docs drift | `docs_contract.py` | `test_docs_drift_contract.py` |
+
+See engineering logs `2026-06-24-*-r5.md`.
 
 Record each pass in `docs/engineering_log/` even if only tests/docs changed.
 
