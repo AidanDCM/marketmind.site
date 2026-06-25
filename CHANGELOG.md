@@ -2,6 +2,17 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 11: Experiment lifecycle hardening (rotation 2)
+
+### Hardening: report string contract + lifecycle API/UI parity
+
+- **`experiment_lifecycle_contract.py`** — canonical daily-report phrases and attention rulings.
+- **`test_experiment_lifecycle_hardening.py`** — TS/Python cross-check, report emission,
+  active/trend ruling parity, `attention_only` filter, ended-experiment exclusion.
+- **`ActiveExperiments.test.tsx`** — attention/status filters, focus card, chart, end experiment.
+
+---
+
 ## 2026-06-24 — Phase B pass 10: Overview navigation hardening (rotation 2)
 
 ### Hardening: parent-level Overview integration coverage

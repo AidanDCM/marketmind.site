@@ -12,6 +12,18 @@ structured DailyReport the operator (or Codex dashboard) can act on.
 
 from __future__ import annotations
 
+from .experiment_lifecycle_contract import (
+    ATC_RISK_SUFFIX,
+    LOW_ROAS_LESSON_MARKER,
+    NO_EXPERIMENTS_RECOMMENDATION,
+    NO_ORDERS_LESSON_PREFIX,
+    PAST_LESSON_PREFIX,
+    POSITIVE_CONTRIBUTION_PREFIX,
+    REFUND_RISK_SUFFIX,
+    ROAS_SCALE_LESSON_PHRASE,
+    SCALE_APPROVAL_PHRASE,
+    ZERO_ORDER_SPEND_RISK,
+)
 from .rules import KILL_ATC_RATE, KILL_REFUND_RATE, SCALE_MAX_CAC_FACTOR, SCALE_MIN_ORDERS
 from .schemas import (
     ApprovalRecord,
@@ -70,22 +82,22 @@ def _derive_recommendations_and_risks(
     risks: list[str] = []
 
     if not snapshots:
-        recommendations.append("No experiments active today. Pick a product candidate to test.")
+        recommendations.append(NO_EXPERIMENTS_RECOMMENDATION)
         return tuple(recommendations), tuple(risks)
 
     if metrics.orders == 0 and metrics.ad_spend > 0:
-        risks.append("Spend with zero orders today — check targeting and offer.")
+        risks.append(ZERO_ORDER_SPEND_RISK)
 
     if metrics.refund_rate > KILL_REFUND_RATE:
         risks.append(
             f"Refund rate {metrics.refund_rate:.1%} exceeds kill threshold "
-            f"{KILL_REFUND_RATE:.0%} — review product quality."
+            f"{KILL_REFUND_RATE:.0%}{REFUND_RISK_SUFFIX}"
         )
 
     if metrics.ad_spend > 0 and metrics.orders == 0 and metrics.add_to_cart_rate < KILL_ATC_RATE:
         risks.append(
             f"Add-to-cart rate {metrics.add_to_cart_rate:.1%} below floor "
-            f"{KILL_ATC_RATE:.0%} — creative or price needs revision."
+            f"{KILL_ATC_RATE:.0%}{ATC_RISK_SUFFIX}"
         )
 
     for snap in snapshots:
@@ -102,12 +114,12 @@ def _derive_recommendations_and_risks(
             recommendations.append(
                 f"{snap.product_name}: hitting scale criteria "
                 f"(CAC ${snap.actual_cac:.2f}, {snap.orders} orders) — "
-                "submit scale request for approval."
+                f"{SCALE_APPROVAL_PHRASE}"
             )
 
     if metrics.contribution_profit > 0 and metrics.orders > 0:
         recommendations.append(
-            f"Positive contribution today (${metrics.contribution_profit:.2f}). "
+            f"{POSITIVE_CONTRIBUTION_PREFIX} (${metrics.contribution_profit:.2f}). "
             "Review experiment rules before increasing budget."
         )
 
@@ -127,7 +139,7 @@ def _derive_lessons(
     lessons: list[str] = []
 
     if metrics.orders == 0:
-        lessons.append("No orders: verify that the payment link / checkout is live and working.")
+        lessons.append(NO_ORDERS_LESSON_PREFIX)
 
     pending = [r for r in pending_approvals if r.status == ApprovalStatus.PENDING]
     if pending:
@@ -136,16 +148,18 @@ def _derive_lessons(
         )
 
     for mistake_lesson in recent_mistakes or []:
-        lessons.append(f"Past lesson: {mistake_lesson}")
+        lessons.append(f"{PAST_LESSON_PREFIX}{mistake_lesson}")
 
     if metrics.ad_spend > 0:
         roas = metrics.revenue / metrics.ad_spend
         if roas < 1.0:
-            lessons.append(f"ROAS is {roas:.2f} (below 1.0) — spending more than earning from ads.")
+            lessons.append(
+                f"ROAS is {roas:.2f} {LOW_ROAS_LESSON_MARKER} — "
+                "spending more than earning from ads."
+            )
         elif roas >= 3.0:
             lessons.append(
-                f"ROAS is {roas:.2f} — healthy signal; "
-                "confirm with experiment rules before scaling."
+                f"ROAS is {roas:.2f} — healthy signal; {ROAS_SCALE_LESSON_PHRASE}"
             )
 
     return tuple(lessons)

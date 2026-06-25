@@ -54,7 +54,7 @@ npm test
 npm run build
 ```
 
-27+ Vitest files today. Every new link/button/parser gets a component or unit test.
+28+ Vitest files today. Every new link/button/parser gets a component or unit test.
 
 ### Operator smoke (when touching API or deploy)
 
