@@ -10,7 +10,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 # Minimum suite sizes — tests fail if collection/file count drops below these.
-MIN_PYTEST_CASES = 964
+MIN_PYTEST_CASES = 973
 MIN_VITEST_FILES = 29
 
 # Env var names used in code / .env.example (not stale doc aliases).
@@ -160,8 +160,8 @@ PHASE_B_ROTATION_5_CONTRACTS: tuple[tuple[str, str, str], ...] = (
 PHASE_B_ROTATION_5_PASS_START = 29
 PHASE_B_ROTATION_5_PASS_END = 35
 
-CURRENT_HARDENING_PASS = 38
-CURRENT_HARDENING_PHASE_LABEL = "overview navigation r6"
+CURRENT_HARDENING_PASS = 39
+CURRENT_HARDENING_PHASE_LABEL = "experiment lifecycle r6"
 
 PHASE_B_ROTATION_4_ENGINEERING_LOG_SUFFIX = "-r4.md"
 PHASE_B_ROTATION_5_ENGINEERING_LOG_SUFFIX = "-r5.md"
@@ -170,6 +170,6 @@ PHASE_B_ROTATION_5_ENGINEERING_LOG_SUFFIX = "-r5.md"
 STALE_PYTEST_INVENTORY = (
     "465", "512", "556", "567", "585", "630", "644", "656", "667",
     "687", "708", "728", "757", "770", "784", "819", "837", "860",
-    "874", "884", "894", "903", "910", "917", "935", "944", "955",
+    "874", "884", "894", "903", "910", "917", "935", "944", "955", "964",
 )
 STALE_VITEST_INVENTORY = ("13 desktop Vitest", "27 desktop Vitest", "28 desktop Vitest")

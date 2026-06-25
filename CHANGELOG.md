@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 39: Experiment lifecycle hardening (rotation 6)
+
+### Hardening: reactivate clears ended_at, response key SSOT, notes load Vitest
+
+- **`experiment_lifecycle_contract.py`** — status/note/checklist/evaluate response keys, status constants.
+- **`test_experiment_lifecycle_contract.py`** — +9 tests: reactivate round-trip, response keys, portfolio count.
+- **`ActiveExperiments.test.tsx`** — +1 test: focused card loads notes via `getExperimentNotes`.
+
+---
+
 ## 2026-06-24 — Phase B pass 38: Overview navigation hardening (rotation 6)
 
 ### Hardening: trend min-days fragment, daily report keys, attention-only refetch Vitest

@@ -29,6 +29,7 @@ import {
   listActiveExperiments,
   patchExperimentStatus,
   addExperimentNote,
+  getExperimentNotes,
   fetchExperimentChecklist,
   fetchExperimentMistakes,
 } from "../api/client";
@@ -73,6 +74,8 @@ describe("ActiveExperiments lifecycle wiring", () => {
     Element.prototype.scrollIntoView = vi.fn();
     vi.mocked(listActiveExperiments).mockReset();
     vi.mocked(patchExperimentStatus).mockReset();
+    vi.mocked(getExperimentNotes).mockReset();
+    vi.mocked(getExperimentNotes).mockResolvedValue([]);
     vi.mocked(patchExperimentStatus).mockResolvedValue({
       experiment_id: "exp-ok",
       status: "ended",
@@ -249,6 +252,23 @@ describe("ActiveExperiments lifecycle wiring", () => {
       expect(screen.getByText("Scaled before checklist passed")).toBeInTheDocument();
     });
     expect(fetchExperimentMistakes).toHaveBeenCalledWith("exp-ok");
+  });
+
+  it("loads existing notes when experiment card is focused", async () => {
+    vi.mocked(getExperimentNotes).mockResolvedValue([
+      {
+        id: 1,
+        experiment_id: "exp-ok",
+        created_at: "2026-06-23T12:00:00Z",
+        body: "Existing note",
+      },
+    ]);
+    await renderActive([baseExp()], { focusExperimentId: "exp-ok" });
+
+    await waitFor(() => {
+      expect(getExperimentNotes).toHaveBeenCalledWith("exp-ok");
+      expect(screen.getByText("Existing note")).toBeInTheDocument();
+    });
   });
 
   it("adds a note from the expanded experiment card", async () => {
