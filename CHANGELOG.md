@@ -2,6 +2,18 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 4: Experiment lifecycle hardening
+
+### Hardening: daily report math, trend direction, rules priority
+
+- **`generate_daily_report`** — low add-to-cart risk, ROAS lessons, ATC aggregation regressions.
+- **`build_experiment_trend_summary`** — CAC down/flat, active-without-snapshots, scale attention.
+- **`evaluate_experiment`** — kill ruling wins when kill and pause signals both present.
+- **API** — `/report/daily` and `/experiment/trend-summary` integration tests with snapshots.
+- **Desktop** — `dailyReportNavigation` parses exact backend ATC risk and healthy ROAS lesson text.
+
+---
+
 ## 2026-06-24 — Phase B pass 3: Operator health hardening
 
 ### Hardening: health warnings match desktop parsers

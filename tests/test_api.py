@@ -505,6 +505,66 @@ def test_daily_report_empty(client):
     assert data["metrics"]["orders"] == 0
 
 
+def test_daily_report_aggregates_snapshot_for_date(client):
+    snap = {
+        "experiment_id": "exp_report_001",
+        "product_name": "Interior Kit",
+        "break_even_cac": 25.0,
+        "snapshot_date": "2026-06-16",
+        "qualified_visits": 200,
+        "orders": 8,
+        "total_ad_spend": 80.0,
+        "total_revenue": 320.0,
+        "refund_count": 0,
+        "actual_shipping_cost": 16.0,
+        "planned_shipping_cost": 15.0,
+        "add_to_cart_count": 24,
+        "consecutive_losing_periods": 0,
+        "budget_cap": 500.0,
+    }
+    assert client.post("/snapshots", json=snap).status_code == 200
+    resp = client.get("/report/daily?date=2026-06-16")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["metrics"]["orders"] == 8
+    assert data["metrics"]["revenue"] == 320.0
+    assert data["metrics"]["ad_spend"] == 80.0
+    assert any("Positive contribution" in rec for rec in data["recommendations"])
+
+
+def test_experiment_trend_summary_reflects_cac_direction(client):
+    for snap_date, ad_spend in [("2026-06-10", 100.0), ("2026-06-12", 50.0)]:
+        resp = client.post(
+            "/snapshots",
+            json={
+                "experiment_id": "exp_trend_api",
+                "product_name": "Trend Widget",
+                "break_even_cac": 20.0,
+                "snapshot_date": snap_date,
+                "qualified_visits": 100,
+                "orders": 10,
+                "total_ad_spend": ad_spend,
+                "total_revenue": 600.0,
+                "refund_count": 0,
+                "actual_shipping_cost": 10.0,
+                "planned_shipping_cost": 10.0,
+                "add_to_cart_count": 10,
+                "consecutive_losing_periods": 0,
+                "budget_cap": 100.0,
+            },
+        )
+        assert resp.status_code == 200
+
+    resp = client.get("/experiment/trend-summary?days=90&as_of=2026-06-12")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert len(data["experiments"]) == 1
+    row = data["experiments"][0]
+    assert row["experiment_id"] == "exp_trend_api"
+    assert row["cac_direction"] == "down"
+    assert row["latest_cac"] == pytest.approx(5.0)
+
+
 # ---------------------------------------------------------------------------
 # Import history (Slice 29)
 # ---------------------------------------------------------------------------

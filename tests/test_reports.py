@@ -121,6 +121,50 @@ def test_cac_above_breakeven_is_a_risk():
     assert any("cac" in r.lower() for r in report.risks)
 
 
+def test_low_add_to_cart_rate_is_a_risk():
+    report = generate_daily_report(
+        "2026-06-15",
+        [
+            _snap(
+                orders=0,
+                total_ad_spend=40.0,
+                total_revenue=0.0,
+                qualified_visits=400,
+                add_to_cart_count=2,
+            ),
+        ],
+    )
+    assert any("add-to-cart rate" in r.lower() for r in report.risks)
+    assert any("3%" in r for r in report.risks)
+
+
+def test_add_to_cart_rate_aggregated():
+    report = generate_daily_report(
+        "2026-06-15",
+        [_snap(qualified_visits=200, add_to_cart_count=10, orders=5)],
+    )
+    assert report.metrics.add_to_cart_rate == pytest.approx(0.05, abs=0.0001)
+
+
+def test_roas_below_one_surfaces_lesson():
+    report = generate_daily_report(
+        "2026-06-15",
+        [_snap(total_revenue=100.0, total_ad_spend=150.0, orders=2)],
+    )
+    assert any("ROAS is" in lesson and "below 1.0" in lesson for lesson in report.lessons)
+
+
+def test_roas_healthy_surfaces_scale_caution_lesson():
+    report = generate_daily_report(
+        "2026-06-15",
+        [_snap(total_revenue=400.0, total_ad_spend=100.0, orders=5)],
+    )
+    assert any(
+        "confirm with experiment rules before scaling" in lesson
+        for lesson in report.lessons
+    )
+
+
 # ---------------------------------------------------------------------------
 # Recommendations
 # ---------------------------------------------------------------------------

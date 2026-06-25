@@ -112,4 +112,21 @@ describe("dailyReportNavigation", () => {
     );
     expect(action).toEqual({ kind: "activeList" });
   });
+
+  it("routes healthy ROAS lessons to active experiments", () => {
+    const action = resolveDailyReportLessonAction(
+      "ROAS is 4.00 — healthy signal; confirm with experiment rules before scaling.",
+    );
+    expect(action).toEqual({ kind: "activeList" });
+    expect(dailyReportLessonActionLabel(action!)).toBe("View experiments");
+  });
+
+  it("routes backend low add-to-cart risk text to active experiments", () => {
+    expect(
+      resolveDailyReportLineAction(
+        "Add-to-cart rate 0.5% below floor 3% — creative or price needs revision.",
+        lookup,
+      ),
+    ).toEqual({ kind: "activeList" });
+  });
 });

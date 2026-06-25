@@ -110,9 +110,9 @@ New API endpoints added by the integration:
 
 - **Active owner:** Aidan
 - **Active maintainer:** Aidan / Codex agents
-- **Current phase:** Hardening — Phase B pass 3 complete (operator health); see `SLICE_WORKFLOW.md`
+- **Current phase:** Hardening — Phase B pass 4 complete (experiment lifecycle); see `SLICE_WORKFLOW.md`
 - **Last reviewed:** 2026-06-24
-- **Test inventory:** ~485 pytest + 13 desktop Vitest files; run `python scripts/local_ci.py` and `cd desktop && npm test` for evidence
+- **Test inventory:** ~495 pytest + 13 desktop Vitest files; run `python scripts/local_ci.py` and `cd desktop && npm test` for evidence
 - **Known blockers:** None
 
 ---
