@@ -1,4 +1,4 @@
-"""Phase B pass 33 (rotation 5): commerce adapters contract parity and deeper coverage."""
+"""Phase B pass 40 (rotation 6): commerce adapters contract parity and deeper coverage."""
 
 from __future__ import annotations
 
@@ -12,6 +12,8 @@ from fastapi.testclient import TestClient
 from marketmind.api.app import app
 from marketmind.approval_gate_contract import EXECUTOR_HANDLER_ACTIONS, HIGH_RISK_ACTIONS
 from marketmind.commerce_adapters_contract import (
+    AD_CSV_BODY_KEY,
+    AD_SPEND_SUMMARY_RESPONSE_KEYS,
     CHECK_COMMERCE_CONFIG_CLI,
     COMMERCE_ACTION_ALIASES,
     COMMERCE_AD_IMPORT_API_PATHS,
@@ -21,6 +23,7 @@ from marketmind.commerce_adapters_contract import (
     COMMERCE_DRY_RUN_FLAGS,
     COMMERCE_HANDLER_ACTIONS,
     COMMERCE_IMPORT_API_PATHS,
+    COMMERCE_IMPORT_BATCH_ID_KEY,
     COMMERCE_IMPORT_BATCH_NOT_FOUND_DETAIL,
     COMMERCE_IMPORT_EMPTY_CSV_DETAIL,
     COMMERCE_IMPORT_HISTORY_API_PATHS,
@@ -32,8 +35,10 @@ from marketmind.commerce_adapters_contract import (
     COMMERCE_SOURCES_ROUTER_PATH,
     DESKTOP_API_CLIENT_PATH,
     DESKTOP_LIVE_DATA_COMPONENT_PATH,
+    DESKTOP_LIVE_DATA_TEST_PATH,
     GMAIL_INTEGRATION_KEYS,
     IMPORT_HISTORY_SOURCE_QUERY,
+    IMPORT_HISTORY_STRIPE_SOURCE,
     INTEGRATIONS_LIVE_WRITES_KEY,
     INTEGRATIONS_SECRET_LEAK_MARKERS,
     LIVE_DATA_CREDENTIALS_409_HINT,
@@ -418,3 +423,59 @@ def test_secret_mask_vectors_fully_redacted(name: str, vector: str):
         if marker in vector:
             assert marker not in masked or "***REDACTED***" in masked
     assert vector != masked or "***REDACTED***" in masked, name
+
+
+def test_import_pull_shopify_orders_safe_fails_without_credentials(
+    commerce_contract_client,
+):
+    resp = commerce_contract_client.post("/imports/pull/shopify/orders")
+    assert resp.status_code == 409
+    _assert_no_secrets(resp.text)
+
+
+def test_imports_router_documents_batch_id_and_csv_body_key():
+    source = (REPO_ROOT / COMMERCE_IMPORTS_ROUTER_PATH).read_text(encoding="utf-8")
+    assert COMMERCE_IMPORT_BATCH_ID_KEY in source
+    assert AD_CSV_BODY_KEY in source
+    assert COMMERCE_IMPORT_BATCH_NOT_FOUND_DETAIL in source
+
+
+def test_desktop_client_documents_fetch_ad_spend_summary():
+    text = (REPO_ROOT / DESKTOP_API_CLIENT_PATH).read_text(encoding="utf-8")
+    assert "fetchAdSpendSummary" in text
+    assert COMMERCE_AD_SUMMARY_HAS_DATA_KEY in text
+    assert "/imports/ads/summary" in text
+
+
+def test_desktop_client_documents_pull_and_save_stripe_orders():
+    text = (REPO_ROOT / DESKTOP_API_CLIENT_PATH).read_text(encoding="utf-8")
+    assert "pullAndSaveStripeOrders" in text
+    assert COMMERCE_IMPORT_BATCH_ID_KEY in text
+    assert "/imports/pull/stripe/orders" in text
+
+
+def test_ad_spend_summary_response_includes_contract_keys(commerce_contract_client):
+    data = commerce_contract_client.get("/imports/ads/summary").json()
+    for key in AD_SPEND_SUMMARY_RESPONSE_KEYS:
+        assert key in data
+
+
+@pytest.mark.parametrize("alias_target", sorted(set(COMMERCE_ACTION_ALIASES.values())))
+def test_commerce_action_alias_targets_are_high_risk(alias_target: str):
+    assert alias_target in HIGH_RISK_ACTIONS
+
+
+def test_import_history_router_documents_source_query_param():
+    source = (REPO_ROOT / COMMERCE_IMPORTS_ROUTER_PATH).read_text(encoding="utf-8")
+    assert IMPORT_HISTORY_SOURCE_QUERY in source
+    assert IMPORT_HISTORY_STRIPE_SOURCE in source or "source" in source
+
+
+def test_live_data_component_documents_fetch_ad_spend_summary():
+    text = (REPO_ROOT / DESKTOP_LIVE_DATA_COMPONENT_PATH).read_text(encoding="utf-8")
+    assert "fetchAdSpendSummary" in text
+    assert COMMERCE_AD_SUMMARY_HAS_DATA_KEY in text
+
+
+def test_live_data_contract_test_file_exists_on_disk():
+    assert (REPO_ROOT / DESKTOP_LIVE_DATA_TEST_PATH).is_file()

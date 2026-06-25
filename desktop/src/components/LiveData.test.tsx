@@ -14,6 +14,7 @@ vi.mock("../api/client", () => ({
 
 import {
   pullAndSaveStripeOrders,
+  pullAndSaveShopifyOrders,
   listImportHistory,
   fetchOrderLifecycle,
   fetchAdSpendSummary,
@@ -23,6 +24,7 @@ import {
 describe("LiveData commerce wiring", () => {
   beforeEach(() => {
     vi.mocked(pullAndSaveStripeOrders).mockReset();
+    vi.mocked(pullAndSaveShopifyOrders).mockReset();
     vi.mocked(pullAndSaveStripeOrders).mockResolvedValue({
       batch_id: 1,
       source: "stripe_charges",
@@ -30,6 +32,14 @@ describe("LiveData commerce wiring", () => {
       ok_count: 2,
       review_count: 0,
       ok_rows: [{ data: { id: "ch_1", amount: "59.00" } }],
+    });
+    vi.mocked(pullAndSaveShopifyOrders).mockResolvedValue({
+      batch_id: 3,
+      source: "shopify_orders",
+      total_rows: 1,
+      ok_count: 1,
+      review_count: 0,
+      ok_rows: [{ data: { id: "ord_1", total_price: "59.00" } }],
     });
     vi.mocked(listImportHistory).mockResolvedValue([]);
     vi.mocked(fetchOrderLifecycle).mockResolvedValue({ orders: [] });
@@ -43,6 +53,18 @@ describe("LiveData commerce wiring", () => {
 
     await waitFor(() => {
       expect(pullAndSaveStripeOrders).toHaveBeenCalled();
+    });
+  });
+
+  it("pulls Shopify orders when Shopify Orders tab is active", async () => {
+    render(<LiveData />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Shopify Orders" }));
+    fireEvent.click(screen.getByRole("button", { name: "Pull Now" }));
+
+    await waitFor(() => {
+      expect(pullAndSaveShopifyOrders).toHaveBeenCalled();
+      expect(pullAndSaveStripeOrders).not.toHaveBeenCalled();
     });
   });
 
