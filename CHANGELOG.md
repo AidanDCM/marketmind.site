@@ -2,6 +2,17 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 37: Operator health hardening (rotation 6)
+
+### Hardening: snapshot-gaps empty date 422, run-cycle edges, CLI pending blocker
+
+- **`operator.py`** — reject empty `date=` on `GET /operator/snapshot-gaps` (parity with health-panel/readiness).
+- **`operator_health_contract.py`** — run-cycle/last-cycle paths, integrations subkeys, UI button labels.
+- **`test_operator_health_contract.py`** — +11 tests: 422 edges, pending blocker API/CLI, integrations keys.
+- **`OperatorHealthPanel.test.tsx`** — +1 test: `Snapshots for` date header when gaps exist.
+
+---
+
 ## 2026-06-24 — Phase B pass 36: Approval gate hardening (rotation 6)
 
 ### Hardening: approve/deny 404 edges, badge map SSOT, Deny button Vitest
