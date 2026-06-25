@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 13: Deploy/CI hardening (rotation 2)
+
+### Hardening: deploy verify integrations + CI workflow contract
+
+- **`deploy_ci_contract.py`** — verify endpoints, scripts, workflow job names, leak markers.
+- **`deploy_verify.py`** — checks `/operator/integrations` for forbidden secret substrings.
+- **`test_deploy_ci_hardening.py`** — CI workflow parity with `local_ci` and contract endpoints.
+
+---
+
 ## 2026-06-24 — Phase B pass 12: Commerce adapters hardening (rotation 2)
 
 ### Hardening: secret mask contract + commerce API/CLI parity
