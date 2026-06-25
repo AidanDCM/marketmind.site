@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-25 — Phase B pass 41: Deploy/CI hardening (rotation 6)
+
+### Hardening: health-wait loop SSOT, DeployVerifyResult fields, rk_live_ leak marker
+
+- **`deploy_ci_contract.py`** — health-wait sleep/curl fragments, `DeployVerifyResult` fields, `rk_live_` marker.
+- **`test_deploy_ci_contract.py`** — +8 tests: wait loop, result metadata, stderr routing, version parity.
+- **`logging_config.py`** — `mask_secret` redacts Stripe restricted keys (`rk_live_`).
+
+---
+
 ## 2026-06-24 — Phase B pass 40: Commerce adapters hardening (rotation 6)
 
 ### Hardening: import pull Shopify orders 409, batch_id SSOT, Shopify Pull Vitest

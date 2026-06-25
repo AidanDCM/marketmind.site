@@ -20,6 +20,7 @@ CI_DEPLOY_VERIFY_ENDPOINTS: tuple[str, ...] = (
 INTEGRATIONS_SECRET_LEAK_MARKERS: tuple[str, ...] = (
     "sk_test_",
     "sk_live_",
+    "rk_live_",
     "shpat_",
     "whsec_",
     "Bearer ",
@@ -63,13 +64,29 @@ CI_DATABASE_URL = "sqlite:///data/ci.db"
 CI_API_HOST = "127.0.0.1"
 CI_API_PORT = 8000
 CI_HEALTH_WAIT_MAX_ATTEMPTS = 30
+CI_HEALTH_WAIT_SLEEP_SECONDS = 1
 CI_HEALTH_PATH = "/health"
+CI_HEALTH_API_URL = f"http://{CI_API_HOST}:{CI_API_PORT}{CI_HEALTH_PATH}"
+CI_HEALTH_WAIT_CURL_BREAK_FRAGMENT = f"curl -sf {CI_HEALTH_API_URL} && break"
 CI_UVICORN_APP_TARGET = "marketmind.api.app:app"
 
 CI_BACKEND_JOB_NAME = "Backend (ruff + pytest)"
 CI_FRONTEND_JOB_NAME = "Desktop frontend (typecheck + build)"
 
 HEALTH_RESPONSE_KEYS: tuple[str, ...] = ("status", "version")
+HEALTH_EXPECTED_VERSION = "0.2.0"
+
+DEPLOY_VERIFY_RESULT_FIELDS: tuple[str, ...] = (
+    "ok",
+    "failures",
+    "warnings",
+    "health_version",
+    "safe_to_operate",
+    "ready",
+    "lines",
+)
+
+DEPLOY_VERIFY_FAIL_LINE_PREFIX = "FAIL"
 
 DEPLOY_VERIFY_MODULE_PATH = "marketmind/deploy_verify.py"
 
@@ -119,8 +136,11 @@ __all__ = [
     "CI_DEPLOY_VERIFY_SCRIPTS",
     "CI_FRONTEND_JOB_NAME",
     "CI_FRONTEND_STEP_COMMANDS",
+    "CI_HEALTH_API_URL",
     "CI_HEALTH_PATH",
+    "CI_HEALTH_WAIT_CURL_BREAK_FRAGMENT",
     "CI_HEALTH_WAIT_MAX_ATTEMPTS",
+    "CI_HEALTH_WAIT_SLEEP_SECONDS",
     "CI_NODE_VERSION",
     "CI_PYTHON_VERSION",
     "CI_UVICORN_APP_TARGET",
@@ -134,11 +154,14 @@ __all__ = [
     "DEPLOY_READINESS_BLOCKER_PREFIX",
     "DEPLOY_READINESS_FETCH_FAILURE_PREFIX",
     "DEPLOY_READINESS_NOT_READY_FAILURE",
+    "DEPLOY_VERIFY_FAIL_LINE_PREFIX",
+    "DEPLOY_VERIFY_RESULT_FIELDS",
     "DEPLOY_VERIFY_DEFAULT_API_BASE",
     "DEPLOY_VERIFY_ENV_VARS",
     "DEPLOY_VERIFY_MODULE_PATH",
     "DEPLOY_VERIFY_SUCCESS_LINE",
     "FULL_CI_EXTRA_STEP_NAMES",
+    "HEALTH_EXPECTED_VERSION",
     "HEALTH_RESPONSE_KEYS",
     "HEALTH_STATUS_OK",
     "INTEGRATIONS_SECRET_LEAK_MARKERS",

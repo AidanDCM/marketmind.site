@@ -1,6 +1,8 @@
-"""Phase B pass 34 (rotation 5): deploy/CI contract parity and deeper coverage."""
+"""Phase B pass 41 (rotation 6): deploy/CI contract parity and deeper coverage."""
 
 from __future__ import annotations
+
+from dataclasses import fields
 
 import pytest
 from fastapi.testclient import TestClient
@@ -26,7 +28,9 @@ from marketmind.deploy_ci_contract import (
     CI_FRONTEND_JOB_NAME,
     CI_FRONTEND_STEP_COMMANDS,
     CI_HEALTH_PATH,
+    CI_HEALTH_WAIT_CURL_BREAK_FRAGMENT,
     CI_HEALTH_WAIT_MAX_ATTEMPTS,
+    CI_HEALTH_WAIT_SLEEP_SECONDS,
     CI_NODE_VERSION,
     CI_PYTHON_VERSION,
     CI_UVICORN_APP_TARGET,
@@ -42,9 +46,12 @@ from marketmind.deploy_ci_contract import (
     DEPLOY_READINESS_NOT_READY_FAILURE,
     DEPLOY_VERIFY_DEFAULT_API_BASE,
     DEPLOY_VERIFY_ENV_VARS,
+    DEPLOY_VERIFY_FAIL_LINE_PREFIX,
     DEPLOY_VERIFY_MODULE_PATH,
+    DEPLOY_VERIFY_RESULT_FIELDS,
     DEPLOY_VERIFY_SUCCESS_LINE,
     FULL_CI_EXTRA_STEP_NAMES,
+    HEALTH_EXPECTED_VERSION,
     HEALTH_RESPONSE_KEYS,
     HEALTH_STATUS_OK,
     INTEGRATIONS_SECRET_LEAK_MARKERS,
@@ -54,7 +61,7 @@ from marketmind.deploy_ci_contract import (
     LOCAL_CI_STATUS_CONTEXT,
     format_integrations_leak_failure,
 )
-from marketmind.deploy_verify import verify_marketmind_deploy
+from marketmind.deploy_verify import DeployVerifyResult, verify_marketmind_deploy
 from marketmind.docs_contract import DEPLOYMENT_DOC_PATH, REPO_ROOT
 from marketmind.local_ci import (
     CI_STEPS,
@@ -485,3 +492,69 @@ def test_verify_forwards_api_token_to_fetch_callable():
     assert result.ok is True
     assert seen
     assert all(token == "deploy-token" for token in seen)
+
+
+def test_ci_health_wait_loop_documents_sleep_and_curl_break():
+    workflow = (REPO_ROOT / CI_WORKFLOW_REL_PATH).read_text(encoding="utf-8")
+    assert CI_HEALTH_WAIT_CURL_BREAK_FRAGMENT in workflow
+    assert f"sleep {CI_HEALTH_WAIT_SLEEP_SECONDS}" in workflow
+    assert f"seq 1 {CI_HEALTH_WAIT_MAX_ATTEMPTS}" in workflow
+
+
+def test_deploy_verify_module_documents_all_contract_endpoints():
+    source = (REPO_ROOT / DEPLOY_VERIFY_MODULE_PATH).read_text(encoding="utf-8")
+    for endpoint in CI_DEPLOY_VERIFY_ENDPOINTS:
+        assert endpoint.lstrip("/") in source
+
+
+def test_deploy_verify_result_fields_match_contract():
+    names = tuple(field.name for field in fields(DeployVerifyResult))
+    assert names == DEPLOY_VERIFY_RESULT_FIELDS
+
+
+def test_verify_success_populates_deploy_result_metadata():
+    result = verify_marketmind_deploy(
+        "http://127.0.0.1:8000",
+        fetch=_mock_fetch({
+            CI_HEALTH_PATH: {"status": HEALTH_STATUS_OK, "version": "0.1.0"},
+            "/operator/health-panel": _panel_payload(),
+            "/operator/readiness": {"ready": True, "blockers": []},
+            "/operator/integrations": _integrations_payload(),
+        }),
+    )
+    assert result.ok is True
+    assert result.health_version == "0.1.0"
+    assert result.safe_to_operate is True
+    assert result.ready is True
+    assert result.failures == ()
+    assert result.warnings == ()
+
+
+def test_check_operator_readiness_api_default_base_matches_contract():
+    source = (REPO_ROOT / CI_DEPLOY_VERIFY_SCRIPTS[1]).read_text(encoding="utf-8")
+    assert f'get("MARKETMIND_API_BASE", "{DEPLOY_VERIFY_DEFAULT_API_BASE}")' in source
+
+
+def test_verify_script_routes_fail_lines_to_stderr(monkeypatch, capsys):
+    import scripts.verify_marketmind_deploy as verify_script
+
+    def fake_verify(_base: str, _token: str | None = None, **_kwargs):
+        return DeployVerifyResult(
+            ok=False,
+            failures=("health: timeout",),
+            lines=(
+                "OK  GET /health -> ?",
+                "FAIL health: timeout",
+            ),
+        )
+
+    monkeypatch.setattr(verify_script, "verify_marketmind_deploy", fake_verify)
+    assert verify_script.main() == 1
+    captured = capsys.readouterr()
+    assert f"{DEPLOY_VERIFY_FAIL_LINE_PREFIX} health: timeout" in captured.err
+    assert "OK  GET /health" in captured.out
+
+
+def test_health_endpoint_version_matches_contract(deploy_contract_client):
+    data = deploy_contract_client.get(CI_HEALTH_PATH).json()
+    assert data["version"] == HEALTH_EXPECTED_VERSION
