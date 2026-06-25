@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-24 — Phase B pass 30: Operator health hardening (rotation 5)
+
+### Hardening: snapshot-gaps API edges + readiness date 422 + health-panel UI parity
+
+- **`operator_health_contract.py`** — router paths, checklist keys, empty-date detail, UI labels.
+- **`test_operator_health_contract.py`** — +10 tests: snapshot-gaps date scope, readiness 422, last-cycle empty, preflight `operator_log_exists`, desktop query params, UI parity.
+- **`OperatorHealthPanel.test.tsx`** — +2 tests: `Run cycle now` invokes `onRunCycle`.
+
+---
+
 ## 2026-06-24 — Phase B pass 29: Approval gate hardening (rotation 5)
 
 ### Hardening: approval CRUD API paths + transition 409 edges + queue approve wiring

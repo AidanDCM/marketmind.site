@@ -276,4 +276,26 @@ describe("OperatorHealthPanelView", () => {
     fireEvent.click(screen.getByRole("button", { name: "Record snapshot" }));
     expect(onOpenSnapshots).toHaveBeenCalledWith("2026-06-23", "exp_gap");
   });
+
+  it("invokes onRunCycle when Run cycle now is clicked", () => {
+    const onRunCycle = vi.fn();
+    render(
+      <OperatorHealthPanelView health={baseHealth} onRunCycle={onRunCycle} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Run cycle now" }));
+    expect(onRunCycle).toHaveBeenCalledOnce();
+  });
+
+  it("invokes onRunCycle from empty last-cycle card", () => {
+    const onRunCycle = vi.fn();
+    const health: OperatorHealthPanel = {
+      ...baseHealth,
+      last_cycle: null,
+    };
+    render(
+      <OperatorHealthPanelView health={health} onRunCycle={onRunCycle} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Run cycle now" }));
+    expect(onRunCycle).toHaveBeenCalledOnce();
+  });
 });

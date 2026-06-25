@@ -1,4 +1,4 @@
-"""Phase B pass 16 (rotation 3): operator health contract parity and deeper coverage."""
+"""Phase B pass 30 (rotation 5): operator health contract parity and deeper coverage."""
 
 from __future__ import annotations
 
@@ -19,20 +19,31 @@ from marketmind.operator_health import build_operator_health
 from marketmind.operator_health_contract import (
     ATTENTION_RULINGS,
     DESKTOP_API_CLIENT_PATH,
+    DESKTOP_OPERATOR_HEALTH_PANEL_PATH,
+    DESKTOP_PREFLIGHT_SUMMARY_ACTIONS_PATH,
     DESKTOP_READINESS_CONSTANTS_PATH,
     EXPERIMENT_RULING_BLOCKER_PATTERN,
     GMAIL_LIVE_NOT_READY_WARNING,
     GMAIL_SECRET_MISSING_WARNING,
+    HEALTH_PANEL_LAST_CYCLE_TITLE,
+    HEALTH_PANEL_RECORD_SNAPSHOTS_BUTTON,
+    HEALTH_PANEL_RUN_CYCLE_BUTTON,
+    HEALTH_PANEL_SNAPSHOTS_FOR_PREFIX,
     MISSING_SNAPSHOT_WARNING_PATTERN,
+    OPERATOR_CHECKLIST_CONFIG_KEYS,
     OPERATOR_HEALTH_API_PATHS,
     OPERATOR_HEALTH_DESKTOP_API_PATHS,
     OPERATOR_HEALTH_EXTENDED_API_PATHS,
     OPERATOR_HEALTH_PANEL_DATE_QUERY,
+    OPERATOR_LAST_CYCLE_HAS_DATA_KEY,
     OPERATOR_LOG_MISSING_WARNING,
     OPERATOR_READINESS_CLI,
     OPERATOR_READINESS_CLI_API_FLAG,
     OPERATOR_READINESS_DATE_QUERY,
+    OPERATOR_READINESS_EMPTY_DATE_DETAIL,
     OPERATOR_READINESS_STRICT_QUERY,
+    OPERATOR_ROUTER_PATH,
+    OPERATOR_SNAPSHOT_GAPS_API_PATH,
     PENDING_APPROVALS_BLOCKER_PATTERN,
     READINESS_BANNER_ACTION_LABELS,
     SHOPIFY_LIVE_WARNING_PREFIX,
@@ -289,12 +300,91 @@ def test_gmail_secret_missing_warning_when_live_writes_without_secret(
 
 
 def test_operator_router_documents_strict_and_date_query_params():
-    source = (REPO_ROOT / "marketmind/api/routers/operator.py").read_text(
-        encoding="utf-8"
-    )
+    source = (REPO_ROOT / OPERATOR_ROUTER_PATH).read_text(encoding="utf-8")
     assert OPERATOR_READINESS_STRICT_QUERY in source
     assert OPERATOR_READINESS_DATE_QUERY in source
     assert OPERATOR_HEALTH_PANEL_DATE_QUERY in source
+    assert OPERATOR_READINESS_EMPTY_DATE_DETAIL in source
+    assert "/snapshot-gaps" in source
+    assert "/last-cycle" in source
+    assert "/checklist-config" in source
+
+
+def test_snapshot_gaps_api_scopes_date_with_active_experiment(health_client, health_engine):
+    _add_active_experiment(health_engine, "exp_gap_api")
+    data = health_client.get(
+        f"{OPERATOR_SNAPSHOT_GAPS_API_PATH}?{OPERATOR_READINESS_DATE_QUERY}=2026-06-11"
+    ).json()
+    assert data["snapshot_date"] == "2026-06-11"
+    assert data["missing_count"] == 1
+    assert data["missing"][0]["experiment_id"] == "exp_gap_api"
+
+
+def test_readiness_empty_date_query_returns_422(health_client):
+    resp = health_client.get(f"/operator/readiness?{OPERATOR_READINESS_DATE_QUERY}=")
+    assert resp.status_code == 422
+    assert OPERATOR_READINESS_EMPTY_DATE_DETAIL in resp.json()["detail"]
+
+
+def test_checklist_config_returns_contract_keys(health_client):
+    data = health_client.get("/operator/checklist-config").json()
+    for key in OPERATOR_CHECKLIST_CONFIG_KEYS:
+        assert key in data
+
+
+def test_last_cycle_empty_returns_has_data_false(health_client, monkeypatch):
+    monkeypatch.setattr(
+        "marketmind.api.routers.operator.get_last_daily_cycle",
+        lambda: None,
+    )
+    data = health_client.get("/operator/last-cycle").json()
+    assert data[OPERATOR_LAST_CYCLE_HAS_DATA_KEY] is False
+    assert data["cycle"] is None
+
+
+def test_preflight_endpoint_includes_operator_log_exists(health_client):
+    data = health_client.get("/operator/preflight").json()
+    assert "operator_log_exists" in data
+    assert isinstance(data["operator_log_exists"], bool)
+
+
+def test_health_panel_preflight_includes_operator_log_exists(health_client):
+    data = health_client.get("/operator/health-panel").json()
+    assert "operator_log_exists" in data["preflight"]
+    assert isinstance(data["preflight"]["operator_log_exists"], bool)
+
+
+def test_desktop_client_health_panel_documents_date_query():
+    text = (REPO_ROOT / DESKTOP_API_CLIENT_PATH).read_text(encoding="utf-8")
+    assert "fetchOperatorHealthPanel" in text
+    assert f"?{OPERATOR_HEALTH_PANEL_DATE_QUERY}=" in text
+
+
+def test_desktop_client_readiness_documents_date_and_strict_params():
+    text = (REPO_ROOT / DESKTOP_API_CLIENT_PATH).read_text(encoding="utf-8")
+    assert "fetchOperatorReadiness" in text
+    assert f'params.set("{OPERATOR_READINESS_DATE_QUERY}"' in text
+    assert f'params.set("{OPERATOR_READINESS_STRICT_QUERY}"' in text
+    assert "operator_log_exists" in text
+
+
+def test_operator_health_panel_component_documents_ui_labels():
+    text = (REPO_ROOT / DESKTOP_OPERATOR_HEALTH_PANEL_PATH).read_text(
+        encoding="utf-8"
+    )
+    assert HEALTH_PANEL_RUN_CYCLE_BUTTON in text
+    assert HEALTH_PANEL_RECORD_SNAPSHOTS_BUTTON in text
+    assert HEALTH_PANEL_LAST_CYCLE_TITLE in text
+    assert HEALTH_PANEL_SNAPSHOTS_FOR_PREFIX in text
+
+
+def test_preflight_summary_actions_documents_queue_and_attention_labels():
+    text = (REPO_ROOT / DESKTOP_PREFLIGHT_SUMMARY_ACTIONS_PATH).read_text(
+        encoding="utf-8"
+    )
+    assert READINESS_BANNER_ACTION_LABELS["approvals"] in text
+    assert "Show attention" in text
+    assert "preflightSummaryActions" in text
 
 
 def test_operator_readiness_cli_documents_api_flag():
